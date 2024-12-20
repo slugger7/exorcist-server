@@ -6,8 +6,10 @@ Similar to ghost and poltergeist this one is written in golang
 
 - Install Go
 - Install Docker
+- Install psql
 - Copy `templte.env` -> `.env` and fill in the details
 - `docker compose up -d` to start the database
+- `psql -U exorcist -h 127.0.0.1 -p 5432 -d exorcist -f ./migration/database.sql` initial database structure
 - `make run` to start the application
 
 ## Tools
