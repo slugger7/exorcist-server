@@ -7,14 +7,8 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	. "github.com/slugger7/exorcist/internal/errors"
 )
-
-func CheckError(err error) {
-	if err != nil {
-		fmt.Println("Found an error")
-		panic(err)
-	}
-}
 
 func main() {
 	err := godotenv.Load()
