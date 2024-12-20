@@ -1,3 +1,21 @@
+create table library (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "name" varchar not null unique,
+  created timestamp default current_timestamp not null,
+  modified timestamp default current_timestamp not null
+);
+
+create table library_path (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  library_id uuid not null,
+  path varchar not null unique,
+  created timestamp default current_timestamp not null,
+  modified timestamp default current_timestamp not null,
+  constraint fk_library
+    foreign key(library_id) references library(id)
+    on delete cascade
+);
+
 create table video (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   library_path_id uuid not null,
@@ -16,4 +34,4 @@ create table video (
   constraint fk_library_path
     foreign key(library_path_id) references library_path(id)
     on delete cascade
-)
+);
