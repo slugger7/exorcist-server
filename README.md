@@ -20,6 +20,10 @@ Similar to ghost and poltergeist this one is written in golang
 
 ### Database
 
+For this application I want to try creating a database first design while also not using an ORM but rather a SQL builder.
+
+There is still some work to do to figure out how to properly create migrations for this project though.
+
 [raw postgres](https://golangdocs.com/golang-postgresql-example)
 
 [Jet](https://github.com/go-jet/jet)
@@ -30,3 +34,11 @@ For some reason this does not run in zsh. Run it in bash
 ### Environment
 
 [dotenv](https://github.com/joho/godotenv)
+
+### Troubleshooting
+
+- If using zsh remember to add the following to your .zshrc
+  ```bash
+  export GOPATH=$HOME/go  
+  export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+  ```
