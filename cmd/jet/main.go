@@ -46,4 +46,19 @@ func main() {
 	err = stmnt.Query(db, &dest)
 
 	fmt.Println(dest[len(dest)-1].Name)
+
+	newLib := model.Library{
+		Name: "new lib",
+	}
+
+	insertStatement := Library.INSERT(Library.Name).
+		MODEL(newLib).
+		RETURNING(Library.AllColumns)
+
+	query = stmnt.DebugSql()
+
+	fmt.Println(query)
+	err = insertStatement.Query(db, &dest)
+
+	fmt.Println(dest[len(dest)-1].Name)
 }
