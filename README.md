@@ -38,6 +38,7 @@ For some reason this does not run in zsh. Run it in bash
 ### Troubleshooting
 
 - If using zsh remember to add the following to your .zshrc
+
   ```bash
   export GOPATH=$HOME/go  
   export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
