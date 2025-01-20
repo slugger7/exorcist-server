@@ -7,6 +7,7 @@ Similar to ghost and poltergeist this one is written in golang
 - Install Go
 - Install Docker
 - Install psql
+- Install ffmpeg
 - Copy `templte.env` -> `.env` and fill in the details
 - `docker compose up -d` to start the database
 - `psql -U exorcist -h 127.0.0.1 -p 5432 -d exorcist -f ./migration/database.sql` initial database structure
@@ -30,6 +31,10 @@ There is still some work to do to figure out how to properly create migrations f
 
 `jet -dsn=postgresql://${user}:${pass}@localhost:5432/exorcist?sslmode=disable -schema=public -path=./gen`
 For some reason this does not run in zsh. Run it in bash
+
+### FFMpeg stuff
+
+[Wrapper](https://github.com/u2takey/ffmpeg-go)
 
 ### Environment
 
