@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	. "github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	. "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/media"
 )
 
 func main() {
+	path := ""
 	err := godotenv.Load()
 	CheckError(err)
 
@@ -27,22 +32,75 @@ func main() {
 	CheckError(err)
 	defer db.Close()
 
-	err = db.Ping()
+	libraryPathId := createLibWithPath(db, path)
+
+	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
 	CheckError(err)
 
-	fmt.Println("Querying DB")
-	rows, err := db.Query(`SELECT "name" FROM library`)
-	CheckError(err)
-
-	defer rows.Close()
-
-	fmt.Println("Reading rows")
-	for rows.Next() {
-		var name string
-		err = rows.Scan(&name)
-		CheckError(err)
-
-		fmt.Println(name)
+	fmt.Println("Printing out results")
+	videoModels := []model.Video{}
+	for _, v := range values {
+		fmt.Println(v)
+		checksum := "lol"
+		videoModels = append(videoModels, model.Video{
+			LibraryPathID: libraryPathId,
+			RelativePath:  v,
+			Title:         "",
+			FileName:      "",
+			Height:        666,
+			Width:         666,
+			Runtime:       666,
+			Size:          666,
+			Checksum:      &checksum,
+		})
 	}
+
+	insertStatement := Video.INSERT(
+		Video.LibraryPathID,
+		Video.RelativePath,
+		Video.Title,
+		Video.FileName,
+		Video.Height,
+		Video.Width,
+		Video.Runtime,
+		Video.Size,
+		Video.Checksum,
+	).
+		MODELS(videoModels).
+		RETURNING(Video.ID)
+
+	var newVideos []struct {
+		model.Video
+	}
+	err = insertStatement.Query(db, &newVideos)
+}
+
+func createLibWithPath(db *sql.DB, path string) uuid.UUID {
+	newLib := model.Library{
+		Name: "New Lib",
+	}
+
+	insertStatement := Library.INSERT(Library.Name).MODEL(newLib).RETURNING(Library.ID)
+
+	var library []struct {
+		model.Library
+	}
+
+	err := insertStatement.Query(db, &library)
 	CheckError(err)
+
+	newLibPath := model.LibraryPath{
+		LibraryID: library[0].ID,
+		Path:      path,
+	}
+
+	insertStatement = LibraryPath.INSERT(LibraryPath.LibraryID, LibraryPath.Path).MODEL(newLibPath).RETURNING(LibraryPath.ID)
+
+	var libraryPath []struct {
+		model.LibraryPath
+	}
+
+	err = insertStatement.Query(db, &libraryPath)
+
+	return libraryPath[0].ID
 }
