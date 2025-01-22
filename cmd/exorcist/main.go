@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -11,11 +13,13 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	. "github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	. "github.com/slugger7/exorcist/internal/errors"
+	ff "github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
+	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 func main() {
-	path := ""
+	path := "."
 	err := godotenv.Load()
 	CheckError(err)
 
@@ -32,7 +36,12 @@ func main() {
 	CheckError(err)
 	defer db.Close()
 
-	libraryPathId := createLibWithPath(db, path)
+	libraryPathId, err := getExistingLibraryPathID(db)
+	if err != nil {
+		libraryPathId = createLibWithPath(db, path)
+	}
+
+	fmt.Printf("Library path id %v\n", libraryPathId)
 
 	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
 	CheckError(err)
@@ -42,13 +51,28 @@ func main() {
 	for _, v := range values {
 		fmt.Println(v)
 		checksum := "lol"
+
+		probeData, err := ffmpeg.Probe(v)
+		CheckError(err)
+
+		fmt.Println(probeData)
+
+		var data *ff.Probe
+		err = json.Unmarshal([]byte(probeData), &data)
+		CheckError(err)
+
+		width, height, err := ff.GetDimensions(data.Streams)
+		CheckError(err)
+
+		fmt.Printf("Height: %v Width: %v", height, width)
+
 		videoModels = append(videoModels, model.Video{
 			LibraryPathID: libraryPathId,
 			RelativePath:  v,
 			Title:         "",
 			FileName:      "",
-			Height:        666,
-			Width:         666,
+			Height:        int32(height),
+			Width:         int32(width),
 			Runtime:       666,
 			Size:          666,
 			Checksum:      &checksum,
@@ -73,6 +97,24 @@ func main() {
 		model.Video
 	}
 	err = insertStatement.Query(db, &newVideos)
+	CheckError(err)
+}
+
+func getExistingLibraryPathID(db *sql.DB) (uuid.UUID, error) {
+	selectQuery := LibraryPath.SELECT(LibraryPath.ID).FROM(LibraryPath)
+
+	var libraryPath []struct {
+		model.LibraryPath
+	}
+
+	err := selectQuery.Query(db, &libraryPath)
+	CheckError(err)
+
+	if len(libraryPath) == 0 {
+		return uuid.Nil, errors.New("no library path was found, first creat a library")
+	}
+
+	return libraryPath[0].ID, nil
 }
 
 func createLibWithPath(db *sql.DB, path string) uuid.UUID {
@@ -101,6 +143,7 @@ func createLibWithPath(db *sql.DB, path string) uuid.UUID {
 	}
 
 	err = insertStatement.Query(db, &libraryPath)
+	CheckError(err)
 
 	return libraryPath[0].ID
 }
