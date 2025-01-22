@@ -7,6 +7,9 @@ Similar to ghost and poltergeist this one is written in golang
 - Install Go
 - Install Docker
 - Install psql
+  - Mac:
+    - `brew install libpq`
+    - `brew link --force libpq`
 - Install ffmpeg
 - Copy `templte.env` -> `.env` and fill in the details
 - `docker compose up -d` to start the database
