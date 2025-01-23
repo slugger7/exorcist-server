@@ -4,9 +4,27 @@ import (
 	"io/fs"
 	"path/filepath"
 	"slices"
+	"strings"
 )
 
-func GetFilesByExtensions(root string, extensions []string) (ret []string, reterr error) {
+type File struct {
+	Name      string
+	Path      string
+	Extension string
+}
+
+func GetTitleOfFile(filename string) string {
+	parts := strings.Split(filename, ".")
+	if len(parts) == 1 {
+		return filename
+	}
+
+	parts = parts[:len(parts)-1]
+
+	return strings.Join(parts, ".")
+}
+
+func GetFilesByExtensions(root string, extensions []string) (ret []File, reterr error) {
 	reterr = filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -14,7 +32,12 @@ func GetFilesByExtensions(root string, extensions []string) (ret []string, reter
 
 		if !d.IsDir() {
 			if slices.Contains(extensions, filepath.Ext(d.Name())) {
-				ret = append(ret, path)
+				file := File{
+					Name: GetTitleOfFile(d.Name()),
+					Path: path,
+				}
+
+				ret = append(ret, file)
 			}
 		}
 
