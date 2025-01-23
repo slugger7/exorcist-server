@@ -38,7 +38,7 @@ func main() {
 		fmt.Println(v)
 		checksum := "lol"
 
-		probeData, err := ffmpeg.Probe(v)
+		probeData, err := ffmpeg.Probe(v.Path)
 		er.CheckError(err)
 
 		fmt.Println(probeData)
@@ -63,9 +63,9 @@ func main() {
 
 		videoModels = append(videoModels, model.Video{
 			LibraryPathID: libraryPathId,
-			RelativePath:  v,
-			Title:         "",
-			FileName:      "",
+			RelativePath:  v.Path,
+			Title:         v.Name,
+			FileName:      v.FileName,
 			Height:        int32(height),
 			Width:         int32(width),
 			Runtime:       int64(runtime),

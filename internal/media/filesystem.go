@@ -9,6 +9,7 @@ import (
 
 type File struct {
 	Name      string
+	FileName  string
 	Path      string
 	Extension string
 }
@@ -33,8 +34,9 @@ func GetFilesByExtensions(root string, extensions []string) (ret []File, reterr 
 		if !d.IsDir() {
 			if slices.Contains(extensions, filepath.Ext(d.Name())) {
 				file := File{
-					Name: GetTitleOfFile(d.Name()),
-					Path: path,
+					Name:     GetTitleOfFile(d.Name()),
+					FileName: filepath.Base(d.Name()),
+					Path:     path,
 				}
 
 				ret = append(ret, file)

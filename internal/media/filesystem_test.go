@@ -12,7 +12,10 @@ func compareFileArrays(t *testing.T, got, want []File) {
 	} else {
 		for i, f := range got {
 			if f.Path != want[i].Path {
-				t.Errorf("Value in array was different at index %v: got '%v' but wanted '%v'", i, f.Path, want[i].Path)
+				t.Errorf("Path in file array was different at index %v: got '%v' but wanted '%v'", i, f.Path, want[i].Path)
+			}
+			if f.FileName != want[i].FileName {
+				t.Errorf("Filename in file array was different at index %v: got '%v' but wanted '%v'", i, f.FileName, want[i].FileName)
 			}
 		}
 	}
@@ -23,12 +26,14 @@ func Test_GetFilesByExtensions(t *testing.T) {
 
 	want := []File{
 		{
-			Path: "test_data/folder_1/folder_1_file.toml",
-			Name: "",
+			Path:     "test_data/folder_1/folder_1_file.toml",
+			FileName: "folder_1_file.toml",
+			Name:     "",
 		},
 		{
-			Path: "test_data/folder_2/subFolder2/subfile.toml",
-			Name: "",
+			Path:     "test_data/folder_2/subFolder2/subfile.toml",
+			FileName: "subfile.toml",
+			Name:     "",
 		},
 	}
 
