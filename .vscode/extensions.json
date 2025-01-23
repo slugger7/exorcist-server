@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "aldijav.golangwithdidi",
-        "golang.go"
+        "golang.go",
+        "editorconfig.editorconfig"
     ]
 }
