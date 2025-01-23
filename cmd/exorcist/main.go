@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -49,7 +50,16 @@ func main() {
 		width, height, err := ff.GetDimensions(data.Streams)
 		er.CheckError(err)
 
-		fmt.Printf("Height: %v Width: %v", height, width)
+		runtime, err := strconv.Atoi(data.Format.Duration)
+		if err != nil {
+			fmt.Printf("Could not convert duration from string (%v) to int for video %v. Setting runtime to 0\n", data.Format.Duration, v)
+			runtime = 0
+		}
+		size, err := strconv.Atoi(data.Format.Size)
+		if err != nil {
+			fmt.Printf("Could not convert size from string (%v) to int for video %v. Setting size to 0\n", data.Format.Size, v)
+			size = 0
+		}
 
 		videoModels = append(videoModels, model.Video{
 			LibraryPathID: libraryPathId,
@@ -58,8 +68,8 @@ func main() {
 			FileName:      "",
 			Height:        int32(height),
 			Width:         int32(width),
-			Runtime:       666,
-			Size:          666,
+			Runtime:       int64(runtime),
+			Size:          int64(size),
 			Checksum:      &checksum,
 		})
 	}
