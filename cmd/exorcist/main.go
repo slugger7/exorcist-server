@@ -23,24 +23,9 @@ func main() {
 	err := godotenv.Load()
 	CheckError(err)
 
-	host := os.Getenv("DATABASE_HOST")
-	port := os.Getenv("DATABASE_PORT")
-	user := os.Getenv("DATABASE_USER")
-	password := os.Getenv("DATABASE_PASSWORD")
-	dbname := os.Getenv("DATABASE_NAME")
+	db := setupDB()
 
-	fmt.Printf("host=%s port=%s user=%s password=%s database=%s", host, port, user, password, dbname)
-	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	fmt.Println("Opening DB")
-	db, err := sql.Open("postgres", psqlconn)
-	CheckError(err)
-	defer db.Close()
-
-	libraryPathId, err := getExistingLibraryPathID(db)
-	if err != nil {
-		libraryPathId = createLibWithPath(db, path)
-	}
-
+	libraryPathId := getOrCreateLibraryPathID(db, path)
 	fmt.Printf("Library path id %v\n", libraryPathId)
 
 	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
@@ -100,6 +85,14 @@ func main() {
 	CheckError(err)
 }
 
+func getOrCreateLibraryPathID(db *sql.DB, path string) uuid.UUID {
+	libraryPathId, err := getExistingLibraryPathID(db)
+	if err != nil {
+		libraryPathId = createLibWithPath(db, path)
+	}
+	return libraryPathId
+}
+
 func getExistingLibraryPathID(db *sql.DB) (uuid.UUID, error) {
 	selectQuery := LibraryPath.SELECT(LibraryPath.ID).FROM(LibraryPath)
 
@@ -146,4 +139,21 @@ func createLibWithPath(db *sql.DB, path string) uuid.UUID {
 	CheckError(err)
 
 	return libraryPath[0].ID
+}
+
+func setupDB() *sql.DB {
+	host := os.Getenv("DATABASE_HOST")
+	port := os.Getenv("DATABASE_PORT")
+	user := os.Getenv("DATABASE_USER")
+	password := os.Getenv("DATABASE_PASSWORD")
+	dbname := os.Getenv("DATABASE_NAME")
+
+	fmt.Printf("host=%s port=%s user=%s password=%s database=%s", host, port, user, password, dbname)
+	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	fmt.Println("Opening DB")
+	db, err := sql.Open("postgres", psqlconn)
+	CheckError(err)
+	defer db.Close()
+
+	return db
 }
