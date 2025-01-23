@@ -21,5 +21,5 @@ func GetFilesByExtensions(root string, extensions []string) (ret []string, reter
 		return nil
 	})
 
-	return ret, nil
+	return ret, reterr
 }
