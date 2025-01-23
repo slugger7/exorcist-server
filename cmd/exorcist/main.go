@@ -11,8 +11,8 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	. "github.com/slugger7/exorcist/internal/db/exorcist/public/table"
-	. "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	er "github.com/slugger7/exorcist/internal/errors"
 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
@@ -21,7 +21,7 @@ import (
 func main() {
 	path := "."
 	err := godotenv.Load()
-	CheckError(err)
+	er.CheckError(err)
 
 	db := setupDB()
 
@@ -29,7 +29,7 @@ func main() {
 	fmt.Printf("Library path id %v\n", libraryPathId)
 
 	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
-	CheckError(err)
+	er.CheckError(err)
 
 	fmt.Println("Printing out results")
 	videoModels := []model.Video{}
@@ -38,16 +38,16 @@ func main() {
 		checksum := "lol"
 
 		probeData, err := ffmpeg.Probe(v)
-		CheckError(err)
+		er.CheckError(err)
 
 		fmt.Println(probeData)
 
 		var data *ff.Probe
 		err = json.Unmarshal([]byte(probeData), &data)
-		CheckError(err)
+		er.CheckError(err)
 
 		width, height, err := ff.GetDimensions(data.Streams)
-		CheckError(err)
+		er.CheckError(err)
 
 		fmt.Printf("Height: %v Width: %v", height, width)
 
@@ -64,25 +64,25 @@ func main() {
 		})
 	}
 
-	insertStatement := Video.INSERT(
-		Video.LibraryPathID,
-		Video.RelativePath,
-		Video.Title,
-		Video.FileName,
-		Video.Height,
-		Video.Width,
-		Video.Runtime,
-		Video.Size,
-		Video.Checksum,
+	insertStatement := table.Video.INSERT(
+		table.Video.LibraryPathID,
+		table.Video.RelativePath,
+		table.Video.Title,
+		table.Video.FileName,
+		table.Video.Height,
+		table.Video.Width,
+		table.Video.Runtime,
+		table.Video.Size,
+		table.Video.Checksum,
 	).
 		MODELS(videoModels).
-		RETURNING(Video.ID)
+		RETURNING(table.Video.ID)
 
 	var newVideos []struct {
 		model.Video
 	}
 	err = insertStatement.Query(db, &newVideos)
-	CheckError(err)
+	er.CheckError(err)
 }
 
 func getOrCreateLibraryPathID(db *sql.DB, path string) uuid.UUID {
@@ -94,14 +94,16 @@ func getOrCreateLibraryPathID(db *sql.DB, path string) uuid.UUID {
 }
 
 func getExistingLibraryPathID(db *sql.DB) (uuid.UUID, error) {
-	selectQuery := LibraryPath.SELECT(LibraryPath.ID).FROM(LibraryPath)
+	selectQuery := table.LibraryPath.
+		SELECT(table.LibraryPath.ID).
+		FROM(table.LibraryPath)
 
 	var libraryPath []struct {
 		model.LibraryPath
 	}
 
 	err := selectQuery.Query(db, &libraryPath)
-	CheckError(err)
+	er.CheckError(err)
 
 	if len(libraryPath) == 0 {
 		return uuid.Nil, errors.New("no library path was found, first creat a library")
@@ -115,28 +117,35 @@ func createLibWithPath(db *sql.DB, path string) uuid.UUID {
 		Name: "New Lib",
 	}
 
-	insertStatement := Library.INSERT(Library.Name).MODEL(newLib).RETURNING(Library.ID)
+	insertStatement := table.Library.INSERT(table.Library.Name).
+		MODEL(newLib).
+		RETURNING(table.Library.ID)
 
 	var library []struct {
 		model.Library
 	}
 
 	err := insertStatement.Query(db, &library)
-	CheckError(err)
+	er.CheckError(err)
 
 	newLibPath := model.LibraryPath{
 		LibraryID: library[0].ID,
 		Path:      path,
 	}
 
-	insertStatement = LibraryPath.INSERT(LibraryPath.LibraryID, LibraryPath.Path).MODEL(newLibPath).RETURNING(LibraryPath.ID)
+	insertStatement = table.LibraryPath.INSERT(
+		table.LibraryPath.LibraryID,
+		table.LibraryPath.Path,
+	).
+		MODEL(newLibPath).
+		RETURNING(table.LibraryPath.ID)
 
 	var libraryPath []struct {
 		model.LibraryPath
 	}
 
 	err = insertStatement.Query(db, &libraryPath)
-	CheckError(err)
+	er.CheckError(err)
 
 	return libraryPath[0].ID
 }
@@ -152,7 +161,7 @@ func setupDB() *sql.DB {
 	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	fmt.Println("Opening DB")
 	db, err := sql.Open("postgres", psqlconn)
-	CheckError(err)
+	er.CheckError(err)
 	defer db.Close()
 
 	return db
