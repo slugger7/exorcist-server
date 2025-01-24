@@ -66,7 +66,7 @@ func main() {
 
 		videoModels = append(videoModels, model.Video{
 			LibraryPathID: libraryPathId,
-			RelativePath:  v.Path,
+			RelativePath:  media.GetRelativePath(path, v.Path), // TODO: calculate relative path from library path
 			Title:         v.Name,
 			FileName:      v.FileName,
 			Height:        int32(height),
@@ -75,7 +75,17 @@ func main() {
 			Size:          int64(size),
 			Checksum:      &checksum,
 		})
+
+		if i%100 == 0 {
+			writeModelsToDatabaseBatch(db, videoModels)
+
+			videoModels = []model.Video{}
+		}
 	}
+}
+
+func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
+	fmt.Println("Writing batch")
 
 	insertStatement := table.Video.INSERT(
 		table.Video.LibraryPathID,
@@ -88,13 +98,13 @@ func main() {
 		table.Video.Size,
 		table.Video.Checksum,
 	).
-		MODELS(videoModels).
+		MODELS(models).
 		RETURNING(table.Video.ID)
 
 	var newVideos []struct {
 		model.Video
 	}
-	err = insertStatement.Query(db, &newVideos)
+	err := insertStatement.Query(db, &newVideos)
 	er.CheckError(err)
 }
 
@@ -108,7 +118,7 @@ func getOrCreateLibraryPathID(db *sql.DB, path string) uuid.UUID {
 
 func getExistingLibraryPathID(db *sql.DB) (uuid.UUID, error) {
 	selectQuery := table.LibraryPath.
-		SELECT(table.LibraryPath.ID).
+		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
 		FROM(table.LibraryPath)
 
 	var libraryPath []struct {
@@ -151,7 +161,7 @@ func createLibWithPath(db *sql.DB, path string) uuid.UUID {
 		table.LibraryPath.Path,
 	).
 		MODEL(newLibPath).
-		RETURNING(table.LibraryPath.ID)
+		RETURNING(table.LibraryPath.ID, table.LibraryPath.Path)
 
 	var libraryPath []struct {
 		model.LibraryPath

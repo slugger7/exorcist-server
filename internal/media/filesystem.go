@@ -14,6 +14,10 @@ type File struct {
 	Extension string
 }
 
+func GetRelativePath(root, path string) string {
+	return strings.Replace(path, root, "", 1)
+}
+
 func GetTitleOfFile(filename string) string {
 	parts := strings.Split(filename, ".")
 	if len(parts) == 1 {

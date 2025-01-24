@@ -58,3 +58,27 @@ func Test_GetTitleOfFile_GivenAFileWithAnExtension_ShouldReturnFilenameWithoutEx
 		t.Errorf("Expected title (%v) did not match actual title (%v)", expectedTitle, actualTitle)
 	}
 }
+
+func Test_GetRelativePath_WithFileBeingInTheRoot_ShouldReturnOnlyFile(t *testing.T) {
+	path := "/file.something"
+	root := "/"
+	expected := "file.something"
+
+	actual := GetRelativePath(root, path)
+
+	if expected != actual {
+		t.Errorf("Actual relative path '%v' did not match expected relative path '%v'", actual, expected)
+	}
+}
+
+func Test_GetRelativePath_WithFileBeingInASubfolder_ShouldReturnPathToSubfolder(t *testing.T) {
+	path := "/root/subfolder/file.something"
+	root := "/root/"
+	expected := "subfolder/file.something"
+
+	actual := GetRelativePath(root, path)
+
+	if expected != actual {
+		t.Errorf("Actual relative path '%v' did not match expected relative path '%v'", actual, expected)
+	}
+}
