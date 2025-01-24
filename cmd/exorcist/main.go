@@ -83,6 +83,8 @@ func main() {
 			videoModels = []model.Video{}
 		}
 	}
+
+	writeModelsToDatabaseBatch(db, videoModels)
 }
 
 func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
