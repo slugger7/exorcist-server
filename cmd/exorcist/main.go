@@ -25,6 +25,7 @@ func main() {
 	er.CheckError(err)
 
 	db := setupDB()
+	defer db.Close()
 
 	libraryPathId := getOrCreateLibraryPathID(db, path)
 	fmt.Printf("Library path id %v\n", libraryPathId)
@@ -35,22 +36,24 @@ func main() {
 	fmt.Println("Printing out results")
 	videoModels := []model.Video{}
 	for _, v := range values {
-		fmt.Println(v)
 		checksum := "lol"
 
 		probeData, err := ffmpeg.Probe(v.Path)
-		er.CheckError(err)
-
-		fmt.Println(probeData)
+		if err != nil {
+			fmt.Printf("Could not probe the following file %v.\nThis is the error: %v", v.Path, err.Error())
+			continue
+		}
 
 		var data *ff.Probe
 		err = json.Unmarshal([]byte(probeData), &data)
 		er.CheckError(err)
 
 		width, height, err := ff.GetDimensions(data.Streams)
-		er.CheckError(err)
+		if err != nil {
+			fmt.Printf("Colud not extract dimensions. Setting to 0 %v\n", err.Error())
+		}
 
-		runtime, err := strconv.Atoi(data.Format.Duration)
+		runtime, err := strconv.ParseFloat(data.Format.Duration, 5)
 		if err != nil {
 			fmt.Printf("Could not convert duration from string (%v) to int for video %v. Setting runtime to 0\n", data.Format.Duration, v)
 			runtime = 0
@@ -172,7 +175,6 @@ func setupDB() *sql.DB {
 	fmt.Println("Opening DB")
 	db, err := sql.Open("postgres", psqlconn)
 	er.CheckError(err)
-	defer db.Close()
 
 	return db
 }
