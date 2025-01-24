@@ -8,7 +8,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -27,15 +26,16 @@ func main() {
 	db := setupDB()
 	defer db.Close()
 
-	libraryPathId := getOrCreateLibraryPathID(db, path)
-	fmt.Printf("Library path id %v\n", libraryPathId)
+	libraryPath := getOrCreateLibraryPathID(db, path)
+	fmt.Printf("Library path id %v\n", libraryPath.ID)
 
 	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
 	er.CheckError(err)
 
 	fmt.Println("Printing out results")
 	videoModels := []model.Video{}
-	for _, v := range values {
+	for i, v := range values {
+		printPercentage(i, len(values))
 		checksum := "lol"
 
 		probeData, err := ffmpeg.Probe(v.Path)
@@ -65,8 +65,8 @@ func main() {
 		}
 
 		videoModels = append(videoModels, model.Video{
-			LibraryPathID: libraryPathId,
-			RelativePath:  media.GetRelativePath(path, v.Path), // TODO: calculate relative path from library path
+			LibraryPathID: libraryPath.ID,
+			RelativePath:  media.GetRelativePath(libraryPath.Path, v.Path), // TODO: calculate relative path from library path
 			Title:         v.Name,
 			FileName:      v.FileName,
 			Height:        int32(height),
@@ -108,15 +108,19 @@ func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
 	er.CheckError(err)
 }
 
-func getOrCreateLibraryPathID(db *sql.DB, path string) uuid.UUID {
-	libraryPathId, err := getExistingLibraryPathID(db)
-	if err != nil {
-		libraryPathId = createLibWithPath(db, path)
-	}
-	return libraryPathId
+func printPercentage(index, total int) {
+	fmt.Printf("Index: %v Total: %v Progress: %v%%\n", index, total, index/total*100)
 }
 
-func getExistingLibraryPathID(db *sql.DB) (uuid.UUID, error) {
+func getOrCreateLibraryPathID(db *sql.DB, path string) model.LibraryPath {
+	libraryPath, err := getExistingLibraryPathID(db)
+	if err != nil {
+		libraryPath = createLibWithPath(db, path)
+	}
+	return libraryPath
+}
+
+func getExistingLibraryPathID(db *sql.DB) (model.LibraryPath, error) {
 	selectQuery := table.LibraryPath.
 		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
 		FROM(table.LibraryPath)
@@ -129,13 +133,13 @@ func getExistingLibraryPathID(db *sql.DB) (uuid.UUID, error) {
 	er.CheckError(err)
 
 	if len(libraryPath) == 0 {
-		return uuid.Nil, errors.New("no library path was found, first creat a library")
+		return model.LibraryPath{}, errors.New("no library path was found, first creat a library")
 	}
 
-	return libraryPath[0].ID, nil
+	return libraryPath[0].LibraryPath, nil
 }
 
-func createLibWithPath(db *sql.DB, path string) uuid.UUID {
+func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 	newLib := model.Library{
 		Name: "New Lib",
 	}
@@ -170,7 +174,7 @@ func createLibWithPath(db *sql.DB, path string) uuid.UUID {
 	err = insertStatement.Query(db, &libraryPath)
 	er.CheckError(err)
 
-	return libraryPath[0].ID
+	return libraryPath[0].LibraryPath
 }
 
 func setupDB() *sql.DB {
