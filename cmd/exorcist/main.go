@@ -19,9 +19,10 @@ import (
 )
 
 func main() {
-	path := "."
 	err := godotenv.Load()
 	er.CheckError(err)
+
+	path := os.Getenv("MEDIA_PATH")
 
 	db := setupDB()
 	defer db.Close()
