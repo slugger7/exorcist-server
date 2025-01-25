@@ -1,7 +1,12 @@
 package media
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
+	"io"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -12,6 +17,23 @@ type File struct {
 	FileName  string
 	Path      string
 	Extension string
+}
+
+func CalculateMD5(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("error opening file: %w", err)
+	}
+	defer file.Close()
+
+	hash := md5.New()
+
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", fmt.Errorf("error calculating MD5 hash: %w", err)
+	}
+
+	checksum := hex.EncodeToString(hash.Sum(nil))
+	return checksum, nil
 }
 
 func GetRelativePath(root, path string) string {
