@@ -6,8 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 
+	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -30,6 +33,10 @@ func main() {
 	libraryPath := getOrCreateLibraryPath(db, path)
 	fmt.Printf("Library path id %v\n", libraryPath.ID)
 
+	existingVideos := getVideosInLibraryPath(db, libraryPath.ID)
+
+	fmt.Printf("Existing video count %v\n", len(existingVideos))
+
 	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
 	er.CheckError(err)
 
@@ -37,7 +44,13 @@ func main() {
 	videoModels := []model.Video{}
 	for i, v := range values {
 		printPercentage(i, len(values))
-		checksum := "lol"
+		relativePath := media.GetRelativePath(libraryPath.Path, v.Path)
+
+		if slices.ContainsFunc(existingVideos, func(existingVideo struct{ model.Video }) bool {
+			return existingVideo.RelativePath == relativePath
+		}) {
+			continue
+		}
 
 		probeData, err := ffmpeg.Probe(v.Path)
 		if err != nil {
@@ -67,17 +80,17 @@ func main() {
 
 		videoModels = append(videoModels, model.Video{
 			LibraryPathID: libraryPath.ID,
-			RelativePath:  media.GetRelativePath(libraryPath.Path, v.Path),
+			RelativePath:  relativePath,
 			Title:         v.Name,
 			FileName:      v.FileName,
 			Height:        int32(height),
 			Width:         int32(width),
 			Runtime:       int64(runtime),
 			Size:          int64(size),
-			Checksum:      &checksum,
+			Checksum:      nil,
 		})
 
-		if i%100 == 0 {
+		if i%5 == 0 {
 			writeModelsToDatabaseBatch(db, videoModels)
 
 			videoModels = []model.Video{}
@@ -85,6 +98,20 @@ func main() {
 	}
 
 	writeModelsToDatabaseBatch(db, videoModels)
+}
+
+func getVideosInLibraryPath(db *sql.DB, libraryPathId uuid.UUID) []struct{ model.Video } {
+	findStatement := table.Video.SELECT(table.Video.RelativePath).
+		FROM(table.Video.Table).
+		WHERE(table.Video.LibraryPathID.EQ(postgres.UUID(libraryPathId)))
+
+	var videos []struct {
+		model.Video
+	}
+	err := findStatement.Query(db, &videos)
+	er.CheckError(err)
+
+	return videos
 }
 
 func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
@@ -112,7 +139,7 @@ func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
 }
 
 func printPercentage(index, total int) {
-	fmt.Printf("Index: %v Total: %v Progress: %v%%\n", index, total, index/total*100)
+	fmt.Printf("Index: %v Total: %v Progress: %v\n", index, total, int(float64(index)/float64(total)*100.0))
 }
 
 func getOrCreateLibraryPath(db *sql.DB, path string) model.LibraryPath {
