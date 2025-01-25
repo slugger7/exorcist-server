@@ -27,7 +27,7 @@ func main() {
 	db := setupDB()
 	defer db.Close()
 
-	libraryPath := getOrCreateLibraryPathID(db, path)
+	libraryPath := getOrCreateLibraryPath(db, path)
 	fmt.Printf("Library path id %v\n", libraryPath.ID)
 
 	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
@@ -54,7 +54,7 @@ func main() {
 			fmt.Printf("Colud not extract dimensions. Setting to 0 %v\n", err.Error())
 		}
 
-		runtime, err := strconv.ParseFloat(data.Format.Duration, 5)
+		runtime, err := strconv.ParseFloat(data.Format.Duration, 32)
 		if err != nil {
 			fmt.Printf("Could not convert duration from string (%v) to int for video %v. Setting runtime to 0\n", data.Format.Duration, v)
 			runtime = 0
@@ -67,7 +67,7 @@ func main() {
 
 		videoModels = append(videoModels, model.Video{
 			LibraryPathID: libraryPath.ID,
-			RelativePath:  media.GetRelativePath(libraryPath.Path, v.Path), // TODO: calculate relative path from library path
+			RelativePath:  media.GetRelativePath(libraryPath.Path, v.Path),
 			Title:         v.Name,
 			FileName:      v.FileName,
 			Height:        int32(height),
@@ -115,7 +115,7 @@ func printPercentage(index, total int) {
 	fmt.Printf("Index: %v Total: %v Progress: %v%%\n", index, total, index/total*100)
 }
 
-func getOrCreateLibraryPathID(db *sql.DB, path string) model.LibraryPath {
+func getOrCreateLibraryPath(db *sql.DB, path string) model.LibraryPath {
 	libraryPath, err := getExistingLibraryPathID(db)
 	if err != nil {
 		libraryPath = createLibWithPath(db, path)
