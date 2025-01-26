@@ -186,29 +186,14 @@ func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryP
 
 func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 	libraryInsertStament := libRepo.CreateLibraryStatement("New Lib")
-	library, err := libRepo.ExecuteInsert(db, libraryInsertStament)
+	libraries, err := libRepo.ExecuteInsert(db, libraryInsertStament)
 	er.CheckError(err)
 
-	newLibPath := model.LibraryPath{
-		LibraryID: library[0].ID,
-		Path:      path,
-	}
-
-	insertStatement := table.LibraryPath.INSERT(
-		table.LibraryPath.LibraryID,
-		table.LibraryPath.Path,
-	).
-		MODEL(newLibPath).
-		RETURNING(table.LibraryPath.ID, table.LibraryPath.Path)
-
-	var libraryPath []struct {
-		model.LibraryPath
-	}
-
-	err = insertStatement.Query(db, &libraryPath)
+	libraryPathInsertStatement := libPathRepo.CreateLibraryPath(libraries[len(libraries)-1].ID, path)
+	libraryPaths, err := libPathRepo.ExecuteInsert(db, libraryPathInsertStatement)
 	er.CheckError(err)
 
-	return libraryPath[0].LibraryPath
+	return libraryPaths[len(libraryPaths)-1].LibraryPath
 }
 
 func setupDB() *sql.DB {
