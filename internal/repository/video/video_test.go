@@ -12,7 +12,7 @@ import (
 func Test_GetVideoWithoutChecksumStatement(t *testing.T) {
 	actual := videoRepository.GetVideoWithoutChecksumStatement().DebugSql()
 
-	expected := "\nSELECT video.checksum AS \"video.checksum\",\n     video.relative_path AS \"video.relative_path\",\n     library_path.path AS \"library_path.path\"\nFROM public.video\n     INNER JOIN public.library_path ON (library_path.id = video.library_path_id)\nWHERE video.checksum = ''::text;\n"
+	expected := "\nSELECT video.id AS \"video.id\",\n     video.checksum AS \"video.checksum\",\n     video.relative_path AS \"video.relative_path\",\n     library_path.path AS \"library_path.path\"\nFROM public.video\n     INNER JOIN public.library_path ON (library_path.id = video.library_path_id)\nWHERE video.checksum IS NULL;\n"
 	if actual != expected {
 		t.Errorf("Expected %v but got %v", expected, actual)
 	}

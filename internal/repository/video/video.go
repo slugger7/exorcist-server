@@ -10,7 +10,7 @@ import (
 )
 
 func GetVideoWithoutChecksumStatement() postgres.SelectStatement {
-	selectStatement := table.Video.SELECT(table.Video.Checksum, table.Video.RelativePath, table.LibraryPath.Path).
+	selectStatement := table.Video.SELECT(table.Video.ID, table.Video.Checksum, table.Video.RelativePath, table.LibraryPath.Path).
 		FROM(table.Video.INNER_JOIN(table.LibraryPath, table.LibraryPath.ID.EQ(table.Video.LibraryPathID))).
 		WHERE(table.Video.Checksum.IS_NULL())
 
