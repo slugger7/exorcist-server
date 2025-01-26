@@ -38,6 +38,12 @@ func main() {
 	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
 	er.CheckError(err)
 
+	nonExsistentVideos := media.FindNonExistentVideos(existingVideos, values)
+	if len(nonExsistentVideos) > 0 {
+		fmt.Println("Found some videos that do not exist any more on disk. Marking them as deleted.")
+		removeVideos(db, nonExsistentVideos)
+	}
+
 	fmt.Println("Printing out results")
 	videoModels := []model.Video{}
 	for i, v := range values {
@@ -92,6 +98,22 @@ func main() {
 	writeModelsToDatabaseBatch(db, videoModels)
 }
 
+func removeVideos(db *sql.DB, nonExistentVideos []model.Video) {
+	for _, v := range nonExistentVideos {
+		updateStmnt := table.Video.UPDATE().
+			SET(table.Video.Deleted.SET(postgres.Bool(true))).
+			MODEL(v).
+			WHERE(table.Video.ID.EQ(postgres.UUID(v.ID)))
+		dbgSql := updateStmnt.DebugSql()
+		fmt.Println(dbgSql)
+		_, err := updateStmnt.Exec(db)
+		if err != nil {
+			fmt.Printf("Could not update video %v to be deleted: %v", v.ID, err.Error())
+			continue
+		}
+	}
+}
+
 func videoExsists(existingVideos []struct{ model.Video }, relativePath string) bool {
 	return slices.ContainsFunc(existingVideos, func(existingVideo struct{ model.Video }) bool {
 		return existingVideo.RelativePath == relativePath
@@ -99,7 +121,7 @@ func videoExsists(existingVideos []struct{ model.Video }, relativePath string) b
 }
 
 func getVideosInLibraryPath(db *sql.DB, libraryPathId uuid.UUID) []struct{ model.Video } {
-	findStatement := table.Video.SELECT(table.Video.RelativePath).
+	findStatement := table.Video.SELECT(table.Video.RelativePath, table.Video.ID).
 		FROM(table.Video.Table).
 		WHERE(table.Video.LibraryPathID.EQ(postgres.UUID(libraryPathId)))
 
