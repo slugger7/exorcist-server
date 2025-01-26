@@ -29,3 +29,13 @@ func DebugCheckInsert(statement postgres.InsertStatement) {
 		log.Printf("[%v]: %v\n", f.Name(), statement.DebugSql())
 	}
 }
+
+func DebugCheckUpdate(statement postgres.UpdateStatement) {
+	env := environment.GetEnvironmentVariables()
+	if env.DebugSql {
+		pc := make([]uintptr, 10) // at least 1 entry needed
+		runtime.Callers(2, pc)
+		f := runtime.FuncForPC(pc[0])
+		log.Printf("[%v]: %v\n", f.Name(), statement.DebugSql())
+	}
+}
