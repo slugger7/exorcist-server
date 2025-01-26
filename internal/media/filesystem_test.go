@@ -3,6 +3,7 @@ package media_test
 import (
 	"testing"
 
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	. "github.com/slugger7/exorcist/internal/media"
 )
 
@@ -80,5 +81,79 @@ func Test_GetRelativePath_WithFileBeingInASubfolder_ShouldReturnPathToSubfolder(
 
 	if expected != actual {
 		t.Errorf("Actual relative path '%v' did not match expected relative path '%v'", actual, expected)
+	}
+}
+
+func Test_FindNonExistentVideos_WithTwoEmptySlices_ShouldReturnEmptySlice(t *testing.T) {
+	existingVideos := []struct{ model.Video }{}
+	files := []File{}
+
+	nonExistentVideos := FindNonExistentVideos(existingVideos, files)
+
+	if len(nonExistentVideos) != 0 {
+		t.Error("A file did not exist even though there was nothing to match. Phone your God.")
+	}
+}
+
+func Test_FindNonExistentVideos_WithTwoSlicesThatHaveNoDifference_ShouldReturnEmptySlice(t *testing.T) {
+	existingVideos := []struct{ model.Video }{
+		{model.Video{
+			RelativePath: "some relative path",
+		}},
+	}
+	files := []File{
+		{
+			RelativePath: "some relative path",
+		},
+	}
+
+	nonExistentVideos := FindNonExistentVideos(existingVideos, files)
+
+	if len(nonExistentVideos) != 0 {
+		t.Error("Lists had identical relative paths and should have returned an empty list but didn't")
+	}
+}
+
+func Test_FindNonExistentVideos_WithAllTheFilesExistingAndExtraFiles_ShouldReturnEmptySlice(t *testing.T) {
+	existingVideos := []struct{ model.Video }{
+		{model.Video{
+			RelativePath: "some relative path",
+		}},
+	}
+	files := []File{
+		{
+			RelativePath: "some relative path",
+		},
+		{
+			RelativePath: "another relative path that should not make a differenc",
+		},
+	}
+
+	nonExistentVideos := FindNonExistentVideos(existingVideos, files)
+
+	if len(nonExistentVideos) != 0 {
+		t.Error("Found a relative path that should exist")
+	}
+}
+
+func Test_FindNonExistentVideos_WithAVideoThatDoesNotExist_ShouldReturnASliceContainingVideo(t *testing.T) {
+	existingVideos := []struct{ model.Video }{
+		{model.Video{
+			RelativePath: "some relative path",
+		}},
+	}
+	files := []File{
+		{
+			RelativePath: "another relative path that should not make a differenc",
+		},
+	}
+
+	nonExistentVideos := FindNonExistentVideos(existingVideos, files)
+
+	if len(nonExistentVideos) != 1 {
+		t.Error("No elements were returned in the non existent video search, when one was expected")
+	}
+	if !(nonExistentVideos[len(nonExistentVideos)-1].RelativePath == existingVideos[len(existingVideos)-1].RelativePath) {
+		t.Error("Returned relative path did not match expected relative path")
 	}
 }
