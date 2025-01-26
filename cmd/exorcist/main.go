@@ -17,7 +17,8 @@ import (
 	er "github.com/slugger7/exorcist/internal/errors"
 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
-	"github.com/slugger7/exorcist/internal/repository"
+
+	libPathRepo "github.com/slugger7/exorcist/internal/repository/library_path"
 )
 
 func main() {
@@ -167,8 +168,8 @@ func printPercentage(index, total int) {
 }
 
 func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryPath) {
-	selectLibraryPath := repository.GetLibraryPathsSelect()
-	libraryPaths, err := repository.ExecuteSelect(db, selectLibraryPath)
+	selectLibraryPath := libPathRepo.GetLibraryPathsSelect()
+	libraryPaths, err := libPathRepo.ExecuteSelect(db, selectLibraryPath)
 	if err == nil && libraryPaths != nil && len(libraryPaths) > 0 {
 		libraryPath = libraryPaths[len(libraryPaths)-1].LibraryPath
 	} else {

@@ -1,4 +1,4 @@
-package repository
+package libraryPathRepository
 
 import (
 	"database/sql"
@@ -6,6 +6,7 @@ import (
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/repository"
 )
 
 func GetLibraryPathsSelect() postgres.SelectStatement {
@@ -13,7 +14,7 @@ func GetLibraryPathsSelect() postgres.SelectStatement {
 		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
 		FROM(table.LibraryPath)
 
-	DebugCheck(selectQuery)
+	repository.DebugCheck(selectQuery)
 	return selectQuery
 }
 

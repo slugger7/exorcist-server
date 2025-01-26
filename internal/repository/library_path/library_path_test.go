@@ -1,9 +1,9 @@
-package repository_test
+package libraryPathRepository_test
 
 import (
 	"testing"
 
-	repo "github.com/slugger7/exorcist/internal/repository"
+	repo "github.com/slugger7/exorcist/internal/repository/library_path"
 )
 
 func Test_GetLibraryPathsSelect(t *testing.T) {
