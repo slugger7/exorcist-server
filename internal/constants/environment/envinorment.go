@@ -1,7 +1,7 @@
 package environment
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"strconv"
 )
@@ -28,7 +28,7 @@ func GetEnvironmentVariables() EnvironmentVariables {
 	rawDebugSql := os.Getenv(DEBUG_SQL)
 	debugSql, err := strconv.ParseBool(rawDebugSql)
 	if err != nil {
-		fmt.Printf("No value or invalid value found for %v setting to default 'false'\nValue was: %v", DEBUG_SQL, rawDebugSql)
+		log.Printf("No value or invalid value found for %v setting to default 'false'\nValue was: %v", DEBUG_SQL, rawDebugSql)
 	}
 	envVars := EnvironmentVariables{
 		DatabaseHost:     os.Getenv(DATABASE_HOST),

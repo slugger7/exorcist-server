@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"slices"
 	"strconv"
@@ -32,22 +33,22 @@ func main() {
 	defer db.Close()
 
 	libraryPath := getOrCreateLibraryPath(db, path)
-	fmt.Printf("Library path id %v\n", libraryPath.ID)
+	log.Printf("Library path id %v\n", libraryPath.ID)
 
 	existingVideos := getVideosInLibraryPath(db, libraryPath.ID)
 
-	fmt.Printf("Existing video count %v\n", len(existingVideos))
+	log.Printf("Existing video count %v\n", len(existingVideos))
 
 	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
 	er.CheckError(err)
 
 	nonExsistentVideos := media.FindNonExistentVideos(existingVideos, values)
 	if len(nonExsistentVideos) > 0 {
-		fmt.Println("Found some videos that do not exist any more on disk. Marking them as deleted.")
+		log.Println("Found some videos that do not exist any more on disk. Marking them as deleted.")
 		removeVideos(db, nonExsistentVideos)
 	}
 
-	fmt.Println("Printing out results")
+	log.Println("Printing out results")
 	videoModels := []model.Video{}
 	for i, v := range values {
 		printPercentage(i, len(values))
@@ -59,23 +60,23 @@ func main() {
 
 		data, err := ff.UnmarshalledProbe(v.Path)
 		if err != nil {
-			fmt.Printf("Unmarshaling failed for %v\nThe error was %v", v.Path, err.Error())
+			log.Printf("Unmarshaling failed for %v\nThe error was %v", v.Path, err.Error())
 			continue
 		}
 
 		width, height, err := ff.GetDimensions(data.Streams)
 		if err != nil {
-			fmt.Printf("Colud not extract dimensions. Setting to 0 %v\n", err.Error())
+			log.Printf("Colud not extract dimensions. Setting to 0 %v\n", err.Error())
 		}
 
 		runtime, err := strconv.ParseFloat(data.Format.Duration, 32)
 		if err != nil {
-			fmt.Printf("Could not convert duration from string (%v) to float for video %v. Setting runtime to 0\n", data.Format.Duration, v)
+			log.Printf("Could not convert duration from string (%v) to float for video %v. Setting runtime to 0\n", data.Format.Duration, v)
 			runtime = 0
 		}
 		size, err := strconv.Atoi(data.Format.Size)
 		if err != nil {
-			fmt.Printf("Could not convert size from string (%v) to int for video %v. Setting size to 0\n", data.Format.Size, v)
+			log.Printf("Could not convert size from string (%v) to int for video %v. Setting size to 0\n", data.Format.Size, v)
 			size = 0
 		}
 
@@ -108,10 +109,10 @@ func removeVideos(db *sql.DB, nonExistentVideos []model.Video) {
 			MODEL(v).
 			WHERE(table.Video.ID.EQ(postgres.UUID(v.ID)))
 		dbgSql := updateStmnt.DebugSql()
-		fmt.Println(dbgSql)
+		log.Println(dbgSql)
 		_, err := updateStmnt.Exec(db)
 		if err != nil {
-			fmt.Printf("Could not update video %v to be deleted: %v", v.ID, err.Error())
+			log.Printf("Could not update video %v to be deleted: %v", v.ID, err.Error())
 			continue
 		}
 	}
@@ -141,7 +142,7 @@ func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
 	if len(models) == 0 {
 		return
 	}
-	fmt.Println("Writing batch")
+	log.Println("Writing batch")
 
 	insertStatement := table.Video.INSERT(
 		table.Video.LibraryPathID,
@@ -165,7 +166,7 @@ func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
 }
 
 func printPercentage(index, total int) {
-	fmt.Printf("Index: %v Total: %v Progress: %v\n", index, total, int(float64(index)/float64(total)*100.0))
+	log.Printf("Index: %v Total: %v Progress: %v\n", index, total, int(float64(index)/float64(total)*100.0))
 }
 
 func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryPath) {
@@ -175,9 +176,9 @@ func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryP
 		libraryPath = libraryPaths[len(libraryPaths)-1].LibraryPath
 	} else {
 		if err != nil {
-			fmt.Printf("An error occurred while looking for a library path %v", err.Error())
+			log.Printf("An error occurred while looking for a library path %v", err.Error())
 		}
-		fmt.Println("Could not find a library path. Creating one")
+		log.Println("Could not find a library path. Creating one")
 		libraryPath = createLibWithPath(db, path)
 	}
 
@@ -199,7 +200,7 @@ func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 func setupDB() *sql.DB {
 	env := environment.GetEnvironmentVariables()
 
-	fmt.Printf("host=%s port=%s user=%s password=%s database=%s",
+	log.Printf("host=%s port=%s user=%s password=%s database=%s",
 		env.DatabaseHost,
 		env.DatabasePort,
 		env.DatabaseUser,
@@ -211,7 +212,7 @@ func setupDB() *sql.DB {
 		env.DatabaseUser,
 		env.DatabasePassword,
 		env.DatabaseName)
-	fmt.Println("Opening DB")
+	log.Println("Opening DB")
 	db, err := sql.Open("postgres", psqlconn)
 	er.CheckError(err)
 

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"fmt"
+	"log"
 	"runtime"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -16,7 +16,7 @@ func DebugCheckSelect(statement postgres.SelectStatement) {
 		pc := make([]uintptr, 10) // at least 1 entry needed
 		runtime.Callers(2, pc)
 		f := runtime.FuncForPC(pc[0])
-		fmt.Printf("[%v]: %v\n", f.Name(), statement.DebugSql())
+		log.Printf("[%v]: %v\n", f.Name(), statement.DebugSql())
 	}
 }
 
@@ -26,6 +26,6 @@ func DebugCheckInsert(statement postgres.InsertStatement) {
 		pc := make([]uintptr, 10) // at least 1 entry needed
 		runtime.Callers(2, pc)
 		f := runtime.FuncForPC(pc[0])
-		fmt.Printf("[%v]: %v\n", f.Name(), statement.DebugSql())
+		log.Printf("[%v]: %v\n", f.Name(), statement.DebugSql())
 	}
 }

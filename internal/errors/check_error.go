@@ -1,10 +1,12 @@
 package errors
 
-import "fmt"
+import (
+	"log"
+)
 
 func CheckError(err error) {
 	if err != nil {
-		fmt.Println("Found an error")
+		log.Println("Found an error")
 		panic(err)
 	}
 }
