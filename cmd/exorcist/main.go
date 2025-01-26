@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"os"
 	"slices"
@@ -12,11 +11,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/slugger7/exorcist/internal/constants/environment"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	er "github.com/slugger7/exorcist/internal/errors"
 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
+	"github.com/slugger7/exorcist/internal/repository"
 )
 
 func main() {
@@ -165,31 +166,20 @@ func printPercentage(index, total int) {
 	fmt.Printf("Index: %v Total: %v Progress: %v\n", index, total, int(float64(index)/float64(total)*100.0))
 }
 
-func getOrCreateLibraryPath(db *sql.DB, path string) model.LibraryPath {
-	libraryPath, err := getExistingLibraryPathID(db)
-	if err != nil {
+func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryPath) {
+	selectLibraryPath := repository.GetLibraryPathsSelect()
+	libraryPaths, err := repository.ExecuteSelect(db, selectLibraryPath)
+	if err == nil && libraryPaths != nil && len(libraryPaths) > 0 {
+		libraryPath = libraryPaths[len(libraryPaths)-1].LibraryPath
+	} else {
+		if err != nil {
+			fmt.Printf("An error occurred while looking for a library path %v", err.Error())
+		}
+		fmt.Println("Could not find a library path. Creating one")
 		libraryPath = createLibWithPath(db, path)
 	}
+
 	return libraryPath
-}
-
-func getExistingLibraryPathID(db *sql.DB) (model.LibraryPath, error) {
-	selectQuery := table.LibraryPath.
-		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
-		FROM(table.LibraryPath)
-
-	var libraryPath []struct {
-		model.LibraryPath
-	}
-
-	err := selectQuery.Query(db, &libraryPath)
-	er.CheckError(err)
-
-	if len(libraryPath) == 0 {
-		return model.LibraryPath{}, errors.New("no library path was found, first creat a library")
-	}
-
-	return libraryPath[0].LibraryPath, nil
 }
 
 func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
@@ -231,14 +221,20 @@ func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 }
 
 func setupDB() *sql.DB {
-	host := os.Getenv("DATABASE_HOST")
-	port := os.Getenv("DATABASE_PORT")
-	user := os.Getenv("DATABASE_USER")
-	password := os.Getenv("DATABASE_PASSWORD")
-	dbname := os.Getenv("DATABASE_NAME")
+	env := environment.GetEnvironmentVariables()
 
-	fmt.Printf("host=%s port=%s user=%s password=%s database=%s", host, port, user, password, dbname)
-	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	fmt.Printf("host=%s port=%s user=%s password=%s database=%s",
+		env.DatabaseHost,
+		env.DatabasePort,
+		env.DatabaseUser,
+		env.DatabasePassword,
+		env.DatabaseName)
+	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		env.DatabaseHost,
+		env.DatabasePort,
+		env.DatabaseUser,
+		env.DatabasePassword,
+		env.DatabaseName)
 	fmt.Println("Opening DB")
 	db, err := sql.Open("postgres", psqlconn)
 	er.CheckError(err)
