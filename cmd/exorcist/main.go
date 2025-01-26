@@ -16,6 +16,7 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	er "github.com/slugger7/exorcist/internal/errors"
 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
+	"github.com/slugger7/exorcist/internal/job"
 	"github.com/slugger7/exorcist/internal/media"
 
 	libRepo "github.com/slugger7/exorcist/internal/repository/library"
@@ -98,6 +99,8 @@ func main() {
 	}
 
 	writeModelsToDatabaseBatch(db, videoModels)
+
+	job.GenerateChecksums(db) // this is a canditate to move to a goroutine
 }
 
 func removeVideos(db *sql.DB, nonExistentVideos []model.Video) {
