@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -18,7 +17,6 @@ import (
 	er "github.com/slugger7/exorcist/internal/errors"
 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
-	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 func main() {
@@ -46,21 +44,15 @@ func main() {
 		printPercentage(i, len(values))
 		relativePath := media.GetRelativePath(libraryPath.Path, v.Path)
 
-		if slices.ContainsFunc(existingVideos, func(existingVideo struct{ model.Video }) bool {
-			return existingVideo.RelativePath == relativePath
-		}) {
+		if videoExsists(existingVideos, relativePath) {
 			continue
 		}
 
-		probeData, err := ffmpeg.Probe(v.Path)
+		data, err := ff.UnmarshalledProbe(v.Path)
 		if err != nil {
-			fmt.Printf("Could not probe the following file %v.\nThis is the error: %v", v.Path, err.Error())
+			fmt.Printf("Unmarshaling failed for %v\nThe error was %v", v.Path, err.Error())
 			continue
 		}
-
-		var data *ff.Probe
-		err = json.Unmarshal([]byte(probeData), &data)
-		er.CheckError(err)
 
 		width, height, err := ff.GetDimensions(data.Streams)
 		if err != nil {
@@ -69,7 +61,7 @@ func main() {
 
 		runtime, err := strconv.ParseFloat(data.Format.Duration, 32)
 		if err != nil {
-			fmt.Printf("Could not convert duration from string (%v) to int for video %v. Setting runtime to 0\n", data.Format.Duration, v)
+			fmt.Printf("Could not convert duration from string (%v) to float for video %v. Setting runtime to 0\n", data.Format.Duration, v)
 			runtime = 0
 		}
 		size, err := strconv.Atoi(data.Format.Size)
@@ -100,6 +92,12 @@ func main() {
 	writeModelsToDatabaseBatch(db, videoModels)
 }
 
+func videoExsists(existingVideos []struct{ model.Video }, relativePath string) bool {
+	return slices.ContainsFunc(existingVideos, func(existingVideo struct{ model.Video }) bool {
+		return existingVideo.RelativePath == relativePath
+	})
+}
+
 func getVideosInLibraryPath(db *sql.DB, libraryPathId uuid.UUID) []struct{ model.Video } {
 	findStatement := table.Video.SELECT(table.Video.RelativePath).
 		FROM(table.Video.Table).
@@ -115,6 +113,9 @@ func getVideosInLibraryPath(db *sql.DB, libraryPathId uuid.UUID) []struct{ model
 }
 
 func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
+	if len(models) == 0 {
+		return
+	}
 	fmt.Println("Writing batch")
 
 	insertStatement := table.Video.INSERT(
