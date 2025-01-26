@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"slices"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/slugger7/exorcist/internal/constants/environment"
+	"github.com/slugger7/exorcist/internal/db"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	er "github.com/slugger7/exorcist/internal/errors"
@@ -27,7 +27,7 @@ func main() {
 	er.CheckError(err)
 	env := environment.GetEnvironmentVariables()
 
-	db := setupDB(env)
+	db := db.NewDatabase(env)
 	defer db.Close()
 
 	libraryPath := getOrCreateLibraryPath(db, env.MediaPath)
@@ -193,25 +193,4 @@ func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 	er.CheckError(err)
 
 	return libraryPaths[len(libraryPaths)-1].LibraryPath
-}
-
-func setupDB(env environment.EnvironmentVariables) *sql.DB {
-	if env.Dev {
-		log.Printf("host=%s port=%s user=%s password=%s database=%s",
-			env.DatabaseHost,
-			env.DatabasePort,
-			env.DatabaseUser,
-			env.DatabasePassword,
-			env.DatabaseName)
-	}
-	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		env.DatabaseHost,
-		env.DatabasePort,
-		env.DatabaseUser,
-		env.DatabasePassword,
-		env.DatabaseName)
-	db, err := sql.Open("postgres", psqlconn)
-	er.CheckError(err)
-
-	return db
 }
