@@ -18,6 +18,7 @@ import (
 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
 
+	libRepo "github.com/slugger7/exorcist/internal/repository/library"
 	libPathRepo "github.com/slugger7/exorcist/internal/repository/library_path"
 )
 
@@ -184,19 +185,8 @@ func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryP
 }
 
 func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
-	newLib := model.Library{
-		Name: "New Lib",
-	}
-
-	insertStatement := table.Library.INSERT(table.Library.Name).
-		MODEL(newLib).
-		RETURNING(table.Library.ID)
-
-	var library []struct {
-		model.Library
-	}
-
-	err := insertStatement.Query(db, &library)
+	libraryInsertStament := libRepo.CreateLibraryStatement("New Lib")
+	library, err := libRepo.ExecuteInsert(db, libraryInsertStament)
 	er.CheckError(err)
 
 	newLibPath := model.LibraryPath{
@@ -204,7 +194,7 @@ func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 		Path:      path,
 	}
 
-	insertStatement = table.LibraryPath.INSERT(
+	insertStatement := table.LibraryPath.INSERT(
 		table.LibraryPath.LibraryID,
 		table.LibraryPath.Path,
 	).

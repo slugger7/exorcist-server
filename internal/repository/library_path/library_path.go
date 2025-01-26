@@ -14,7 +14,7 @@ func GetLibraryPathsSelect() postgres.SelectStatement {
 		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
 		FROM(table.LibraryPath)
 
-	repository.DebugCheck(selectQuery)
+	repository.DebugCheckSelect(selectQuery)
 	return selectQuery
 }
 
