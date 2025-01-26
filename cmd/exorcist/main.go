@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"slices"
 	"strconv"
 
@@ -26,20 +25,19 @@ import (
 func main() {
 	err := godotenv.Load()
 	er.CheckError(err)
+	env := environment.GetEnvironmentVariables()
 
-	path := os.Getenv("MEDIA_PATH")
-
-	db := setupDB()
+	db := setupDB(env)
 	defer db.Close()
 
-	libraryPath := getOrCreateLibraryPath(db, path)
+	libraryPath := getOrCreateLibraryPath(db, env.MediaPath)
 	log.Printf("Library path id %v\n", libraryPath.ID)
 
 	existingVideos := getVideosInLibraryPath(db, libraryPath.ID)
 
 	log.Printf("Existing video count %v\n", len(existingVideos))
 
-	values, err := media.GetFilesByExtensions(path, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
+	values, err := media.GetFilesByExtensions(env.MediaPath, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
 	er.CheckError(err)
 
 	nonExsistentVideos := media.FindNonExistentVideos(existingVideos, values)
@@ -197,22 +195,21 @@ func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 	return libraryPaths[len(libraryPaths)-1].LibraryPath
 }
 
-func setupDB() *sql.DB {
-	env := environment.GetEnvironmentVariables()
-
-	log.Printf("host=%s port=%s user=%s password=%s database=%s",
-		env.DatabaseHost,
-		env.DatabasePort,
-		env.DatabaseUser,
-		env.DatabasePassword,
-		env.DatabaseName)
+func setupDB(env environment.EnvironmentVariables) *sql.DB {
+	if env.Dev {
+		log.Printf("host=%s port=%s user=%s password=%s database=%s",
+			env.DatabaseHost,
+			env.DatabasePort,
+			env.DatabaseUser,
+			env.DatabasePassword,
+			env.DatabaseName)
+	}
 	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		env.DatabaseHost,
 		env.DatabasePort,
 		env.DatabaseUser,
 		env.DatabasePassword,
 		env.DatabaseName)
-	log.Println("Opening DB")
 	db, err := sql.Open("postgres", psqlconn)
 	er.CheckError(err)
 

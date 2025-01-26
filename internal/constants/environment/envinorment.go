@@ -13,6 +13,8 @@ type EnvironmentVariables struct {
 	DatabasePassword string
 	DatabaseName     string
 	DebugSql         bool
+	Dev              bool
+	MediaPath        string
 }
 
 const (
@@ -22,22 +24,31 @@ const (
 	DATABASE_PASSWORD = "DATABASE_PASSWORD"
 	DATABASE_NAME     = "DATABASE_NAME"
 	DEBUG_SQL         = "DEBUG_SQL"
+	MEDIUA_PATH       = "MEDIA_PATH"
+	DEV               = "DEV"
 )
 
 func GetEnvironmentVariables() EnvironmentVariables {
-	rawDebugSql := os.Getenv(DEBUG_SQL)
-	debugSql, err := strconv.ParseBool(rawDebugSql)
-	if err != nil {
-		log.Printf("No value or invalid value found for %v setting to default 'false'\nValue was: %v", DEBUG_SQL, rawDebugSql)
-	}
 	envVars := EnvironmentVariables{
 		DatabaseHost:     os.Getenv(DATABASE_HOST),
 		DatabasePort:     os.Getenv(DATABASE_PORT),
 		DatabaseUser:     os.Getenv(DATABASE_USER),
 		DatabasePassword: os.Getenv(DATABASE_PASSWORD),
 		DatabaseName:     os.Getenv(DATABASE_NAME),
-		DebugSql:         debugSql,
+		DebugSql:         getBoolValue(DEBUG_SQL, false),
+		MediaPath:        os.Getenv(MEDIUA_PATH),
+		Dev:              getBoolValue(DEV, false),
 	}
 
 	return envVars
+}
+
+func getBoolValue(key string, defaultValue bool) bool {
+	rawValue := os.Getenv(key)
+	actualValue, err := strconv.ParseBool(rawValue)
+	if err != nil {
+		log.Printf("No value or invalid value found for %v setting to default '%v'\nValue was: %v", DEBUG_SQL, defaultValue, rawValue)
+		return defaultValue
+	}
+	return actualValue
 }
