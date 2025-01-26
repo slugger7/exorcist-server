@@ -26,3 +26,6 @@ go.work.sum
 
 # temp directory to put working files in
 .temp
+
+# Mac files
+.DS_Store
