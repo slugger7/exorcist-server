@@ -25,6 +25,7 @@ type Video struct {
 	Checksum      *string
 	Added         time.Time
 	Deleted       bool
+	Exists        bool
 	Created       time.Time
 	Modified      time.Time
 }

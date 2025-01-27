@@ -29,6 +29,7 @@ type videoTable struct {
 	Checksum      postgres.ColumnString
 	Added         postgres.ColumnTimestamp
 	Deleted       postgres.ColumnBool
+	Exists        postgres.ColumnBool
 	Created       postgres.ColumnTimestamp
 	Modified      postgres.ColumnTimestamp
 
@@ -83,10 +84,11 @@ func newVideoTableImpl(schemaName, tableName, alias string) videoTable {
 		ChecksumColumn      = postgres.StringColumn("checksum")
 		AddedColumn         = postgres.TimestampColumn("added")
 		DeletedColumn       = postgres.BoolColumn("deleted")
+		ExistsColumn        = postgres.BoolColumn("exists")
 		CreatedColumn       = postgres.TimestampColumn("created")
 		ModifiedColumn      = postgres.TimestampColumn("modified")
-		allColumns          = postgres.ColumnList{IDColumn, LibraryPathIDColumn, RelativePathColumn, TitleColumn, FileNameColumn, HeightColumn, WidthColumn, RuntimeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns      = postgres.ColumnList{LibraryPathIDColumn, RelativePathColumn, TitleColumn, FileNameColumn, HeightColumn, WidthColumn, RuntimeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, CreatedColumn, ModifiedColumn}
+		allColumns          = postgres.ColumnList{IDColumn, LibraryPathIDColumn, RelativePathColumn, TitleColumn, FileNameColumn, HeightColumn, WidthColumn, RuntimeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
+		mutableColumns      = postgres.ColumnList{LibraryPathIDColumn, RelativePathColumn, TitleColumn, FileNameColumn, HeightColumn, WidthColumn, RuntimeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return videoTable{
@@ -105,6 +107,7 @@ func newVideoTableImpl(schemaName, tableName, alias string) videoTable {
 		Checksum:      ChecksumColumn,
 		Added:         AddedColumn,
 		Deleted:       DeletedColumn,
+		Exists:        ExistsColumn,
 		Created:       CreatedColumn,
 		Modified:      ModifiedColumn,
 
