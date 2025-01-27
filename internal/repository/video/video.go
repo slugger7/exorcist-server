@@ -15,7 +15,7 @@ func GetVideoWithoutChecksumStatement() postgres.SelectStatement {
 		FROM(table.Video.INNER_JOIN(table.LibraryPath, table.LibraryPath.ID.EQ(table.Video.LibraryPathID))).
 		WHERE(table.Video.Checksum.IS_NULL())
 
-	repository.DebugCheckSelect(selectStatement)
+	repository.DebugCheck(selectStatement)
 
 	return selectStatement
 }
@@ -26,7 +26,7 @@ func UpdateVideoChecksum(video model.Video) postgres.UpdateStatement {
 		MODEL(video).
 		WHERE(table.Video.ID.EQ(postgres.UUID(video.ID)))
 
-	repository.DebugCheckUpdate(statement)
+	repository.DebugCheck(statement)
 
 	return statement
 }
@@ -37,7 +37,7 @@ func UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement {
 		MODEL(video).
 		WHERE(table.Video.ID.EQ(postgres.UUID(video.ID)))
 
-	repository.DebugCheckUpdate(statement)
+	repository.DebugCheck(statement)
 
 	return statement
 }
@@ -49,7 +49,7 @@ func GetVideosInLibraryPath(libraryPathId uuid.UUID) postgres.SelectStatement {
 			AND(table.Video.Exists.IS_TRUE()),
 		)
 
-	repository.DebugCheckSelect(statement)
+	repository.DebugCheck(statement)
 
 	return statement
 }
@@ -70,7 +70,7 @@ func InsertVideosStatement(videos []model.Video) postgres.InsertStatement {
 	).
 		MODELS(videos)
 
-	repository.DebugCheckInsert(statement)
+	repository.DebugCheck(statement)
 
 	return statement
 }

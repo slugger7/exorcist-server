@@ -1,4 +1,4 @@
-package library
+package libraryRepository
 
 import (
 	"database/sql"
@@ -18,7 +18,7 @@ func CreateLibraryStatement(name string) postgres.InsertStatement {
 		MODEL(newLibrary).
 		RETURNING(table.Library.ID)
 
-	repository.DebugCheckInsert(insertStatement)
+	repository.DebugCheck(insertStatement)
 
 	return insertStatement
 }

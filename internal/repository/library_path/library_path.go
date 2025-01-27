@@ -15,7 +15,7 @@ func GetLibraryPathsSelect() postgres.SelectStatement {
 		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
 		FROM(table.LibraryPath)
 
-	repository.DebugCheckSelect(selectQuery)
+	repository.DebugCheck(selectQuery)
 	return selectQuery
 }
 
@@ -33,7 +33,7 @@ func CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatemen
 		MODEL(newLibPath).
 		RETURNING(table.LibraryPath.ID, table.LibraryPath.Path)
 
-	repository.DebugCheckInsert(insertStatement)
+	repository.DebugCheck(insertStatement)
 
 	return insertStatement
 }
