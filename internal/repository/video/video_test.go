@@ -70,3 +70,36 @@ func Test_GetVideosInLibraryPath(t *testing.T) {
 		t.Errorf("Expected %v but got %v", expected, actual)
 	}
 }
+
+func Test_InsertVideosStatement_WithNoVideos_ShouldReturnNil(t *testing.T) {
+	videos := []model.Video{}
+	actual := videoRepository.InsertVideosStatement(videos)
+
+	if actual != nil {
+		t.Errorf("Expected actual to be nil. Acutal: %v", actual)
+	}
+}
+
+func Test_InsertVideosStatement_WithVideos_ShouldReturnStatement(t *testing.T) {
+	newUuid, err := uuid.NewRandom()
+	if err != nil {
+		t.Errorf("Encountered an error while generating a UUID: %v", err)
+	}
+	video := model.Video{
+		LibraryPathID: newUuid,
+		RelativePath:  "relativePath",
+		Title:         "title",
+		FileName:      "filename",
+		Height:        69,
+		Width:         420,
+		Runtime:       1337,
+		Size:          80085,
+	}
+	videos := []model.Video{video}
+	actual := videoRepository.InsertVideosStatement(videos).DebugSql()
+
+	expected := fmt.Sprintf("\nINSERT INTO public.video (library_path_id, relative_path, title, file_name, height, width, runtime, size)\nVALUES ('%v', 'relativePath', 'title', 'filename', 69, 420, 1337, 80085);\n", newUuid)
+	if actual != expected {
+		t.Errorf("Expected %v got %v", expected, actual)
+	}
+}

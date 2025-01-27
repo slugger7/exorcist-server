@@ -77,3 +77,29 @@ func QuerySelect(db *sql.DB, statement postgres.SelectStatement) (data []struct{
 
 	return data, nil
 }
+
+func InsertVideosStatement(videos []model.Video) postgres.InsertStatement {
+	if len(videos) == 0 {
+		return nil
+	}
+	statement := table.Video.INSERT(
+		table.Video.LibraryPathID,
+		table.Video.RelativePath,
+		table.Video.Title,
+		table.Video.FileName,
+		table.Video.Height,
+		table.Video.Width,
+		table.Video.Runtime,
+		table.Video.Size,
+	).
+		MODELS(videos)
+
+	repository.DebugCheckInsert(statement)
+
+	return statement
+}
+
+func ExecuteInsert(db *sql.DB, statement postgres.InsertStatement) error {
+	_, err := statement.Exec(db)
+	return err
+}

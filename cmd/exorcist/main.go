@@ -11,7 +11,6 @@ import (
 	"github.com/slugger7/exorcist/internal/constants/environment"
 	"github.com/slugger7/exorcist/internal/db"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/job"
@@ -135,25 +134,10 @@ func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
 	}
 	log.Println("Writing batch")
 
-	insertStatement := table.Video.INSERT(
-		table.Video.LibraryPathID,
-		table.Video.RelativePath,
-		table.Video.Title,
-		table.Video.FileName,
-		table.Video.Height,
-		table.Video.Width,
-		table.Video.Runtime,
-		table.Video.Size,
-		table.Video.Checksum,
-	).
-		MODELS(models).
-		RETURNING(table.Video.ID)
-
-	var newVideos []struct {
-		model.Video
+	err := videoRepository.ExecuteInsert(db, videoRepository.InsertVideosStatement(models))
+	if err != nil {
+		log.Printf("Error inserting new videos: %v", err)
 	}
-	err := insertStatement.Query(db, &newVideos)
-	errs.CheckError(err)
 }
 
 func printPercentage(index, total int) {
