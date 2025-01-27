@@ -20,18 +20,6 @@ func GetVideoWithoutChecksumStatement() postgres.SelectStatement {
 	return selectStatement
 }
 
-func QuerySelectWithLibraryPath(db *sql.DB, statement postgres.SelectStatement) (data []struct {
-	model.LibraryPath
-	model.Video
-}, err error) {
-	err = statement.Query(db, &data)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
 func UpdateVideoChecksum(video model.Video) postgres.UpdateStatement {
 	statement := table.Video.UPDATE().
 		SET(table.Video.Checksum.SET(postgres.String(*video.Checksum))).
@@ -41,11 +29,6 @@ func UpdateVideoChecksum(video model.Video) postgres.UpdateStatement {
 	repository.DebugCheckUpdate(statement)
 
 	return statement
-}
-
-func ExecuteUpdate(db *sql.DB, statement postgres.UpdateStatement) (err error) {
-	_, err = statement.Exec(db)
-	return err
 }
 
 func UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement {
@@ -69,15 +52,6 @@ func GetVideosInLibraryPath(libraryPathId uuid.UUID) postgres.SelectStatement {
 	return statement
 }
 
-func QuerySelect(db *sql.DB, statement postgres.SelectStatement) (data []struct{ model.Video }, err error) {
-	err = statement.Query(db, &data)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
 func InsertVideosStatement(videos []model.Video) postgres.InsertStatement {
 	if len(videos) == 0 {
 		return nil
@@ -99,7 +73,33 @@ func InsertVideosStatement(videos []model.Video) postgres.InsertStatement {
 	return statement
 }
 
+func QuerySelect(db *sql.DB, statement postgres.SelectStatement) (data []struct{ model.Video }, err error) {
+	err = statement.Query(db, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func ExecuteInsert(db *sql.DB, statement postgres.InsertStatement) error {
 	_, err := statement.Exec(db)
 	return err
+}
+
+func ExecuteUpdate(db *sql.DB, statement postgres.UpdateStatement) (err error) {
+	_, err = statement.Exec(db)
+	return err
+}
+
+func QuerySelectWithLibraryPath(db *sql.DB, statement postgres.SelectStatement) (data []struct {
+	model.LibraryPath
+	model.Video
+}, err error) {
+	err = statement.Query(db, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

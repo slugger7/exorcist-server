@@ -38,7 +38,7 @@ func CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatemen
 	return insertStatement
 }
 
-func ExecuteSelect(db *sql.DB, statement postgres.SelectStatement) (data []struct{ model.LibraryPath }, err error) {
+func QuerySelect(db *sql.DB, statement postgres.SelectStatement) (data []struct{ model.LibraryPath }, err error) {
 	err = statement.Query(db, &data)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func ExecuteSelect(db *sql.DB, statement postgres.SelectStatement) (data []struc
 	return data, nil
 }
 
-func ExecuteInsert(db *sql.DB, statement postgres.InsertStatement) (data []struct{ model.LibraryPath }, err error) {
+func QueryInsert(db *sql.DB, statement postgres.InsertStatement) (data []struct{ model.LibraryPath }, err error) {
 	err = statement.Query(db, &data)
 	if err != nil {
 		return nil, err

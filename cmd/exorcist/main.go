@@ -146,7 +146,7 @@ func printPercentage(index, total int) {
 
 func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryPath) {
 	selectLibraryPath := libPathRepo.GetLibraryPathsSelect()
-	libraryPaths, err := libPathRepo.ExecuteSelect(db, selectLibraryPath)
+	libraryPaths, err := libPathRepo.QuerySelect(db, selectLibraryPath)
 	if err == nil && libraryPaths != nil && len(libraryPaths) > 0 {
 		libraryPath = libraryPaths[len(libraryPaths)-1].LibraryPath
 	} else {
@@ -162,11 +162,11 @@ func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryP
 
 func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 	libraryInsertStament := libRepo.CreateLibraryStatement("New Lib")
-	libraries, err := libRepo.ExecuteInsert(db, libraryInsertStament)
+	libraries, err := libRepo.QueryInsert(db, libraryInsertStament)
 	errs.CheckError(err)
 
 	libraryPathInsertStatement := libPathRepo.CreateLibraryPath(libraries[len(libraries)-1].ID, path)
-	libraryPaths, err := libPathRepo.ExecuteInsert(db, libraryPathInsertStatement)
+	libraryPaths, err := libPathRepo.QueryInsert(db, libraryPathInsertStatement)
 	errs.CheckError(err)
 
 	return libraryPaths[len(libraryPaths)-1].LibraryPath

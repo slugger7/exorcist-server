@@ -23,7 +23,7 @@ func CreateLibraryStatement(name string) postgres.InsertStatement {
 	return insertStatement
 }
 
-func ExecuteInsert(db *sql.DB, statement postgres.InsertStatement) (data []struct{ model.Library }, err error) {
+func QueryInsert(db *sql.DB, statement postgres.InsertStatement) (data []struct{ model.Library }, err error) {
 	err = statement.Query(db, &data)
 	if err != nil {
 		return nil, err
