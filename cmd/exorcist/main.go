@@ -16,8 +16,8 @@ import (
 	"github.com/slugger7/exorcist/internal/job"
 	"github.com/slugger7/exorcist/internal/media"
 
-	libRepo "github.com/slugger7/exorcist/internal/repository/library"
-	libPathRepo "github.com/slugger7/exorcist/internal/repository/library_path"
+	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
+	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
@@ -145,8 +145,8 @@ func printPercentage(index, total int) {
 }
 
 func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryPath) {
-	selectLibraryPath := libPathRepo.GetLibraryPathsSelect()
-	libraryPaths, err := libPathRepo.QuerySelect(db, selectLibraryPath)
+	selectLibraryPath := libraryPathRepository.GetLibraryPathsSelect()
+	libraryPaths, err := libraryPathRepository.QuerySelect(db, selectLibraryPath)
 	if err == nil && libraryPaths != nil && len(libraryPaths) > 0 {
 		libraryPath = libraryPaths[len(libraryPaths)-1].LibraryPath
 	} else {
@@ -161,12 +161,12 @@ func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryP
 }
 
 func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
-	libraryInsertStament := libRepo.CreateLibraryStatement("New Lib")
-	libraries, err := libRepo.QueryInsert(db, libraryInsertStament)
+	libraryInsertStament := libraryRepository.CreateLibraryStatement("New Lib")
+	libraries, err := libraryRepository.QueryInsert(db, libraryInsertStament)
 	errs.CheckError(err)
 
-	libraryPathInsertStatement := libPathRepo.CreateLibraryPath(libraries[len(libraries)-1].ID, path)
-	libraryPaths, err := libPathRepo.QueryInsert(db, libraryPathInsertStatement)
+	libraryPathInsertStatement := libraryPathRepository.CreateLibraryPath(libraries[len(libraries)-1].ID, path)
+	libraryPaths, err := libraryPathRepository.QueryInsert(db, libraryPathInsertStatement)
 	errs.CheckError(err)
 
 	return libraryPaths[len(libraryPaths)-1].LibraryPath
