@@ -14,20 +14,15 @@ import (
 )
 
 func NewDatabase(env environment.EnvironmentVariables) *sql.DB {
-	if env.Dev {
-		log.Printf("host=%s port=%s user=%s password=%s database=%s",
-			env.DatabaseHost,
-			env.DatabasePort,
-			env.DatabaseUser,
-			env.DatabasePassword,
-			env.DatabaseName)
-	}
 	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		env.DatabaseHost,
 		env.DatabasePort,
 		env.DatabaseUser,
 		env.DatabasePassword,
 		env.DatabaseName)
+	if env.Dev {
+		log.Printf("connection_string: %v", psqlconn)
+	}
 	db, err := sql.Open("postgres", psqlconn)
 	errs.CheckError(err)
 
