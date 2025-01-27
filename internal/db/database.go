@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/lib/pq"
 	"github.com/slugger7/exorcist/internal/constants/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 )
@@ -28,4 +32,24 @@ func NewDatabase(env environment.EnvironmentVariables) *sql.DB {
 	errs.CheckError(err)
 
 	return db
+}
+
+func RunMigrations(db *sql.DB, env environment.EnvironmentVariables) error {
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		"postgres", driver)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Running migrations")
+	err = m.Up()
+	if err != nil {
+		return err
+	}
+	return nil
 }

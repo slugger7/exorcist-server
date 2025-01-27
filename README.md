@@ -13,7 +13,6 @@ Similar to ghost and poltergeist this one is written in golang
 - Install ffmpeg
 - Copy `templte.env` -> `.env` and fill in the details
 - `docker compose up -d` to start the database
-- `PGPASSWORD=some-secure-password psql -U exorcist -h 127.0.0.1 -p 5432 -d exorcist -f ./migration/database.sql` initial database structure
 - `make run` to start the application
 
 ## Tools
@@ -32,8 +31,18 @@ There is still some work to do to figure out how to properly create migrations f
 
 [Jet](https://github.com/go-jet/jet)
 
-`jet -dsn=postgresql://${user}:${pass}@localhost:5432/exorcist?sslmode=disable -schema=public -path=./gen`
-For some reason this does not run in zsh. Run it in bash
+`jet -source=postgres -host=localhost -port=5432 -user=exorcist -password=some-secure-password -dbname=exorcist -schema=public -sslmode=disable -path=./internal/db`
+If you use zsh look at the troubleshooting section for adding gopath to your path
+
+#### Migrations
+
+For migrations look into [golang-migrate](https://github.com/golang-migrate/migrate)
+
+You should never have to manually run migrations as it should run when the application starts up.
+To make life easier creating migrations you can install the cli of the migration tool from [here](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate)
+
+- Create migration: `migrate create -ext=sql -dir=./migrations <migration-name>`
+- Run migrations: `./run-migrations.sh`
 
 ### FFMpeg stuff
 

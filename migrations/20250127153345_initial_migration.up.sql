@@ -29,6 +29,7 @@ create table video (
   checksum char(40),
   added timestamp default current_timestamp not null,
   deleted boolean default false not null,
+  exists boolean default true not null,
   created timestamp default current_timestamp not null,
   modified timestamp default current_timestamp not null,
   constraint fk_library_path

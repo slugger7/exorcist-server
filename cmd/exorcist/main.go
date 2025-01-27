@@ -9,7 +9,6 @@ import (
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 	"github.com/slugger7/exorcist/internal/constants/environment"
 	"github.com/slugger7/exorcist/internal/db"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -28,13 +27,18 @@ func main() {
 	er.CheckError(err)
 	env := environment.GetEnvironmentVariables()
 
-	db := db.NewDatabase(env)
-	defer db.Close()
+	database := db.NewDatabase(env)
+	defer database.Close()
 
-	libraryPath := getOrCreateLibraryPath(db, env.MediaPath)
+	err = db.RunMigrations(database, env)
+	if err != nil {
+		log.Printf("Error occured when running migrations: %v", err.Error())
+	}
+
+	libraryPath := getOrCreateLibraryPath(database, env.MediaPath)
 	log.Printf("Library path id %v\n", libraryPath.ID)
 
-	existingVideos := getVideosInLibraryPath(db, libraryPath.ID)
+	existingVideos := getVideosInLibraryPath(database, libraryPath.ID)
 
 	log.Printf("Existing video count %v\n", len(existingVideos))
 
@@ -44,7 +48,7 @@ func main() {
 	nonExsistentVideos := media.FindNonExistentVideos(existingVideos, values)
 	if len(nonExsistentVideos) > 0 {
 		log.Println("Found some videos that do not exist any more on disk. Marking them as deleted.")
-		removeVideos(db, nonExsistentVideos)
+		removeVideos(database, nonExsistentVideos)
 	}
 
 	log.Println("Printing out results")
@@ -92,15 +96,15 @@ func main() {
 		})
 
 		if i%5 == 0 {
-			writeModelsToDatabaseBatch(db, videoModels)
+			writeModelsToDatabaseBatch(database, videoModels)
 
 			videoModels = []model.Video{}
 		}
 	}
 
-	writeModelsToDatabaseBatch(db, videoModels)
+	writeModelsToDatabaseBatch(database, videoModels)
 
-	job.GenerateChecksums(db) // this is a canditate to move to a goroutine
+	job.GenerateChecksums(database) // this is a canditate to move to a goroutine
 }
 
 func removeVideos(db *sql.DB, nonExistentVideos []model.Video) {
