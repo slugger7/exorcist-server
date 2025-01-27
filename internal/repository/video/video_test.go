@@ -9,6 +9,8 @@ import (
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
+// TODO: implement [snapshot tests](https://github.com/gkampitakis/go-snaps)
+
 func Test_GetVideoWithoutChecksumStatement(t *testing.T) {
 	actual := videoRepository.GetVideoWithoutChecksumStatement().DebugSql()
 
@@ -65,7 +67,7 @@ func Test_GetVideosInLibraryPath(t *testing.T) {
 	}
 	actual := videoRepository.GetVideosInLibraryPath(newUuid).DebugSql()
 
-	expected := fmt.Sprintf("\nSELECT video.relative_path AS \"video.relative_path\",\n     video.id AS \"video.id\"\nFROM public.video\nWHERE video.library_path_id = '%v';\n", newUuid)
+	expected := fmt.Sprintf("\nSELECT video.relative_path AS \"video.relative_path\",\n     video.id AS \"video.id\"\nFROM public.video\nWHERE (video.library_path_id = '%v') AND video.exists IS TRUE;\n", newUuid)
 	if actual != expected {
 		t.Errorf("Expected %v but got %v", expected, actual)
 	}

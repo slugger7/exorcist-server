@@ -45,7 +45,9 @@ func UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement {
 func GetVideosInLibraryPath(libraryPathId uuid.UUID) postgres.SelectStatement {
 	statement := table.Video.SELECT(table.Video.RelativePath, table.Video.ID).
 		FROM(table.Video.Table).
-		WHERE(table.Video.LibraryPathID.EQ(postgres.UUID(libraryPathId)))
+		WHERE(table.Video.LibraryPathID.EQ(postgres.UUID(libraryPathId)).
+			AND(table.Video.Exists.IS_TRUE()),
+		)
 
 	repository.DebugCheckSelect(statement)
 
