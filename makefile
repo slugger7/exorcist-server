@@ -6,3 +6,11 @@ get:
 
 test:
 	@go test ./... -v
+
+exorcist:
+	go build ./cmd/exorcist
+
+build: exorcist
+
+clean:
+	rm exorcist
