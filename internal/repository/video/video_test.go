@@ -38,3 +38,22 @@ func Test_UpdateVideoChecksum(t *testing.T) {
 		t.Errorf("Expected %v got %v", expected, actual)
 	}
 }
+
+func Test_MarkVideoAsNotExistingStatement(t *testing.T) {
+	newUuid, err := uuid.NewRandom()
+	if err != nil {
+		t.Errorf("Encountered an error while generating a UUID: %v", err)
+	}
+
+	video := model.Video{
+		ID:     newUuid,
+		Exists: false,
+	}
+
+	actual := videoRepository.UpdateVideoExistsStatement(video).DebugSql()
+
+	expected := fmt.Sprintf("\nUPDATE public.video\nSET exists = FALSE::boolean\nWHERE video.id = '%v';\n", newUuid)
+	if actual != expected {
+		t.Errorf("Expected %v got %v", expected, actual)
+	}
+}

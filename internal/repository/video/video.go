@@ -46,3 +46,14 @@ func ExecuteUpdate(db *sql.DB, statement postgres.UpdateStatement) (err error) {
 	_, err = statement.Exec(db)
 	return err
 }
+
+func UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement {
+	statement := table.Video.UPDATE().
+		SET(table.Video.Exists.SET(postgres.Bool(video.Exists))).
+		MODEL(video).
+		WHERE(table.Video.ID.EQ(postgres.UUID(video.ID)))
+
+	repository.DebugCheckUpdate(statement)
+
+	return statement
+}

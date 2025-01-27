@@ -20,6 +20,7 @@ import (
 
 	libRepo "github.com/slugger7/exorcist/internal/repository/library"
 	libPathRepo "github.com/slugger7/exorcist/internal/repository/library_path"
+	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
 func main() {
@@ -47,7 +48,6 @@ func main() {
 
 	nonExsistentVideos := media.FindNonExistentVideos(existingVideos, values)
 	if len(nonExsistentVideos) > 0 {
-		log.Println("Found some videos that do not exist any more on disk. Marking them as deleted.")
 		removeVideos(database, nonExsistentVideos)
 	}
 
@@ -109,16 +109,10 @@ func main() {
 
 func removeVideos(db *sql.DB, nonExistentVideos []model.Video) {
 	for _, v := range nonExistentVideos {
-		updateStmnt := table.Video.UPDATE().
-			SET(table.Video.Deleted.SET(postgres.Bool(true))).
-			MODEL(v).
-			WHERE(table.Video.ID.EQ(postgres.UUID(v.ID)))
-		dbgSql := updateStmnt.DebugSql()
-		log.Println(dbgSql)
-		_, err := updateStmnt.Exec(db)
+		v.Exists = false
+		err := videoRepository.ExecuteUpdate(db, videoRepository.UpdateVideoExistsStatement(v))
 		if err != nil {
-			log.Printf("Could not update video %v to be deleted: %v", v.ID, err.Error())
-			continue
+			log.Printf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
 		}
 	}
 }
