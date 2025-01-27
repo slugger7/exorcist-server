@@ -141,7 +141,7 @@ func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
 }
 
 func printPercentage(index, total int) {
-	log.Printf("Index: %v Total: %v Progress: %v\n", index, total, int(float64(index)/float64(total)*100.0))
+	log.Printf("Index: %v Total: %v Progress: %v%%\n", index, total, int(float64(index)/float64(total)*100.0))
 }
 
 func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryPath) {

@@ -18,6 +18,7 @@ func GenerateChecksums(db *sql.DB) {
 
 	for _, v := range data {
 		absolutePath := filepath.Join(v.LibraryPath.Path, v.Video.RelativePath)
+		log.Printf("Calculating checksum for %v", v.Video.RelativePath)
 		checksum, err := media.CalculateMD5(absolutePath)
 		if err != nil {
 			log.Printf("Could not calculate checksum for %v. Video ID %v", absolutePath, v.Video.ID)
