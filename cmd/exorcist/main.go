@@ -6,14 +6,13 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/slugger7/exorcist/internal/constants/environment"
 	"github.com/slugger7/exorcist/internal/db"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
-	er "github.com/slugger7/exorcist/internal/errors"
+	errs "github.com/slugger7/exorcist/internal/errors"
 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/job"
 	"github.com/slugger7/exorcist/internal/media"
@@ -25,7 +24,7 @@ import (
 
 func main() {
 	err := godotenv.Load()
-	er.CheckError(err)
+	errs.CheckError(err)
 	env := environment.GetEnvironmentVariables()
 
 	database := db.NewDatabase(env)
@@ -44,7 +43,7 @@ func main() {
 	log.Printf("Existing video count %v\n", len(existingVideos))
 
 	values, err := media.GetFilesByExtensions(env.MediaPath, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
-	er.CheckError(err)
+	errs.CheckError(err)
 
 	nonExsistentVideos := media.FindNonExistentVideos(existingVideos, values)
 	if len(nonExsistentVideos) > 0 {
@@ -124,15 +123,8 @@ func videoExsists(existingVideos []struct{ model.Video }, relativePath string) b
 }
 
 func getVideosInLibraryPath(db *sql.DB, libraryPathId uuid.UUID) []struct{ model.Video } {
-	findStatement := table.Video.SELECT(table.Video.RelativePath, table.Video.ID).
-		FROM(table.Video.Table).
-		WHERE(table.Video.LibraryPathID.EQ(postgres.UUID(libraryPathId)))
-
-	var videos []struct {
-		model.Video
-	}
-	err := findStatement.Query(db, &videos)
-	er.CheckError(err)
+	videos, err := videoRepository.QuerySelect(db, videoRepository.GetVideosInLibraryPath(libraryPathId))
+	errs.CheckError(err)
 
 	return videos
 }
@@ -161,7 +153,7 @@ func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
 		model.Video
 	}
 	err := insertStatement.Query(db, &newVideos)
-	er.CheckError(err)
+	errs.CheckError(err)
 }
 
 func printPercentage(index, total int) {
@@ -187,11 +179,11 @@ func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryP
 func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 	libraryInsertStament := libRepo.CreateLibraryStatement("New Lib")
 	libraries, err := libRepo.ExecuteInsert(db, libraryInsertStament)
-	er.CheckError(err)
+	errs.CheckError(err)
 
 	libraryPathInsertStatement := libPathRepo.CreateLibraryPath(libraries[len(libraries)-1].ID, path)
 	libraryPaths, err := libPathRepo.ExecuteInsert(db, libraryPathInsertStatement)
-	er.CheckError(err)
+	errs.CheckError(err)
 
 	return libraryPaths[len(libraryPaths)-1].LibraryPath
 }

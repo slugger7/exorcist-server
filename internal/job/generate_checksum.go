@@ -11,7 +11,7 @@ import (
 
 func GenerateChecksums(db *sql.DB) {
 	selectStatement := videoRepository.GetVideoWithoutChecksumStatement()
-	data, err := videoRepository.ExecuteChecksumStatement(db, selectStatement)
+	data, err := videoRepository.QuerySelectWithLibraryPath(db, selectStatement)
 	if err != nil {
 		log.Printf("Error while fetching a video without a checksum %v", err.Error())
 	}

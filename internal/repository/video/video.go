@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/repository"
@@ -19,7 +20,7 @@ func GetVideoWithoutChecksumStatement() postgres.SelectStatement {
 	return selectStatement
 }
 
-func ExecuteChecksumStatement(db *sql.DB, statement postgres.SelectStatement) (data []struct {
+func QuerySelectWithLibraryPath(db *sql.DB, statement postgres.SelectStatement) (data []struct {
 	model.LibraryPath
 	model.Video
 }, err error) {
@@ -56,4 +57,23 @@ func UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement {
 	repository.DebugCheckUpdate(statement)
 
 	return statement
+}
+
+func GetVideosInLibraryPath(libraryPathId uuid.UUID) postgres.SelectStatement {
+	statement := table.Video.SELECT(table.Video.RelativePath, table.Video.ID).
+		FROM(table.Video.Table).
+		WHERE(table.Video.LibraryPathID.EQ(postgres.UUID(libraryPathId)))
+
+	repository.DebugCheckSelect(statement)
+
+	return statement
+}
+
+func QuerySelect(db *sql.DB, statement postgres.SelectStatement) (data []struct{ model.Video }, err error) {
+	err = statement.Query(db, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

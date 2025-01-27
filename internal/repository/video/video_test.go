@@ -57,3 +57,16 @@ func Test_MarkVideoAsNotExistingStatement(t *testing.T) {
 		t.Errorf("Expected %v got %v", expected, actual)
 	}
 }
+
+func Test_GetVideosInLibraryPath(t *testing.T) {
+	newUuid, err := uuid.NewRandom()
+	if err != nil {
+		t.Errorf("Encountered an error while generating a UUID: %v", err)
+	}
+	actual := videoRepository.GetVideosInLibraryPath(newUuid).DebugSql()
+
+	expected := fmt.Sprintf("\nSELECT video.relative_path AS \"video.relative_path\",\n     video.id AS \"video.id\"\nFROM public.video\nWHERE video.library_path_id = '%v';\n", newUuid)
+	if actual != expected {
+		t.Errorf("Expected %v but got %v", expected, actual)
+	}
+}
