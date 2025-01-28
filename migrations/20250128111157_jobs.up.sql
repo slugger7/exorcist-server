@@ -5,5 +5,7 @@ create table job (
     id uuid primary key default gen_random_uuid(),
     job_type job_type not null,
     status job_status not null,
-    data jsonb
+    data jsonb,
+    created timestamp default current_timestamp not null,
+    modified timestamp default current_timestamp not null
 )

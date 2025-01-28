@@ -17,10 +17,12 @@ type jobTable struct {
 	postgres.Table
 
 	// Columns
-	ID      postgres.ColumnString
-	JobType postgres.ColumnString
-	Status  postgres.ColumnString
-	Data    postgres.ColumnString
+	ID       postgres.ColumnString
+	JobType  postgres.ColumnString
+	Status   postgres.ColumnString
+	Data     postgres.ColumnString
+	Created  postgres.ColumnTimestamp
+	Modified postgres.ColumnTimestamp
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -65,18 +67,22 @@ func newJobTableImpl(schemaName, tableName, alias string) jobTable {
 		JobTypeColumn  = postgres.StringColumn("job_type")
 		StatusColumn   = postgres.StringColumn("status")
 		DataColumn     = postgres.StringColumn("data")
-		allColumns     = postgres.ColumnList{IDColumn, JobTypeColumn, StatusColumn, DataColumn}
-		mutableColumns = postgres.ColumnList{JobTypeColumn, StatusColumn, DataColumn}
+		CreatedColumn  = postgres.TimestampColumn("created")
+		ModifiedColumn = postgres.TimestampColumn("modified")
+		allColumns     = postgres.ColumnList{IDColumn, JobTypeColumn, StatusColumn, DataColumn, CreatedColumn, ModifiedColumn}
+		mutableColumns = postgres.ColumnList{JobTypeColumn, StatusColumn, DataColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return jobTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:      IDColumn,
-		JobType: JobTypeColumn,
-		Status:  StatusColumn,
-		Data:    DataColumn,
+		ID:       IDColumn,
+		JobType:  JobTypeColumn,
+		Status:   StatusColumn,
+		Data:     DataColumn,
+		Created:  CreatedColumn,
+		Modified: ModifiedColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

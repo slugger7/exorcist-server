@@ -9,11 +9,14 @@ package model
 
 import (
 	"github.com/google/uuid"
+	"time"
 )
 
 type Job struct {
-	ID      uuid.UUID `sql:"primary_key"`
-	JobType JobType
-	Status  JobStatus
-	Data    *string
+	ID       uuid.UUID `sql:"primary_key"`
+	JobType  JobType
+	Status   JobStatus
+	Data     *string
+	Created  time.Time
+	Modified time.Time
 }
