@@ -8,7 +8,7 @@ import (
 
 func Test_GetLibraryPathsSelect(t *testing.T) {
 	statement := repo.GetLibraryPathsSelect()
-	sql := statement.DebugSql()
+	sql, _ := statement.Sql()
 
 	expectedSql := "\nSELECT library_path.id AS \"library_path.id\",\n     library_path.path AS \"library_path.path\"\nFROM public.library_path;\n"
 	if sql != expectedSql {

@@ -1,7 +1,6 @@
 package videoRepository_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -12,7 +11,7 @@ import (
 // TODO: implement [snapshot tests](https://github.com/gkampitakis/go-snaps)
 
 func Test_GetVideoWithoutChecksumStatement(t *testing.T) {
-	actual := videoRepository.GetVideoWithoutChecksumStatement().DebugSql()
+	actual, _ := videoRepository.GetVideoWithoutChecksumStatement().Sql()
 
 	expected := "\nSELECT video.id AS \"video.id\",\n     video.checksum AS \"video.checksum\",\n     video.relative_path AS \"video.relative_path\",\n     library_path.path AS \"library_path.path\"\nFROM public.video\n     INNER JOIN public.library_path ON (library_path.id = video.library_path_id)\nWHERE video.checksum IS NULL;\n"
 	if actual != expected {
@@ -33,9 +32,13 @@ func Test_UpdateVideoChecksum(t *testing.T) {
 		Checksum: &checksum,
 	}
 
-	actual := videoRepository.UpdateVideoChecksum(video).DebugSql()
+	actual, _ := videoRepository.UpdateVideoChecksum(video).Sql()
 
-	expected := fmt.Sprintf("\nUPDATE public.video\nSET checksum = '%v'::text\nWHERE video.id = '%v';\n", checksum, newUuid)
+	expected := `
+UPDATE public.video
+SET checksum = $1::text
+WHERE video.id = $2;
+`
 	if actual != expected {
 		t.Errorf("Expected %v got %v", expected, actual)
 	}
@@ -52,9 +55,13 @@ func Test_MarkVideoAsNotExistingStatement(t *testing.T) {
 		Exists: false,
 	}
 
-	actual := videoRepository.UpdateVideoExistsStatement(video).DebugSql()
+	actual, _ := videoRepository.UpdateVideoExistsStatement(video).Sql()
 
-	expected := fmt.Sprintf("\nUPDATE public.video\nSET exists = FALSE::boolean\nWHERE video.id = '%v';\n", newUuid)
+	expected := `
+UPDATE public.video
+SET exists = $1::boolean
+WHERE video.id = $2;
+`
 	if actual != expected {
 		t.Errorf("Expected %v got %v", expected, actual)
 	}
@@ -65,9 +72,14 @@ func Test_GetVideosInLibraryPath(t *testing.T) {
 	if err != nil {
 		t.Errorf("Encountered an error while generating a UUID: %v", err)
 	}
-	actual := videoRepository.GetVideosInLibraryPath(newUuid).DebugSql()
+	actual, _ := videoRepository.GetVideosInLibraryPath(newUuid).Sql()
 
-	expected := fmt.Sprintf("\nSELECT video.relative_path AS \"video.relative_path\",\n     video.id AS \"video.id\"\nFROM public.video\nWHERE (video.library_path_id = '%v') AND video.exists IS TRUE;\n", newUuid)
+	expected := `
+SELECT video.relative_path AS "video.relative_path",
+     video.id AS "video.id"
+FROM public.video
+WHERE (video.library_path_id = $1) AND video.exists IS TRUE;
+`
 	if actual != expected {
 		t.Errorf("Expected %v but got %v", expected, actual)
 	}
@@ -98,10 +110,14 @@ func Test_InsertVideosStatement_WithVideos_ShouldReturnStatement(t *testing.T) {
 		Size:          80085,
 	}
 	videos := []model.Video{video}
-	actual := videoRepository.InsertVideosStatement(videos).DebugSql()
+	actual, _ := videoRepository.InsertVideosStatement(videos).Sql()
 
-	expected := fmt.Sprintf("\nINSERT INTO public.video (library_path_id, relative_path, title, file_name, height, width, runtime, size)\nVALUES ('%v', 'relativePath', 'title', 'filename', 69, 420, 1337, 80085);\n", newUuid)
+	expected :=
+		`
+INSERT INTO public.video (library_path_id, relative_path, title, file_name, height, width, runtime, size)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+`
 	if actual != expected {
-		t.Errorf("Expected %v got %v", expected, actual)
+		t.Errorf("Expected \n%v got \n%v", expected, actual)
 	}
 }
