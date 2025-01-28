@@ -9,7 +9,7 @@ package enum
 
 import "github.com/go-jet/jet/v2/postgres"
 
-var JobStatus = &struct {
+var JobStatusEnum = &struct {
 	NotStarted postgres.StringExpression
 	InProgress postgres.StringExpression
 	Failed     postgres.StringExpression

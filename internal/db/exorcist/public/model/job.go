@@ -14,8 +14,8 @@ import (
 
 type Job struct {
 	ID       uuid.UUID `sql:"primary_key"`
-	JobType  JobType
-	Status   JobStatus
+	JobType  JobTypeEnum
+	Status   JobStatusEnum
 	Data     *string
 	Created  time.Time
 	Modified time.Time

@@ -9,7 +9,7 @@ package enum
 
 import "github.com/go-jet/jet/v2/postgres"
 
-var JobType = &struct {
+var JobTypeEnum = &struct {
 	UpdateExistingVideos postgres.StringExpression
 	ScanPath             postgres.StringExpression
 	GenerateChecksum     postgres.StringExpression
