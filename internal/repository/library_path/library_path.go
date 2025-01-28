@@ -1,8 +1,6 @@
 package libraryPathRepository
 
 import (
-	"database/sql"
-
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -36,22 +34,4 @@ func CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatemen
 	repository.DebugCheck(insertStatement)
 
 	return insertStatement
-}
-
-func QuerySelect(db *sql.DB, statement postgres.SelectStatement) (data []struct{ model.LibraryPath }, err error) {
-	err = statement.Query(db, &data)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-func QueryInsert(db *sql.DB, statement postgres.InsertStatement) (data []struct{ model.LibraryPath }, err error) {
-	err = statement.Query(db, &data)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
 }

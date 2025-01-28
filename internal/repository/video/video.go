@@ -83,25 +83,3 @@ func QuerySelect(db *sql.DB, statement postgres.SelectStatement) (data []struct{
 
 	return data, nil
 }
-
-func ExecuteInsert(db *sql.DB, statement postgres.InsertStatement) error {
-	_, err := statement.Exec(db)
-	return err
-}
-
-func ExecuteUpdate(db *sql.DB, statement postgres.UpdateStatement) (err error) {
-	_, err = statement.Exec(db)
-	return err
-}
-
-func QuerySelectWithLibraryPath(db *sql.DB, statement postgres.SelectStatement) (data []struct {
-	model.LibraryPath
-	model.Video
-}, err error) {
-	err = statement.Query(db, &data)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}

@@ -5,13 +5,18 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/media"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
 func GenerateChecksums(db *sql.DB) {
 	selectStatement := videoRepository.GetVideoWithoutChecksumStatement()
-	data, err := videoRepository.QuerySelectWithLibraryPath(db, selectStatement)
+	var data []struct {
+		model.LibraryPath
+		model.Video
+	}
+	err := selectStatement.Query(db, &data)
 	if err != nil {
 		log.Printf("Error while fetching a video without a checksum %v", err.Error())
 	}
@@ -26,6 +31,10 @@ func GenerateChecksums(db *sql.DB) {
 
 		v.Video.Checksum = &checksum
 
-		videoRepository.ExecuteUpdate(db, videoRepository.UpdateVideoChecksum(v.Video))
+		_, err = videoRepository.UpdateVideoChecksum(v.Video).
+			Exec(db)
+		if err != nil {
+			log.Printf("Could not update the checksum of video (%v): %v", v.Video.ID, err)
+		}
 	}
 }

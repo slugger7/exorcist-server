@@ -34,6 +34,8 @@ func main() {
 		log.Printf("Error occured when running migrations: %v", err.Error())
 	}
 
+	// move everything after this to a job
+
 	libraryPath := getOrCreateLibraryPath(database, env.MediaPath)
 	log.Printf("Library path id %v\n", libraryPath.ID)
 
@@ -108,7 +110,7 @@ func main() {
 func removeVideos(db *sql.DB, nonExistentVideos []model.Video) {
 	for _, v := range nonExistentVideos {
 		v.Exists = false
-		err := videoRepository.ExecuteUpdate(db, videoRepository.UpdateVideoExistsStatement(v))
+		_, err := videoRepository.UpdateVideoExistsStatement(v).Exec(db)
 		if err != nil {
 			log.Printf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
 		}
@@ -134,7 +136,7 @@ func writeModelsToDatabaseBatch(db *sql.DB, models []model.Video) {
 	}
 	log.Println("Writing batch")
 
-	err := videoRepository.ExecuteInsert(db, videoRepository.InsertVideosStatement(models))
+	_, err := videoRepository.InsertVideosStatement(models).Exec(db)
 	if err != nil {
 		log.Printf("Error inserting new videos: %v", err)
 	}
@@ -146,7 +148,10 @@ func printPercentage(index, total int) {
 
 func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryPath) {
 	selectLibraryPath := libraryPathRepository.GetLibraryPathsSelect()
-	libraryPaths, err := libraryPathRepository.QuerySelect(db, selectLibraryPath)
+	var libraryPaths []struct {
+		model.LibraryPath
+	}
+	err := selectLibraryPath.Query(db, &libraryPaths)
 	if err == nil && libraryPaths != nil && len(libraryPaths) > 0 {
 		libraryPath = libraryPaths[len(libraryPaths)-1].LibraryPath
 	} else {
@@ -162,11 +167,17 @@ func getOrCreateLibraryPath(db *sql.DB, path string) (libraryPath model.LibraryP
 
 func createLibWithPath(db *sql.DB, path string) model.LibraryPath {
 	libraryInsertStament := libraryRepository.CreateLibraryStatement("New Lib")
-	libraries, err := libraryRepository.QueryInsert(db, libraryInsertStament)
+	var libraries []struct {
+		model.Library
+	}
+	err := libraryInsertStament.Query(db, &libraries)
 	errs.CheckError(err)
 
 	libraryPathInsertStatement := libraryPathRepository.CreateLibraryPath(libraries[len(libraries)-1].ID, path)
-	libraryPaths, err := libraryPathRepository.QueryInsert(db, libraryPathInsertStatement)
+	var libraryPaths []struct {
+		model.LibraryPath
+	}
+	err = libraryPathInsertStatement.Query(db, &libraryPaths)
 	errs.CheckError(err)
 
 	return libraryPaths[len(libraryPaths)-1].LibraryPath
