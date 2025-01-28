@@ -28,8 +28,19 @@ const (
 	DEV               = "DEV"
 )
 
-func GetEnvironmentVariables() EnvironmentVariables {
-	envVars := EnvironmentVariables{
+var env *EnvironmentVariables
+
+func GetEnvironmentVariables() *EnvironmentVariables {
+	if env != nil {
+		return env
+	}
+	RefreshEnvironmentVariables()
+
+	return env
+}
+
+func RefreshEnvironmentVariables() {
+	env = &EnvironmentVariables{
 		DatabaseHost:     os.Getenv(DATABASE_HOST),
 		DatabasePort:     os.Getenv(DATABASE_PORT),
 		DatabaseUser:     os.Getenv(DATABASE_USER),
@@ -39,8 +50,6 @@ func GetEnvironmentVariables() EnvironmentVariables {
 		MediaPath:        os.Getenv(MEDIUA_PATH),
 		Dev:              getBoolValue(DEV, false),
 	}
-
-	return envVars
 }
 
 func getBoolValue(key string, defaultValue bool) bool {

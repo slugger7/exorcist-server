@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
-	"github.com/slugger7/exorcist/internal/constants/environment"
 	"github.com/slugger7/exorcist/internal/db"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/job"

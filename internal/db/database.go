@@ -9,11 +9,11 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
-	"github.com/slugger7/exorcist/internal/constants/environment"
+	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
-func NewDatabase(env environment.EnvironmentVariables) *sql.DB {
+func NewDatabase(env *environment.EnvironmentVariables) *sql.DB {
 	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		env.DatabaseHost,
 		env.DatabasePort,
@@ -29,7 +29,7 @@ func NewDatabase(env environment.EnvironmentVariables) *sql.DB {
 	return db
 }
 
-func RunMigrations(db *sql.DB, env environment.EnvironmentVariables) error {
+func RunMigrations(db *sql.DB, env *environment.EnvironmentVariables) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		return err

@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/slugger7/exorcist/internal/constants/environment"
 	"github.com/slugger7/exorcist/internal/db"
+	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/job"
 )
