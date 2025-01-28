@@ -23,26 +23,27 @@ Similar to ghost and poltergeist this one is written in golang
 
 ### Database
 
-For this application I want to try creating a database first design while also not using an ORM but rather a SQL builder.
-
-There is still some work to do to figure out how to properly create migrations for this project though.
-
-[raw postgres](https://golangdocs.com/golang-postgresql-example)
-
-[Jet](https://github.com/go-jet/jet)
-
-`jet -source=postgres -host=localhost -port=5432 -user=exorcist -password=some-secure-password -dbname=exorcist -schema=public -sslmode=disable -path=./internal/db`
-If you use zsh look at the troubleshooting section for adding gopath to your path
+This application is using a database first approach with a sql builder instead of an ORM.
+It utilizes [Jet](https://github.com/go-jet/jet)
 
 #### Migrations
 
-For migrations look into [golang-migrate](https://github.com/golang-migrate/migrate)
+We utilize [golang-migrate](https://github.com/golang-migrate/migrate) for our migrations
 
-You should never have to manually run migrations as it should run when the application starts up.
-To make life easier creating migrations you can install the cli of the migration tool from [here](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate)
+Migrations run automatically when the application starts up.
+It is recommended to install the cli tool for running migrations. This will allow you to run migrations from the command line without having to start up the application. [CLI migration](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate)
+It is also recommended that you install the [Jet CLI tool](https://github.com/go-jet/jet?tab=readme-ov-file#prerequisites) in order to update the models of the application
 
 - Create migration: `migrate create -ext=sql -dir=./migrations <migration-name>`
-- Run migrations: `./run-migrations.sh`
+- Run migrations: `./scripts/run-migrations.sh`
+- Undo a migration: `./scripts/undo-migration.sh`
+- Update models: `./scripts/update-models.sh`
+
+The usual workflow would to add a migration would be:
+
+1. Create a migration
+1. Run the migrations
+1. Update the models
 
 ### FFMpeg stuff
 
