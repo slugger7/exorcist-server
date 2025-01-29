@@ -2,9 +2,11 @@ package job
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"path/filepath"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/media"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
@@ -36,5 +38,18 @@ func GenerateChecksums(db *sql.DB) {
 		if err != nil {
 			log.Printf("Could not update the checksum of video (%v): %v", v.Video.ID, err)
 		}
+	}
+}
+
+type GenerateChecksumData struct {
+	VideoId uuid.UUID `json:"videoId"`
+}
+
+func GenerateChecksum(db *sql.DB, job model.Job) {
+	var jobData *GenerateChecksumData
+	err := json.Unmarshal([]byte(*job.Data), &jobData)
+	if err != nil {
+		log.Printf("Could not read json data %s", err)
+		return
 	}
 }
