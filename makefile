@@ -8,9 +8,22 @@ test:
 	@go test ./... -v
 
 exorcist:
-	go build ./cmd/exorcist
+	go build -o ./build/exorcist ./cmd/exorcist
 
 build: exorcist
 
 clean:
-	rm exorcist
+	rm -rf build
+
+run-migrations:
+	./scripts/run-migrations.sh
+
+undo-migration:
+	./scripts/undo-migration.sh
+
+update-models:
+	./scripts/update-models.sh
+
+recreate-db:
+	docker compose down db
+	docker compose up -d

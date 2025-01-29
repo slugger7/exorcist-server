@@ -23,7 +23,7 @@ Similar to ghost and poltergeist this one is written in golang
 
 ### Database
 
-#### Entity Relation Diagram 
+#### Entity Relation Diagram
 
 ![entity_relation_diagram](./diagrams/out/entity_relation_diagram/entity_relation_diagram.svg)
 
