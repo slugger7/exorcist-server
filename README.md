@@ -23,6 +23,10 @@ Similar to ghost and poltergeist this one is written in golang
 
 ### Database
 
+#### Entity Relation Diagram 
+
+![entity_relation_diagram](./diagrams/out/entity_relation_diagram/entity_relation_diagram.svg)
+
 This application is using a database first approach with a sql builder instead of an ORM.
 It utilizes [Jet](https://github.com/go-jet/jet)
 
@@ -69,4 +73,4 @@ In the docker compose file there is a plant uml server that spins up. The worksp
 
 In order to generate all of the diagrams in VS Code `Ctrl+Shift+P`/`Cmd+Shift+P` `PlantUML: Export Workspace Diagrams`
 
-I would like to find a method to do this without VS Code but for now this is the method
+I would like to find a method to do this without VS Code but for now this is the method. The reason for this is that there is no easy way to read the `.env` file into the environment and then use those variables in the settings for the project itself. This would also make it editor agnostic.
