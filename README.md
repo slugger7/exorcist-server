@@ -61,3 +61,12 @@ The usual workflow would to add a migration would be:
   export GOPATH=$HOME/go  
   export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
   ```
+
+### Diagrams
+
+Genarating diagrams PlantUML is used.
+In the docker compose file there is a plant uml server that spins up. The workspace settings uses this server to generate the UML diagrams. These generated diagrams can then be used within markdown files for documentation.
+
+In order to generate all of the diagrams in VS Code `Ctrl+Shift+P`/`Cmd+Shift+P` `PlantUML: Export Workspace Diagrams`
+
+I would like to find a method to do this without VS Code but for now this is the method

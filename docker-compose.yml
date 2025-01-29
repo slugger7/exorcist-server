@@ -8,3 +8,8 @@ services:
       - POSTGRES_USER=${DATABASE_USER}
     ports:
       - ${DATABASE_PORT}:5432
+  plantUml:
+    container_name: plant-uml
+    image: plantuml/plantuml-server:jetty
+    ports:
+      - 8080:8080

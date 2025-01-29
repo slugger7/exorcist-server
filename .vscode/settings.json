@@ -1,3 +1,7 @@
 {
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+    "plantuml.server": "http://localhost:8080",
+    "plantuml.render": "PlantUMLServer",
+    "plantuml.diagramsRoot": "diagrams/src",
+    "plantuml.exportOutDir": "diagrams/out"
 }
