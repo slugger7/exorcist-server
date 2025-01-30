@@ -1,6 +1,6 @@
 # Exorcist
 
-Similar to ghost and poltergeist this one is written in golang
+Similar to [ghost](https://github.com/slugger7/ghost-media) and [poltergeist](https://github.com/slugger7/poltergeist) this one is written in golang
 
 ## Getting started
 
