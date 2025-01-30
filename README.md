@@ -76,3 +76,6 @@ In order to generate all of the diagrams in VS Code `Ctrl+Shift+P`/`Cmd+Shift+P`
 I would like to find a method to do this without VS Code but for now this is the method. The reason for this is that there is no easy way to read the `.env` file into the environment and then use those variables in the settings for the project itself. This would also make it editor agnostic.
 
 You might have to tweak the [.env](.env) file with the `PLANT_UML_PORT` to get it to run on an open port. When doing this remember to update your [settings](.vscode/settings.json)
+
+https://plantuml.com/command-line
+https://d2lang.com/tour/cheat-sheet/
