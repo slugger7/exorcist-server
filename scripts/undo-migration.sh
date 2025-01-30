@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "Undoing migration"
 
 ./scripts/set-env.sh
