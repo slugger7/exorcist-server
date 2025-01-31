@@ -8,6 +8,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/job"
 )
 
@@ -16,6 +17,11 @@ var secret = []byte("secret")
 const userKey = "user"
 
 func (s *Server) RegisterRoutes() http.Handler {
+	if s.env.AppEnv == environment.AppEnvEnum.Prod {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{

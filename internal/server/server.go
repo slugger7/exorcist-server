@@ -13,12 +13,14 @@ import (
 type Server struct {
 	port int
 	db   db.Service
+	env  *environment.EnvironmentVariables
 }
 
 func NewServer(env *environment.EnvironmentVariables) *http.Server {
 	NewServer := &Server{
 		port: env.Port,
 		db:   db.New(env),
+		env:  env,
 	}
 
 	if err := NewServer.db.RunMigrations(); err != nil {

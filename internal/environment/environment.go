@@ -12,8 +12,10 @@ type ApplicationEnvironment string
 
 var AppEnvEnum = &struct {
 	Local ApplicationEnvironment
+	Prod  ApplicationEnvironment
 }{
 	Local: "local",
+	Prod:  "prod",
 }
 
 type EnvironmentVariables struct {
@@ -86,6 +88,8 @@ func handleAppEnv(value string) ApplicationEnvironment {
 	switch value {
 	case string(AppEnvEnum.Local):
 		return AppEnvEnum.Local
+	case string(AppEnvEnum.Prod):
+		return AppEnvEnum.Prod
 	}
 	log.Printf("No environment variable was set in %v defaulting to %v", APP_ENV, AppEnvEnum.Local)
 	return AppEnvEnum.Local
