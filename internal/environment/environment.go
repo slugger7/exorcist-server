@@ -6,6 +6,14 @@ import (
 	"strconv"
 )
 
+type ApplicationEnvironment string
+
+var AppEnvEnum = &struct {
+	Local ApplicationEnvironment
+}{
+	Local: "local",
+}
+
 type EnvironmentVariables struct {
 	DatabaseHost     string
 	DatabasePort     string
@@ -13,7 +21,7 @@ type EnvironmentVariables struct {
 	DatabasePassword string
 	DatabaseName     string
 	DebugSql         bool
-	Dev              bool
+	AppEnv           ApplicationEnvironment
 	MediaPath        string
 }
 
@@ -25,7 +33,7 @@ const (
 	DATABASE_NAME     = "DATABASE_NAME"
 	DEBUG_SQL         = "DEBUG_SQL"
 	MEDIUA_PATH       = "MEDIA_PATH"
-	DEV               = "DEV"
+	APP_ENV           = "APP_ENV"
 )
 
 var env *EnvironmentVariables
@@ -48,7 +56,7 @@ func RefreshEnvironmentVariables() {
 		DatabaseName:     os.Getenv(DATABASE_NAME),
 		DebugSql:         getBoolValue(DEBUG_SQL, false),
 		MediaPath:        os.Getenv(MEDIUA_PATH),
-		Dev:              getBoolValue(DEV, false),
+		AppEnv:           handleAppEnv(os.Getenv(APP_ENV)),
 	}
 }
 
@@ -60,4 +68,13 @@ func getBoolValue(key string, defaultValue bool) bool {
 		return defaultValue
 	}
 	return actualValue
+}
+
+func handleAppEnv(value string) ApplicationEnvironment {
+	switch value {
+	case string(AppEnvEnum.Local):
+		return AppEnvEnum.Local
+	}
+	log.Printf("No environment variable was set in %v defaulting to %v", APP_ENV, AppEnvEnum.Local)
+	return AppEnvEnum.Local
 }

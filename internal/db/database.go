@@ -20,7 +20,7 @@ func NewDatabase(env *environment.EnvironmentVariables) *sql.DB {
 		env.DatabaseUser,
 		env.DatabasePassword,
 		env.DatabaseName)
-	if env.Dev {
+	if env.AppEnv == environment.AppEnvEnum.Local {
 		log.Printf("connection_string: %v", psqlconn)
 	}
 	db, err := sql.Open("postgres", psqlconn)
