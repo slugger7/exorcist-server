@@ -14,23 +14,26 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
 )
 
-type Service interface {
+type IRepository interface {
 	Health() map[string]string
 
 	Close() error
 
-	RunMigrations() error
-}
-type DatabaseService struct {
-	db  *sql.DB
-	Env *environment.EnvironmentVariables
+	JobRepo() jobRepository.IJobRepository
 }
 
-var dbInstance *DatabaseService
+type Repository struct {
+	db      *sql.DB
+	Env     *environment.EnvironmentVariables
+	jobRepo jobRepository.IJobRepository
+}
 
-func New(env *environment.EnvironmentVariables) Service {
+var dbInstance *Repository
+
+func New(env *environment.EnvironmentVariables) IRepository {
 	if dbInstance != nil {
 		return dbInstance
 	}
@@ -46,21 +49,30 @@ func New(env *environment.EnvironmentVariables) Service {
 	db, err := sql.Open("postgres", psqlconn)
 	errs.CheckError(err)
 
-	dbInstance = &DatabaseService{
-		db:  db,
-		Env: env,
+	dbInstance = &Repository{
+		db:      db,
+		Env:     env,
+		jobRepo: jobRepository.New(db, env),
 	}
 
+	err = dbInstance.RunMigrations()
+	if err != nil {
+		log.Printf("Migrations were not run because %v", err)
+	}
 	return dbInstance
 }
 
-func (s *DatabaseService) GetDb() *sql.DB {
+func (s *Repository) JobRepo() jobRepository.IJobRepository {
+	return s.jobRepo
+}
+
+func (s *Repository) GetDb() *sql.DB {
 	return dbInstance.db
 }
 
 // Health checks the health of the database connection by pinging the database.
 // It returns a map with keys indicating various health statistics.
-func (s *DatabaseService) Health() map[string]string {
+func (s *Repository) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -113,12 +125,12 @@ func (s *DatabaseService) Health() map[string]string {
 // It logs a message indicating the disconnection from the specific database.
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
-func (s *DatabaseService) Close() error {
+func (s *Repository) Close() error {
 	log.Printf("Disconnected from database: %s", s.Env.DatabaseName)
 	return s.db.Close()
 }
 
-func (s *DatabaseService) RunMigrations() error {
+func (s *Repository) RunMigrations() error {
 	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
 	if err != nil {
 		return err
