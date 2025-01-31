@@ -37,4 +37,5 @@ func GenerateChecksums(db db.Service) {
 			log.Printf("Could not update the checksum of video (%v): %v", v.Video.ID, err)
 		}
 	}
+	log.Println("Completed checksum generation")
 }

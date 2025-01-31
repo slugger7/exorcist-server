@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/slugger7/exorcist/internal/job"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -21,6 +22,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.GET("/health", s.healthHandler)
 
+	r.GET("/library/scan", s.scanLibrary)
+
 	return r
 }
 
@@ -33,4 +36,8 @@ func (s *Server) HelloWorldHandler(c *gin.Context) {
 
 func (s *Server) healthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.db.Health())
+}
+
+func (s *Server) scanLibrary(c *gin.Context) {
+	go job.ScanPath(s.db)
 }
