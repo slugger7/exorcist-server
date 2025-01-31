@@ -34,6 +34,166 @@ video: {
 }
 video.library_path_id -> library_path.id
 
+related_video {
+  shape: sql_table
+
+  video_id: uuid {constraint: foreign_key}
+  related_id: uuid {constraint: foreign_key}
+  created: timestamp not null
+  modified: timestamp not null
+}
+related_video.video_id -> video.id
+related_video.related_id -> video.id
+
+person: {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  name: string {constraint: unique}
+  created: timestamp not null
+  modified: timestamp not null
+}
+
+person_alias {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  person_id: uuid {constraint: foreign_key}
+  alias: string not null
+  created: timestamp not null
+  modified: timestamp not null
+}
+person_alias.person_id -> person.id
+
+video_person {
+  shape: sql_table
+
+  video_id: uuid {constraint: foreign_key}
+  person_id: uuid {constraint: foreign_key}
+  role: string
+  created: timestamp
+  modified: timestamp
+}
+video_person.video_id -> video.id
+video_person.person_id -> person.id
+
+image {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  name: string not null
+  path: string not null {constraint: unique}
+  created: timestamp not null
+  modified: timestamp not null
+}
+
+video_image_type_enum {
+  shape: sql_table
+  thumbnail
+  chapter
+}
+
+video_image {
+  shape: sql_table
+
+  video_id: uuid {constraint: foreign_key}
+  image_id: uuid {constraint: foreign_key}
+  video_image_type: video_image_type_enum not null
+  created: timestamp not null
+  modified: timestamp not null
+}
+video_image -- video_image_type_enum
+video_image.video_id -> video.id
+video_image.image_id -> image.id
+
+genre {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  name: string {constraint: unique}
+  created: timestamp not null
+  modified: timestamp not null
+}
+
+video_genre {
+  shape: sql_table
+
+  video_id: uuid {constraint: foreign_key}
+  genre_id: uuid {constraint: foreign_key}
+  created: timestamp not null
+  modified: timestamp not null
+}
+video_genre.video_id -> video.id
+video_genre.genre_id -> genre.id
+
+genre_alias {
+  shape: sql_table
+  
+  id: uuid {constraint: primary_key}
+  genre_id: uuid {constraint: foreign_key}
+  alias: string not null
+  created: timestamp not null
+  modified: timestamp not null
+}
+genre_alias.genre_id -> genre.id
+
+user: {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  username: string not null {constraint: unique}
+  password: string not null
+  active: bool not null
+  created: timestamp not null
+  modified: timestamp not null
+}
+
+progress {
+  shape: sql_table
+
+  video_id: uuid {constraint: foreign_key}
+  user_id: uuid {constraint: foreign_key}
+  timestamp: bigint not null
+  created: timestamp not null
+  modified: timestamp not null
+}
+progress.video_id -> video.id
+progress.user_id -> user.id
+
+playlist {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  user_id: uuid {constraint: foreign_key}
+  name: string not null
+  created: timestamp not null
+  modified: timestamp not null
+}
+playlist.user_id -> user.id
+
+video_playlist {
+  shape: sql_table
+
+  video_id: uuid {constraint: foreign_key}
+  playlist_id: uuid {constraint: foreign_key}
+  position: int not null
+  created: timestamp not null
+  modified: timestamp not null
+}
+video_playlist.video_id -> video.id
+video_playlist.playlist_id -> playlist.id
+
+favourite_person {
+  shape: sql_table
+
+  user_id: uuid {constraint: foreign_key}
+  person_id: uuid {constraint: foreign_key}
+  created: timestamp not null
+  modified: timestamp not null
+}
+favourite_person.user_id -> user.id
+favourite_person.person_id -> person.id
+
 job_type_enum: {
   shape: sql_table
   update_existing_videos
