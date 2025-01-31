@@ -15,7 +15,7 @@ func main() {
 
 	env := environment.GetEnvironmentVariables()
 
-	db := db.NewDatabase(env)
+	db := db.New(env)
 
 	job.GenerateChecksums(db)
 }

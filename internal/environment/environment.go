@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"strconv"
+
+	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
 type ApplicationEnvironment string
@@ -23,6 +25,7 @@ type EnvironmentVariables struct {
 	DebugSql         bool
 	AppEnv           ApplicationEnvironment
 	MediaPath        string
+	Port             int
 }
 
 const (
@@ -34,6 +37,7 @@ const (
 	DEBUG_SQL         = "DEBUG_SQL"
 	MEDIUA_PATH       = "MEDIA_PATH"
 	APP_ENV           = "APP_ENV"
+	PORT              = "PORT"
 )
 
 var env *EnvironmentVariables
@@ -57,7 +61,15 @@ func RefreshEnvironmentVariables() {
 		DebugSql:         getBoolValue(DEBUG_SQL, false),
 		MediaPath:        os.Getenv(MEDIUA_PATH),
 		AppEnv:           handleAppEnv(os.Getenv(APP_ENV)),
+		Port:             getIntValue(PORT),
 	}
+}
+
+func getIntValue(key string) int {
+	value, err := strconv.Atoi(os.Getenv(key))
+	errs.CheckError(err)
+
+	return value
 }
 
 func getBoolValue(key string, defaultValue bool) bool {

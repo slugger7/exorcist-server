@@ -3,6 +3,8 @@ module github.com/slugger7/exorcist
 go 1.23.4
 
 require (
+	github.com/gin-contrib/cors v1.7.3
+	github.com/gin-gonic/gin v1.10.0
 	github.com/go-jet/jet/v2 v2.12.0
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/google/uuid v1.6.0

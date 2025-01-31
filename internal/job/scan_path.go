@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/db"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -28,7 +29,8 @@ func getFilesByExtensionAsync(path string, extensions []string, ch chan []media.
 	ch <- values
 }
 
-func ScanPath(db *sql.DB) {
+func ScanPath(dbService db.Service) {
+	db := dbService.GetDb()
 	env := environment.GetEnvironmentVariables()
 	mediaFilesChannel := make(chan []media.File)
 	var wg sync.WaitGroup
@@ -108,7 +110,7 @@ func ScanPath(db *sql.DB) {
 
 	writeModelsTodbBatch(db, videoModels)
 
-	GenerateChecksums(db)
+	GenerateChecksums(dbService)
 }
 
 func removeVideos(db *sql.DB, nonExistentVideos []model.Video) {
