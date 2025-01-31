@@ -28,6 +28,7 @@ type EnvironmentVariables struct {
 	AppEnv           ApplicationEnvironment
 	MediaPath        string
 	Port             int
+	Secret           string
 }
 
 const (
@@ -40,6 +41,7 @@ const (
 	MEDIUA_PATH       = "MEDIA_PATH"
 	APP_ENV           = "APP_ENV"
 	PORT              = "PORT"
+	SECRET            = "SECRET"
 )
 
 var env *EnvironmentVariables
@@ -64,6 +66,7 @@ func RefreshEnvironmentVariables() {
 		MediaPath:        os.Getenv(MEDIUA_PATH),
 		AppEnv:           handleAppEnv(os.Getenv(APP_ENV)),
 		Port:             getIntValue(PORT),
+		Secret:           os.Getenv(SECRET),
 	}
 }
 
