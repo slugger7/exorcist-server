@@ -1,4 +1,4 @@
-package db
+package repository
 
 import (
 	"context"
@@ -17,19 +17,18 @@ import (
 )
 
 type Service interface {
-	GetDb() *sql.DB // TODO remove this dependency
 	Health() map[string]string
 
 	Close() error
 
 	RunMigrations() error
 }
-type service struct {
+type DatabaseService struct {
 	db  *sql.DB
-	env *environment.EnvironmentVariables
+	Env *environment.EnvironmentVariables
 }
 
-var dbInstance *service
+var dbInstance *DatabaseService
 
 func New(env *environment.EnvironmentVariables) Service {
 	if dbInstance != nil {
@@ -47,21 +46,21 @@ func New(env *environment.EnvironmentVariables) Service {
 	db, err := sql.Open("postgres", psqlconn)
 	errs.CheckError(err)
 
-	dbInstance = &service{
+	dbInstance = &DatabaseService{
 		db:  db,
-		env: env,
+		Env: env,
 	}
 
 	return dbInstance
 }
 
-func (s *service) GetDb() *sql.DB {
+func (s *DatabaseService) GetDb() *sql.DB {
 	return dbInstance.db
 }
 
 // Health checks the health of the database connection by pinging the database.
 // It returns a map with keys indicating various health statistics.
-func (s *service) Health() map[string]string {
+func (s *DatabaseService) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -114,12 +113,12 @@ func (s *service) Health() map[string]string {
 // It logs a message indicating the disconnection from the specific database.
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
-func (s *service) Close() error {
-	log.Printf("Disconnected from database: %s", s.env.DatabaseName)
+func (s *DatabaseService) Close() error {
+	log.Printf("Disconnected from database: %s", s.Env.DatabaseName)
 	return s.db.Close()
 }
 
-func (s *service) RunMigrations() error {
+func (s *DatabaseService) RunMigrations() error {
 	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
 	if err != nil {
 		return err

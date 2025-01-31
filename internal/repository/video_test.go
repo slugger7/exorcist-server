@@ -1,17 +1,21 @@
-package videoRepository_test
+package repository_test
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
+	"github.com/slugger7/exorcist/internal/environment"
+	"github.com/slugger7/exorcist/internal/repository"
 )
 
 // TODO: implement [snapshot tests](https://github.com/gkampitakis/go-snaps)
 
 func Test_GetVideoWithoutChecksumStatement(t *testing.T) {
-	actual, _ := videoRepository.GetVideoWithoutChecksumStatement().Sql()
+	ds := &repository.DatabaseService{
+		Env: &environment.EnvironmentVariables{DebugSql: false},
+	}
+	actual, _ := ds.GetVideoWithoutChecksumStatement().Sql()
 
 	expected := "\nSELECT video.id AS \"video.id\",\n     video.checksum AS \"video.checksum\",\n     video.relative_path AS \"video.relative_path\",\n     library_path.path AS \"library_path.path\"\nFROM public.video\n     INNER JOIN public.library_path ON (library_path.id = video.library_path_id)\nWHERE video.checksum IS NULL;\n"
 	if actual != expected {
@@ -20,6 +24,10 @@ func Test_GetVideoWithoutChecksumStatement(t *testing.T) {
 }
 
 func Test_UpdateVideoChecksum(t *testing.T) {
+	ds := &repository.DatabaseService{
+		Env: &environment.EnvironmentVariables{DebugSql: false},
+	}
+
 	newUuid, err := uuid.NewRandom()
 	if err != nil {
 		t.Errorf("Encountered an error while generating a UUID: %v", err)
@@ -32,7 +40,7 @@ func Test_UpdateVideoChecksum(t *testing.T) {
 		Checksum: &checksum,
 	}
 
-	actual, _ := videoRepository.UpdateVideoChecksum(video).Sql()
+	actual, _ := ds.UpdateVideoChecksum(video).Sql()
 
 	expected := `
 UPDATE public.video
@@ -45,6 +53,9 @@ WHERE video.id = $2;
 }
 
 func Test_MarkVideoAsNotExistingStatement(t *testing.T) {
+	ds := &repository.DatabaseService{
+		Env: &environment.EnvironmentVariables{DebugSql: false},
+	}
 	newUuid, err := uuid.NewRandom()
 	if err != nil {
 		t.Errorf("Encountered an error while generating a UUID: %v", err)
@@ -55,7 +66,7 @@ func Test_MarkVideoAsNotExistingStatement(t *testing.T) {
 		Exists: false,
 	}
 
-	actual, _ := videoRepository.UpdateVideoExistsStatement(video).Sql()
+	actual, _ := ds.UpdateVideoExistsStatement(video).Sql()
 
 	expected := `
 UPDATE public.video
@@ -68,11 +79,14 @@ WHERE video.id = $2;
 }
 
 func Test_GetVideosInLibraryPath(t *testing.T) {
+	ds := &repository.DatabaseService{
+		Env: &environment.EnvironmentVariables{DebugSql: false},
+	}
 	newUuid, err := uuid.NewRandom()
 	if err != nil {
 		t.Errorf("Encountered an error while generating a UUID: %v", err)
 	}
-	actual, _ := videoRepository.GetVideosInLibraryPath(newUuid).Sql()
+	actual, _ := ds.GetVideosInLibraryPath(newUuid).Sql()
 
 	expected := `
 SELECT video.relative_path AS "video.relative_path",
@@ -86,8 +100,11 @@ WHERE (video.library_path_id = $1) AND video.exists IS TRUE;
 }
 
 func Test_InsertVideosStatement_WithNoVideos_ShouldReturnNil(t *testing.T) {
+	ds := &repository.DatabaseService{
+		Env: &environment.EnvironmentVariables{DebugSql: false},
+	}
 	videos := []model.Video{}
-	actual := videoRepository.InsertVideosStatement(videos)
+	actual := ds.InsertVideosStatement(videos)
 
 	if actual != nil {
 		t.Errorf("Expected actual to be nil. Acutal: %v", actual)
@@ -95,6 +112,9 @@ func Test_InsertVideosStatement_WithNoVideos_ShouldReturnNil(t *testing.T) {
 }
 
 func Test_InsertVideosStatement_WithVideos_ShouldReturnStatement(t *testing.T) {
+	ds := &repository.DatabaseService{
+		Env: &environment.EnvironmentVariables{DebugSql: false},
+	}
 	newUuid, err := uuid.NewRandom()
 	if err != nil {
 		t.Errorf("Encountered an error while generating a UUID: %v", err)
@@ -110,7 +130,7 @@ func Test_InsertVideosStatement_WithVideos_ShouldReturnStatement(t *testing.T) {
 		Size:          80085,
 	}
 	videos := []model.Video{video}
-	actual, _ := videoRepository.InsertVideosStatement(videos).Sql()
+	actual, _ := ds.InsertVideosStatement(videos).Sql()
 
 	expected :=
 		`

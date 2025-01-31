@@ -1,23 +1,23 @@
-package libraryPathRepository
+package repository
 
 import (
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
-	"github.com/slugger7/exorcist/internal/repository"
 )
 
-func GetLibraryPathsSelect() postgres.SelectStatement {
+func (ds *DatabaseService) GetLibraryPathsSelect() postgres.SelectStatement {
 	selectQuery := table.LibraryPath.
 		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
 		FROM(table.LibraryPath)
 
-	repository.DebugCheck(selectQuery)
+	ds.DebugCheck(selectQuery)
 	return selectQuery
 }
 
-func CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatement {
+// TODO write test for function
+func (ds *DatabaseService) CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatement {
 	newLibPath := model.LibraryPath{
 		LibraryID: libraryId,
 		Path:      path,
@@ -31,7 +31,7 @@ func CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatemen
 		MODEL(newLibPath).
 		RETURNING(table.LibraryPath.ID, table.LibraryPath.Path)
 
-	repository.DebugCheck(insertStatement)
+	ds.DebugCheck(insertStatement)
 
 	return insertStatement
 }

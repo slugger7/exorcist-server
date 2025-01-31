@@ -6,20 +6,20 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/slugger7/exorcist/internal/db"
 	"github.com/slugger7/exorcist/internal/environment"
+	"github.com/slugger7/exorcist/internal/repository"
 )
 
 type Server struct {
 	port int
-	db   db.Service
+	db   repository.Service
 	env  *environment.EnvironmentVariables
 }
 
 func NewServer(env *environment.EnvironmentVariables) *http.Server {
 	NewServer := &Server{
 		port: env.Port,
-		db:   db.New(env),
+		db:   repository.New(env),
 		env:  env,
 	}
 
