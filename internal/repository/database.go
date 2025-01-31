@@ -17,6 +17,7 @@ import (
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
+	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
 type IRepository interface {
@@ -27,6 +28,7 @@ type IRepository interface {
 	JobRepo() jobRepository.IJobRepository
 	LibraryRepo() libraryRepository.ILibraryRepository
 	LibraryPathRepo() libraryPathRepository.ILibraryPathRepository
+	VideoRepo() videoRepository.IVideoRepository
 }
 
 type Repository struct {
@@ -35,6 +37,7 @@ type Repository struct {
 	jobRepo         jobRepository.IJobRepository
 	libraryRepo     libraryRepository.ILibraryRepository
 	libraryPathRepo libraryPathRepository.ILibraryPathRepository
+	videoRepo       videoRepository.IVideoRepository
 }
 
 var dbInstance *Repository
@@ -61,6 +64,7 @@ func New(env *environment.EnvironmentVariables) IRepository {
 		jobRepo:         jobRepository.New(db, env),
 		libraryRepo:     libraryRepository.New(db, env),
 		libraryPathRepo: libraryPathRepository.New(db, env),
+		videoRepo:       videoRepository.New(db, env),
 	}
 
 	err = dbInstance.RunMigrations()
@@ -80,6 +84,10 @@ func (s *Repository) LibraryRepo() libraryRepository.ILibraryRepository {
 
 func (s *Repository) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
 	return s.LibraryPathRepo()
+}
+
+func (s *Repository) VideoRepo() videoRepository.IVideoRepository {
+	return s.videoRepo
 }
 
 func (s *Repository) GetDb() *sql.DB {
