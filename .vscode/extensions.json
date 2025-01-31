@@ -2,6 +2,6 @@
     "recommendations": [
         "golang.go",
         "editorconfig.editorconfig",
-        "jebbs.plantuml"
+        "terrastruct.d2"
     ],
 }
