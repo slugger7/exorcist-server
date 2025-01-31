@@ -16,6 +16,7 @@ import (
 	errs "github.com/slugger7/exorcist/internal/errors"
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
+	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 )
 
 type IRepository interface {
@@ -25,13 +26,15 @@ type IRepository interface {
 
 	JobRepo() jobRepository.IJobRepository
 	LibraryRepo() libraryRepository.ILibraryRepository
+	LibraryPathRepo() libraryPathRepository.ILibraryPathRepository
 }
 
 type Repository struct {
-	db          *sql.DB
-	Env         *environment.EnvironmentVariables
-	jobRepo     jobRepository.IJobRepository
-	libraryRepo libraryRepository.ILibraryRepository
+	db              *sql.DB
+	Env             *environment.EnvironmentVariables
+	jobRepo         jobRepository.IJobRepository
+	libraryRepo     libraryRepository.ILibraryRepository
+	libraryPathRepo libraryPathRepository.ILibraryPathRepository
 }
 
 var dbInstance *Repository
@@ -53,10 +56,11 @@ func New(env *environment.EnvironmentVariables) IRepository {
 	errs.CheckError(err)
 
 	dbInstance = &Repository{
-		db:          db,
-		Env:         env,
-		jobRepo:     jobRepository.New(db, env),
-		libraryRepo: libraryRepository.New(db, env),
+		db:              db,
+		Env:             env,
+		jobRepo:         jobRepository.New(db, env),
+		libraryRepo:     libraryRepository.New(db, env),
+		libraryPathRepo: libraryPathRepository.New(db, env),
 	}
 
 	err = dbInstance.RunMigrations()
@@ -72,6 +76,10 @@ func (s *Repository) JobRepo() jobRepository.IJobRepository {
 
 func (s *Repository) LibraryRepo() libraryRepository.ILibraryRepository {
 	return s.libraryRepo
+}
+
+func (s *Repository) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
+	return s.LibraryPathRepo()
 }
 
 func (s *Repository) GetDb() *sql.DB {
