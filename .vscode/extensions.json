@@ -1,7 +1,7 @@
 {
     "recommendations": [
-        "aldijav.golangwithdidi",
         "golang.go",
-        "editorconfig.editorconfig"
-    ]
+        "editorconfig.editorconfig",
+        "jebbs.plantuml"
+    ],
 }

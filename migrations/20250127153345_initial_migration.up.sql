@@ -1,12 +1,12 @@
 create table library (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  id uuid primary key default gen_random_uuid(),
   "name" varchar not null unique,
   created timestamp default current_timestamp not null,
   modified timestamp default current_timestamp not null
 );
 
 create table library_path (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  id uuid primary key default gen_random_uuid(),
   library_id uuid not null,
   path varchar not null unique,
   created timestamp default current_timestamp not null,
@@ -17,7 +17,7 @@ create table library_path (
 );
 
 create table video (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  id uuid primary key default gen_random_uuid(),
   library_path_id uuid not null,
   relative_path varchar not null,
   title varchar not null,

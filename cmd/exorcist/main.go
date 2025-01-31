@@ -5,6 +5,7 @@ import (
 	"log"
 	"slices"
 	"strconv"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -21,10 +22,29 @@ import (
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
+func getFilesByExtensionAsync(path string, extensions []string, ch chan []media.File, wg *sync.WaitGroup) {
+	log.Println("Fetching files async")
+	defer wg.Done()
+
+	values, err := media.GetFilesByExtensions(path, extensions)
+	errs.CheckError(err)
+	ch <- values
+}
+
 func main() {
 	err := godotenv.Load()
 	errs.CheckError(err)
 	env := environment.GetEnvironmentVariables()
+
+	var wg sync.WaitGroup
+	mediaFilesChannel := make(chan []media.File)
+	wg.Add(1)
+	go getFilesByExtensionAsync(
+		env.MediaPath,
+		[]string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"},
+		mediaFilesChannel,
+		&wg,
+	)
 
 	database := db.NewDatabase(env)
 	defer database.Close()
@@ -43,8 +63,8 @@ func main() {
 
 	log.Printf("Existing video count %v\n", len(existingVideos))
 
-	values, err := media.GetFilesByExtensions(env.MediaPath, []string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"})
-	errs.CheckError(err)
+	values := <-mediaFilesChannel
+	wg.Wait()
 
 	nonExsistentVideos := media.FindNonExistentVideos(existingVideos, values)
 	if len(nonExsistentVideos) > 0 {
@@ -104,7 +124,8 @@ func main() {
 
 	writeModelsToDatabaseBatch(database, videoModels)
 
-	job.GenerateChecksums(database) // this is a canditate to move to a goroutine
+	//job.RunJobs(database)
+	job.GenerateChecksums(database)
 }
 
 func removeVideos(db *sql.DB, nonExistentVideos []model.Video) {
