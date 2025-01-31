@@ -1,0 +1,17 @@
+GET http://localhost:8181
+###
+GET http://localhost:8181/library/scan
+
+### Login
+POST http://localhost:8181/login
+Content-Type: application/x-www-form-urlencoded
+
+username=hello&password=world
+
+### Logout
+
+GET http://localhost:8181/logout
+
+### Users
+
+GET http://localhost:8181/api/users

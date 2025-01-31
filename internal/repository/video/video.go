@@ -7,54 +7,82 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
-	"github.com/slugger7/exorcist/internal/repository"
+	"github.com/slugger7/exorcist/internal/environment"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
-func GetVideoWithoutChecksumStatement() postgres.SelectStatement {
+type IVideoRepository interface {
+	GetVideoWithoutChecksumStatement() postgres.SelectStatement
+	UpdateVideoChecksum(video model.Video) postgres.UpdateStatement
+	UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement
+	GetVideosInLibraryPath(libraryPathId uuid.UUID) postgres.SelectStatement
+	InsertVideosStatement(videos []model.Video) postgres.InsertStatement
+	QuerySelect(statement postgres.SelectStatement) (data []struct{ model.Video }, err error)
+}
+
+type VideoRepository struct {
+	db  *sql.DB
+	Env *environment.EnvironmentVariables
+}
+
+var videoRepoInstance *VideoRepository
+
+func New(db *sql.DB, env *environment.EnvironmentVariables) IVideoRepository {
+	if videoRepoInstance != nil {
+		return videoRepoInstance
+	}
+	videoRepoInstance = &VideoRepository{
+		db:  db,
+		Env: env,
+	}
+	return videoRepoInstance
+}
+
+func (ds *VideoRepository) GetVideoWithoutChecksumStatement() postgres.SelectStatement {
 	selectStatement := table.Video.SELECT(table.Video.ID, table.Video.Checksum, table.Video.RelativePath, table.LibraryPath.Path).
 		FROM(table.Video.INNER_JOIN(table.LibraryPath, table.LibraryPath.ID.EQ(table.Video.LibraryPathID))).
 		WHERE(table.Video.Checksum.IS_NULL())
 
-	repository.DebugCheck(selectStatement)
+	util.DebugCheck(ds.Env, selectStatement)
 
 	return selectStatement
 }
 
-func UpdateVideoChecksum(video model.Video) postgres.UpdateStatement {
+func (ds *VideoRepository) UpdateVideoChecksum(video model.Video) postgres.UpdateStatement {
 	statement := table.Video.UPDATE().
 		SET(table.Video.Checksum.SET(postgres.String(*video.Checksum))).
 		MODEL(video).
 		WHERE(table.Video.ID.EQ(postgres.UUID(video.ID)))
 
-	repository.DebugCheck(statement)
+	util.DebugCheck(ds.Env, statement)
 
 	return statement
 }
 
-func UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement {
+func (ds *VideoRepository) UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement {
 	statement := table.Video.UPDATE().
 		SET(table.Video.Exists.SET(postgres.Bool(video.Exists))).
 		MODEL(video).
 		WHERE(table.Video.ID.EQ(postgres.UUID(video.ID)))
 
-	repository.DebugCheck(statement)
+	util.DebugCheck(ds.Env, statement)
 
 	return statement
 }
 
-func GetVideosInLibraryPath(libraryPathId uuid.UUID) postgres.SelectStatement {
+func (ds *VideoRepository) GetVideosInLibraryPath(libraryPathId uuid.UUID) postgres.SelectStatement {
 	statement := table.Video.SELECT(table.Video.RelativePath, table.Video.ID).
 		FROM(table.Video.Table).
 		WHERE(table.Video.LibraryPathID.EQ(postgres.UUID(libraryPathId)).
 			AND(table.Video.Exists.IS_TRUE()),
 		)
 
-	repository.DebugCheck(statement)
+	util.DebugCheck(ds.Env, statement)
 
 	return statement
 }
 
-func InsertVideosStatement(videos []model.Video) postgres.InsertStatement {
+func (ds *VideoRepository) InsertVideosStatement(videos []model.Video) postgres.InsertStatement {
 	if len(videos) == 0 {
 		return nil
 	}
@@ -70,13 +98,13 @@ func InsertVideosStatement(videos []model.Video) postgres.InsertStatement {
 	).
 		MODELS(videos)
 
-	repository.DebugCheck(statement)
+	util.DebugCheck(ds.Env, statement)
 
 	return statement
 }
 
-func QuerySelect(db *sql.DB, statement postgres.SelectStatement) (data []struct{ model.Video }, err error) {
-	err = statement.Query(db, &data)
+func (ds *VideoRepository) QuerySelect(statement postgres.SelectStatement) (data []struct{ model.Video }, err error) {
+	err = statement.Query(ds.db, &data)
 	if err != nil {
 		return nil, err
 	}

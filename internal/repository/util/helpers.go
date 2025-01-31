@@ -1,4 +1,4 @@
-package repository
+package util
 
 import (
 	"log"
@@ -8,8 +8,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 )
 
-func DebugCheck(statement postgres.Statement) {
-	env := environment.GetEnvironmentVariables()
+func DebugCheck(env *environment.EnvironmentVariables, statement postgres.Statement) {
 	if env.DebugSql {
 		pc := make([]uintptr, 10) // at least 1 entry needed
 		runtime.Callers(2, pc)

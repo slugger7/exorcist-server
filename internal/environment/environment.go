@@ -4,7 +4,19 @@ import (
 	"log"
 	"os"
 	"strconv"
+
+	errs "github.com/slugger7/exorcist/internal/errors"
 )
+
+type ApplicationEnvironment string
+
+var AppEnvEnum = &struct {
+	Local ApplicationEnvironment
+	Prod  ApplicationEnvironment
+}{
+	Local: "local",
+	Prod:  "prod",
+}
 
 type EnvironmentVariables struct {
 	DatabaseHost     string
@@ -13,8 +25,10 @@ type EnvironmentVariables struct {
 	DatabasePassword string
 	DatabaseName     string
 	DebugSql         bool
-	Dev              bool
+	AppEnv           ApplicationEnvironment
 	MediaPath        string
+	Port             int
+	Secret           string
 }
 
 const (
@@ -25,7 +39,9 @@ const (
 	DATABASE_NAME     = "DATABASE_NAME"
 	DEBUG_SQL         = "DEBUG_SQL"
 	MEDIUA_PATH       = "MEDIA_PATH"
-	DEV               = "DEV"
+	APP_ENV           = "APP_ENV"
+	PORT              = "PORT"
+	SECRET            = "SECRET"
 )
 
 var env *EnvironmentVariables
@@ -48,8 +64,17 @@ func RefreshEnvironmentVariables() {
 		DatabaseName:     os.Getenv(DATABASE_NAME),
 		DebugSql:         getBoolValue(DEBUG_SQL, false),
 		MediaPath:        os.Getenv(MEDIUA_PATH),
-		Dev:              getBoolValue(DEV, false),
+		AppEnv:           handleAppEnv(os.Getenv(APP_ENV)),
+		Port:             getIntValue(PORT),
+		Secret:           os.Getenv(SECRET),
 	}
+}
+
+func getIntValue(key string) int {
+	value, err := strconv.Atoi(os.Getenv(key))
+	errs.CheckError(err)
+
+	return value
 }
 
 func getBoolValue(key string, defaultValue bool) bool {
@@ -60,4 +85,15 @@ func getBoolValue(key string, defaultValue bool) bool {
 		return defaultValue
 	}
 	return actualValue
+}
+
+func handleAppEnv(value string) ApplicationEnvironment {
+	switch value {
+	case string(AppEnvEnum.Local):
+		return AppEnvEnum.Local
+	case string(AppEnvEnum.Prod):
+		return AppEnvEnum.Prod
+	}
+	log.Printf("No environment variable was set in %v defaulting to %v", APP_ENV, AppEnvEnum.Local)
+	return AppEnvEnum.Local
 }

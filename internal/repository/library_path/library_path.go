@@ -1,23 +1,51 @@
 package libraryPathRepository
 
 import (
+	"database/sql"
+
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
-	"github.com/slugger7/exorcist/internal/repository"
+	"github.com/slugger7/exorcist/internal/environment"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
-func GetLibraryPathsSelect() postgres.SelectStatement {
+type ILibraryPathRepository interface {
+	GetLibraryPathsSelect() postgres.SelectStatement
+	CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatement
+}
+
+type LibraryPathRepository struct {
+	db  *sql.DB
+	Env *environment.EnvironmentVariables
+}
+
+var libraryPathRepoInstance *LibraryPathRepository
+
+func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryPathRepository {
+	if libraryPathRepoInstance != nil {
+		return libraryPathRepoInstance
+	}
+	libraryPathRepoInstance = &LibraryPathRepository{
+		db:  db,
+		Env: env,
+	}
+
+	return libraryPathRepoInstance
+}
+
+func (ds *LibraryPathRepository) GetLibraryPathsSelect() postgres.SelectStatement {
 	selectQuery := table.LibraryPath.
 		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
 		FROM(table.LibraryPath)
 
-	repository.DebugCheck(selectQuery)
+	util.DebugCheck(ds.Env, selectQuery)
 	return selectQuery
 }
 
-func CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatement {
+// TODO write test for function
+func (ds *LibraryPathRepository) CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatement {
 	newLibPath := model.LibraryPath{
 		LibraryID: libraryId,
 		Path:      path,
@@ -31,7 +59,7 @@ func CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatemen
 		MODEL(newLibPath).
 		RETURNING(table.LibraryPath.ID, table.LibraryPath.Path)
 
-	repository.DebugCheck(insertStatement)
+	util.DebugCheck(ds.Env, insertStatement)
 
 	return insertStatement
 }

@@ -1,13 +1,38 @@
 package libraryRepository
 
 import (
+	"database/sql"
+
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
-	"github.com/slugger7/exorcist/internal/repository"
+	"github.com/slugger7/exorcist/internal/environment"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
-func CreateLibraryStatement(name string) postgres.InsertStatement {
+type ILibraryRepository interface {
+	CreateLibraryStatement(name string) postgres.InsertStatement
+}
+
+type LibraryRepository struct {
+	db  *sql.DB
+	Env *environment.EnvironmentVariables
+}
+
+var libraryRepoInstance *LibraryRepository
+
+func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryRepository {
+	if libraryRepoInstance != nil {
+		return libraryRepoInstance
+	}
+	libraryRepoInstance = &LibraryRepository{
+		db:  db,
+		Env: env,
+	}
+	return libraryRepoInstance
+}
+
+func (ls *LibraryRepository) CreateLibraryStatement(name string) postgres.InsertStatement {
 	newLibrary := model.Library{
 		Name: name,
 	}
@@ -16,7 +41,7 @@ func CreateLibraryStatement(name string) postgres.InsertStatement {
 		MODEL(newLibrary).
 		RETURNING(table.Library.ID)
 
-	repository.DebugCheck(insertStatement)
+	util.DebugCheck(ls.Env, insertStatement)
 
 	return insertStatement
 }

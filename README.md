@@ -21,6 +21,10 @@ Similar to [ghost](https://github.com/slugger7/ghost-media) and [poltergeist](ht
 
 [Gin](https://go.dev/doc/tutorial/web-service-gin)
 
+#### Authentication
+
+[example](https://github.com/depado/gin-auth-example/tree/main)
+
 ### Database
 
 #### Entity Relation Diagram
