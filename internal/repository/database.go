@@ -15,6 +15,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
+	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 )
 
 type IRepository interface {
@@ -23,12 +24,14 @@ type IRepository interface {
 	Close() error
 
 	JobRepo() jobRepository.IJobRepository
+	LibraryRepo() libraryRepository.ILibraryRepository
 }
 
 type Repository struct {
-	db      *sql.DB
-	Env     *environment.EnvironmentVariables
-	jobRepo jobRepository.IJobRepository
+	db          *sql.DB
+	Env         *environment.EnvironmentVariables
+	jobRepo     jobRepository.IJobRepository
+	libraryRepo libraryRepository.ILibraryRepository
 }
 
 var dbInstance *Repository
@@ -50,9 +53,10 @@ func New(env *environment.EnvironmentVariables) IRepository {
 	errs.CheckError(err)
 
 	dbInstance = &Repository{
-		db:      db,
-		Env:     env,
-		jobRepo: jobRepository.New(db, env),
+		db:          db,
+		Env:         env,
+		jobRepo:     jobRepository.New(db, env),
+		libraryRepo: libraryRepository.New(db, env),
 	}
 
 	err = dbInstance.RunMigrations()
@@ -64,6 +68,10 @@ func New(env *environment.EnvironmentVariables) IRepository {
 
 func (s *Repository) JobRepo() jobRepository.IJobRepository {
 	return s.jobRepo
+}
+
+func (s *Repository) LibraryRepo() libraryRepository.ILibraryRepository {
+	return s.libraryRepo
 }
 
 func (s *Repository) GetDb() *sql.DB {
