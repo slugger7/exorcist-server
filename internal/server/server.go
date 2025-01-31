@@ -2,33 +2,29 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/repository"
+	"github.com/slugger7/exorcist/internal/service"
 )
 
 type Server struct {
-	port int
-	db   repository.Service
-	env  *environment.EnvironmentVariables
+	repo    repository.IRepository
+	env     *environment.EnvironmentVariables
+	Service service.Service
 }
 
 func NewServer(env *environment.EnvironmentVariables) *http.Server {
 	NewServer := &Server{
-		port: env.Port,
-		db:   repository.New(env),
-		env:  env,
-	}
-
-	if err := NewServer.db.RunMigrations(); err != nil {
-		log.Printf("Colud not run migrations because: %v", err)
+		repo:    repository.New(env),
+		env:     env,
+		Service: *service.New(env),
 	}
 
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", NewServer.port),
+		Addr:         fmt.Sprintf(":%d", env.Port),
 		Handler:      NewServer.RegisterRoutes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,

@@ -24,6 +24,7 @@ type IRepository interface {
 	Health() map[string]string
 
 	Close() error
+	Db() *sql.DB
 
 	JobRepo() jobRepository.IJobRepository
 	LibraryRepo() libraryRepository.ILibraryRepository
@@ -90,7 +91,7 @@ func (s *Repository) VideoRepo() videoRepository.IVideoRepository {
 	return s.videoRepo
 }
 
-func (s *Repository) GetDb() *sql.DB {
+func (s *Repository) Db() *sql.DB {
 	return dbInstance.db
 }
 

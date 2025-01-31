@@ -11,5 +11,5 @@ func (s *Server) RegisterLibraryRoutes(r *gin.RouterGroup) *gin.RouterGroup {
 }
 
 func (s *Server) ScanLibrary(c *gin.Context) {
-	go job.ScanPath(s.db)
+	go job.ScanPath(s.repo)
 }

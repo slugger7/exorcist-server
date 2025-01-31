@@ -16,5 +16,6 @@ func (s *Server) RegisterUserRoutes(r *gin.RouterGroup) *gin.RouterGroup {
 func (s *Server) GetUsers(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userKey)
+	s.repo.JobRepo().FetchNextJob()
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }

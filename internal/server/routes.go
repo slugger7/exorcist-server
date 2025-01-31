@@ -35,7 +35,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 }
 
 func (s *Server) HealthHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, s.db.Health())
+	c.JSON(http.StatusOK, s.repo.Health())
 }
 
 func (s *Server) HelloWorldHandler(c *gin.Context) {
