@@ -27,3 +27,6 @@ update-models:
 recreate-db:
 	docker compose down db
 	docker compose up -d
+	
+generate-diagrams:
+	./scripts/generate-diagrams.sh

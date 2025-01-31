@@ -1,0 +1,64 @@
+library: {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  name: string not null
+}
+
+library_path: {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  library_id: uuid {constraint: foreign_key}
+}
+library_path.library_id -> library.id
+
+video: {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  library_path_id: uuid {constraint: foreign_key}
+  relative_path: string not null
+  title: string not null
+  file_name: string not null
+  height_: int not null
+  width_: int not null
+  runtime: bigint not null
+  size: bigint not null
+  checksum: string
+  added: timestamp not null
+  deleted: bool not null
+  exists: bool not null
+  created: timestamp not null
+  modified: timestamp not null
+}
+video.library_path_id -> library_path.id
+
+job_type_enum: {
+  shape: sql_table
+  update_existing_videos
+  scan_path
+  generate_checksum
+}
+
+job_status_enum: {
+  shape: sql_table
+  not_started
+  in_progress
+  failed
+  completed
+  cancelled
+}
+
+job: {
+  shape: sql_table
+
+  id: uuid {constraint: primary_key}
+  job_type: job_type_enum not null
+  job_status: job_status_enum not null
+  data: json
+  created: timestamp not null
+  modified: timestamp not null
+}
+job -- job_type_enum
+job -- job_status_enum

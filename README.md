@@ -25,7 +25,7 @@ Similar to [ghost](https://github.com/slugger7/ghost-media) and [poltergeist](ht
 
 #### Entity Relation Diagram
 
-![entity_relation_diagram](./diagrams/out/entity_relation_diagram/entity_relation_diagram.svg)
+![entity_relation_diagram](./diagrams/out/entity_relation_diagram.d2.svg)
 
 This application is using a database first approach with a sql builder instead of an ORM.
 It utilizes [Jet](https://github.com/go-jet/jet)
@@ -68,14 +68,5 @@ The usual workflow would to add a migration would be:
 
 ### Diagrams
 
-Genarating diagrams PlantUML is used.
-In the docker compose file there is a plant uml server that spins up. The workspace settings uses this server to generate the UML diagrams. These generated diagrams can then be used within markdown files for documentation.
-
-In order to generate all of the diagrams in VS Code `Ctrl+Shift+P`/`Cmd+Shift+P` `PlantUML: Export Workspace Diagrams`
-
-I would like to find a method to do this without VS Code but for now this is the method. The reason for this is that there is no easy way to read the `.env` file into the environment and then use those variables in the settings for the project itself. This would also make it editor agnostic.
-
-You might have to tweak the [.env](.env) file with the `PLANT_UML_PORT` to get it to run on an open port. When doing this remember to update your [settings](.vscode/settings.json)
-
-https://plantuml.com/command-line
-https://d2lang.com/tour/cheat-sheet/
+Generating of diagrams is done by utilizisg [d2](https://d2lang.com/)
+In order to generate diagrams you will need to install the cli tool
