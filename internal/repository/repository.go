@@ -76,6 +76,7 @@ func New(env *environment.EnvironmentVariables) IRepository {
 	if err != nil {
 		log.Printf("Migrations were not run because %v", err)
 	}
+	log.Println("Database instance created")
 	return dbInstance
 }
 
@@ -96,7 +97,8 @@ func (s *Repository) VideoRepo() videoRepository.IVideoRepository {
 }
 
 func (s *Repository) UserRepo() userRepository.IUserRepository {
-	return s.UserRepo()
+	log.Println("Getting user repo")
+	return s.userRepo
 }
 
 func (s *Repository) Db() *sql.DB {

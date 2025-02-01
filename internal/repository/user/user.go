@@ -2,6 +2,7 @@ package userRepository
 
 import (
 	"database/sql"
+	"log"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
@@ -31,6 +32,8 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
 			db:  db,
 			Env: env,
 		}
+
+		log.Println("User repository instance created")
 	}
 
 	return userRepositoryInstance
@@ -43,9 +46,10 @@ func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string
 			AND(table.Users.Password.EQ(postgres.String(password))))
 
 	util.DebugCheck(ur.Env, statement)
-	return &UserStatement{Statement: statement, db: ur.db}
+	return &UserStatement{statement, ur.db}
 }
 
 func (us *UserStatement) Query(destination interface{}) error {
+	log.Println("Querying user statment")
 	return us.Statement.Query(us.db, destination)
 }
