@@ -1,1 +1,1 @@
-insert into users (username, password) values ('admin', 'admin')
+insert into "user" (username, password) values ('admin', 'admin')
