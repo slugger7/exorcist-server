@@ -8,6 +8,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type IUserService interface {
@@ -58,7 +59,7 @@ func (us *UserService) CreateUser(username, password string) (*model.User, error
 
 	user := model.User{
 		Username: username,
-		Password: password, // needs to be hashed and salted
+		Password: hashPassword(password), // needs to be hashed and salted
 	}
 	var users []struct {
 		model.User
@@ -69,4 +70,15 @@ func (us *UserService) CreateUser(username, password string) (*model.User, error
 	}
 
 	return &users[len(users)-1].User, nil
+}
+
+func hashPassword(password string) string {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	errs.CheckError(err)
+
+	return string(hashedPassword)
+}
+
+func compareHashedPassword(hashedPassword, password string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) == nil
 }
