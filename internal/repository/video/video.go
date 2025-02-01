@@ -2,6 +2,7 @@ package videoRepository
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
@@ -11,13 +12,17 @@ import (
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
+type VideoStatement struct {
+	postgres.Statement
+	db *sql.DB
+}
+
 type IVideoRepository interface {
-	GetVideoWithoutChecksumStatement() postgres.SelectStatement
-	UpdateVideoChecksum(video model.Video) postgres.UpdateStatement
-	UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement
-	GetVideosInLibraryPath(libraryPathId uuid.UUID) postgres.SelectStatement
-	InsertVideosStatement(videos []model.Video) postgres.InsertStatement
-	QuerySelect(statement postgres.SelectStatement) (data []struct{ model.Video }, err error)
+	GetVideoWithoutChecksumStatement() *VideoStatement
+	UpdateVideoChecksum(video model.Video) *VideoStatement
+	UpdateVideoExistsStatement(video model.Video) *VideoStatement
+	GetVideosInLibraryPath(libraryPathId uuid.UUID) *VideoStatement
+	InsertVideosStatement(videos []model.Video) *VideoStatement
 }
 
 type VideoRepository struct {
@@ -38,17 +43,17 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IVideoRepository {
 	return videoRepoInstance
 }
 
-func (ds *VideoRepository) GetVideoWithoutChecksumStatement() postgres.SelectStatement {
+func (ds *VideoRepository) GetVideoWithoutChecksumStatement() *VideoStatement {
 	selectStatement := table.Video.SELECT(table.Video.ID, table.Video.Checksum, table.Video.RelativePath, table.LibraryPath.Path).
 		FROM(table.Video.INNER_JOIN(table.LibraryPath, table.LibraryPath.ID.EQ(table.Video.LibraryPathID))).
 		WHERE(table.Video.Checksum.IS_NULL())
 
 	util.DebugCheck(ds.Env, selectStatement)
 
-	return selectStatement
+	return &VideoStatement{selectStatement, ds.db}
 }
 
-func (ds *VideoRepository) UpdateVideoChecksum(video model.Video) postgres.UpdateStatement {
+func (ds *VideoRepository) UpdateVideoChecksum(video model.Video) *VideoStatement {
 	statement := table.Video.UPDATE().
 		SET(table.Video.Checksum.SET(postgres.String(*video.Checksum))).
 		MODEL(video).
@@ -56,10 +61,10 @@ func (ds *VideoRepository) UpdateVideoChecksum(video model.Video) postgres.Updat
 
 	util.DebugCheck(ds.Env, statement)
 
-	return statement
+	return &VideoStatement{statement, ds.db}
 }
 
-func (ds *VideoRepository) UpdateVideoExistsStatement(video model.Video) postgres.UpdateStatement {
+func (ds *VideoRepository) UpdateVideoExistsStatement(video model.Video) *VideoStatement {
 	statement := table.Video.UPDATE().
 		SET(table.Video.Exists.SET(postgres.Bool(video.Exists))).
 		MODEL(video).
@@ -67,10 +72,10 @@ func (ds *VideoRepository) UpdateVideoExistsStatement(video model.Video) postgre
 
 	util.DebugCheck(ds.Env, statement)
 
-	return statement
+	return &VideoStatement{statement, ds.db}
 }
 
-func (ds *VideoRepository) GetVideosInLibraryPath(libraryPathId uuid.UUID) postgres.SelectStatement {
+func (ds *VideoRepository) GetVideosInLibraryPath(libraryPathId uuid.UUID) *VideoStatement {
 	statement := table.Video.SELECT(table.Video.RelativePath, table.Video.ID).
 		FROM(table.Video.Table).
 		WHERE(table.Video.LibraryPathID.EQ(postgres.UUID(libraryPathId)).
@@ -79,10 +84,10 @@ func (ds *VideoRepository) GetVideosInLibraryPath(libraryPathId uuid.UUID) postg
 
 	util.DebugCheck(ds.Env, statement)
 
-	return statement
+	return &VideoStatement{statement, ds.db}
 }
 
-func (ds *VideoRepository) InsertVideosStatement(videos []model.Video) postgres.InsertStatement {
+func (ds *VideoRepository) InsertVideosStatement(videos []model.Video) *VideoStatement {
 	if len(videos) == 0 {
 		return nil
 	}
@@ -100,14 +105,19 @@ func (ds *VideoRepository) InsertVideosStatement(videos []model.Video) postgres.
 
 	util.DebugCheck(ds.Env, statement)
 
-	return statement
+	return &VideoStatement{statement, ds.db}
 }
 
-func (ds *VideoRepository) QuerySelect(statement postgres.SelectStatement) (data []struct{ model.Video }, err error) {
-	err = statement.Query(ds.db, &data)
-	if err != nil {
-		return nil, err
+func (vs *VideoStatement) Query(destination interface{}) error {
+	if vs != nil {
+		return vs.Statement.Query(vs.db, destination)
 	}
+	return errors.New("No video statement provided to query")
+}
 
-	return data, nil
+func (vs *VideoStatement) Exec() (sql.Result, error) {
+	if vs != nil {
+		return vs.Statement.Exec(vs.db)
+	}
+	return nil, errors.New("No video statement to execute on")
 }

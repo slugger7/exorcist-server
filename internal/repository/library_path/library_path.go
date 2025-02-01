@@ -12,8 +12,8 @@ import (
 )
 
 type ILibraryPathRepository interface {
-	GetLibraryPathsSelect() postgres.SelectStatement
-	CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatement
+	GetLibraryPathsSelect() LibraryPathStatement
+	CreateLibraryPath(libraryId uuid.UUID, path string) LibraryPathStatement
 }
 
 type LibraryPathRepository struct {
@@ -22,6 +22,11 @@ type LibraryPathRepository struct {
 }
 
 var libraryPathRepoInstance *LibraryPathRepository
+
+type LibraryPathStatement struct {
+	postgres.Statement
+	db *sql.DB
+}
 
 func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryPathRepository {
 	if libraryPathRepoInstance != nil {
@@ -35,17 +40,17 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryPathReposito
 	return libraryPathRepoInstance
 }
 
-func (ds *LibraryPathRepository) GetLibraryPathsSelect() postgres.SelectStatement {
+func (ds *LibraryPathRepository) GetLibraryPathsSelect() LibraryPathStatement {
 	selectQuery := table.LibraryPath.
 		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
 		FROM(table.LibraryPath)
 
 	util.DebugCheck(ds.Env, selectQuery)
-	return selectQuery
+	return LibraryPathStatement{selectQuery, ds.db}
 }
 
 // TODO write test for function
-func (ds *LibraryPathRepository) CreateLibraryPath(libraryId uuid.UUID, path string) postgres.InsertStatement {
+func (ds *LibraryPathRepository) CreateLibraryPath(libraryId uuid.UUID, path string) LibraryPathStatement {
 	newLibPath := model.LibraryPath{
 		LibraryID: libraryId,
 		Path:      path,
@@ -61,5 +66,9 @@ func (ds *LibraryPathRepository) CreateLibraryPath(libraryId uuid.UUID, path str
 
 	util.DebugCheck(ds.Env, insertStatement)
 
-	return insertStatement
+	return LibraryPathStatement{insertStatement, ds.db}
+}
+
+func (lps LibraryPathStatement) Query(destination interface{}) error {
+	return lps.Statement.Query(lps.db, destination)
 }

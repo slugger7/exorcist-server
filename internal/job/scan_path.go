@@ -110,7 +110,7 @@ func ScanPath(repo repository.IRepository) {
 func removeVideos(repo repository.IRepository, nonExistentVideos []model.Video) {
 	for _, v := range nonExistentVideos {
 		v.Exists = false
-		_, err := repo.VideoRepo().UpdateVideoExistsStatement(v).Exec(repo.Db())
+		_, err := repo.VideoRepo().UpdateVideoExistsStatement(v).Exec()
 		if err != nil {
 			log.Printf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
 		}
@@ -124,7 +124,12 @@ func videoExsists(existingVideos []struct{ model.Video }, relativePath string) b
 }
 
 func getVideosInLibraryPath(repo repository.IRepository, libraryPathId uuid.UUID) []struct{ model.Video } {
-	videos, err := repo.VideoRepo().QuerySelect(repo.VideoRepo().GetVideosInLibraryPath(libraryPathId))
+	var videos []struct {
+		model.Video
+	}
+	err := repo.VideoRepo().
+		GetVideosInLibraryPath(libraryPathId).
+		Query(videos)
 	errs.CheckError(err)
 
 	return videos
@@ -136,7 +141,7 @@ func writeModelsTodbBatch(repo repository.IRepository, models []model.Video) {
 	}
 	log.Println("Writing batch")
 
-	_, err := repo.VideoRepo().InsertVideosStatement(models).Exec(repo.Db())
+	_, err := repo.VideoRepo().InsertVideosStatement(models).Exec()
 	if err != nil {
 		log.Printf("Error inserting new videos: %v", err)
 	}
@@ -147,11 +152,11 @@ func printPercentage(index, total int) {
 }
 
 func getOrCreateLibraryPath(repo repository.IRepository, path string) (libraryPath model.LibraryPath) {
-	selectLibraryPath := repo.LibraryPathRepo().GetLibraryPathsSelect()
 	var libraryPaths []struct {
 		model.LibraryPath
 	}
-	err := selectLibraryPath.Query(repo.Db(), &libraryPaths)
+	err := repo.LibraryPathRepo().GetLibraryPathsSelect().
+		Query(&libraryPaths)
 	if err == nil && libraryPaths != nil && len(libraryPaths) > 0 {
 		libraryPath = libraryPaths[len(libraryPaths)-1].LibraryPath
 	} else {
@@ -166,18 +171,20 @@ func getOrCreateLibraryPath(repo repository.IRepository, path string) (libraryPa
 }
 
 func createLibWithPath(repo repository.IRepository, path string) model.LibraryPath {
-	libraryInsertStament := repo.LibraryRepo().CreateLibraryStatement("New Lib")
 	var libraries []struct {
 		model.Library
 	}
-	err := libraryInsertStament.Query(repo.Db(), &libraries)
+	err := repo.LibraryRepo().
+		CreateLibraryStatement("New Lib").
+		Query(&libraries)
 	errs.CheckError(err)
 
-	libraryPathInsertStatement := repo.LibraryPathRepo().CreateLibraryPath(libraries[len(libraries)-1].ID, path)
 	var libraryPaths []struct {
 		model.LibraryPath
 	}
-	err = libraryPathInsertStatement.Query(repo.Db(), &libraryPaths)
+	err = repo.LibraryPathRepo().
+		CreateLibraryPath(libraries[len(libraries)-1].ID, path).
+		Query(&libraryPaths)
 	errs.CheckError(err)
 
 	return libraryPaths[len(libraryPaths)-1].LibraryPath

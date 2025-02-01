@@ -10,8 +10,12 @@ import (
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
+type LibraryStatement struct {
+	postgres.Statement
+	db *sql.DB
+}
 type ILibraryRepository interface {
-	CreateLibraryStatement(name string) postgres.InsertStatement
+	CreateLibraryStatement(name string) LibraryStatement
 }
 
 type LibraryRepository struct {
@@ -32,7 +36,7 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryRepository {
 	return libraryRepoInstance
 }
 
-func (ls *LibraryRepository) CreateLibraryStatement(name string) postgres.InsertStatement {
+func (ls *LibraryRepository) CreateLibraryStatement(name string) LibraryStatement {
 	newLibrary := model.Library{
 		Name: name,
 	}
@@ -43,5 +47,9 @@ func (ls *LibraryRepository) CreateLibraryStatement(name string) postgres.Insert
 
 	util.DebugCheck(ls.Env, insertStatement)
 
-	return insertStatement
+	return LibraryStatement{insertStatement, ls.db}
+}
+
+func (ls LibraryStatement) Query(destination interface{}) error {
+	return ls.Statement.Query(ls.db, destination)
 }
