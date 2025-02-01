@@ -1,1 +1,1 @@
-delete from users where username = 'admin'
+delete from "user" where username = 'admin'

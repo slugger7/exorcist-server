@@ -47,36 +47,36 @@ type Repository struct {
 var dbInstance *Repository
 
 func New(env *environment.EnvironmentVariables) IRepository {
-	if dbInstance != nil {
-		return dbInstance
-	}
-	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		env.DatabaseHost,
-		env.DatabasePort,
-		env.DatabaseUser,
-		env.DatabasePassword,
-		env.DatabaseName)
-	if env.AppEnv == environment.AppEnvEnum.Local {
-		log.Printf("connection_string: %v", psqlconn)
-	}
-	db, err := sql.Open("postgres", psqlconn)
-	errs.CheckError(err)
+	if dbInstance == nil {
+		psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+			env.DatabaseHost,
+			env.DatabasePort,
+			env.DatabaseUser,
+			env.DatabasePassword,
+			env.DatabaseName)
+		if env.AppEnv == environment.AppEnvEnum.Local {
+			log.Printf("connection_string: %v", psqlconn)
+		}
+		db, err := sql.Open("postgres", psqlconn)
+		errs.CheckError(err)
 
-	dbInstance = &Repository{
-		db:              db,
-		Env:             env,
-		jobRepo:         jobRepository.New(db, env),
-		libraryRepo:     libraryRepository.New(db, env),
-		libraryPathRepo: libraryPathRepository.New(db, env),
-		videoRepo:       videoRepository.New(db, env),
-		userRepo:        userRepository.New(db, env),
+		dbInstance = &Repository{
+			db:              db,
+			Env:             env,
+			jobRepo:         jobRepository.New(db, env),
+			libraryRepo:     libraryRepository.New(db, env),
+			libraryPathRepo: libraryPathRepository.New(db, env),
+			videoRepo:       videoRepository.New(db, env),
+			userRepo:        userRepository.New(db, env),
+		}
+
+		err = dbInstance.runMigrations()
+		if err != nil {
+			log.Printf("Migrations were not run because %v", err)
+		}
+		log.Println("Database instance created")
 	}
 
-	err = dbInstance.runMigrations()
-	if err != nil {
-		log.Printf("Migrations were not run because %v", err)
-	}
-	log.Println("Database instance created")
 	return dbInstance
 }
 
@@ -97,8 +97,7 @@ func (s *Repository) VideoRepo() videoRepository.IVideoRepository {
 }
 
 func (s *Repository) UserRepo() userRepository.IUserRepository {
-	log.Println("Getting user repo")
-	return s.userRepo
+	return dbInstance.userRepo
 }
 
 func (s *Repository) Db() *sql.DB {

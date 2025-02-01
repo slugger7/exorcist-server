@@ -14,6 +14,6 @@ func UseSchema(schema string) {
 	Library = Library.FromSchema(schema)
 	LibraryPath = LibraryPath.FromSchema(schema)
 	SchemaMigrations = SchemaMigrations.FromSchema(schema)
-	Users = Users.FromSchema(schema)
+	User = User.FromSchema(schema)
 	Video = Video.FromSchema(schema)
 }

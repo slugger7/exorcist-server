@@ -1,19 +1,37 @@
 package service
 
 import (
+	"log"
+
 	"github.com/slugger7/exorcist/internal/environment"
-	jobService "github.com/slugger7/exorcist/internal/service/job"
+	"github.com/slugger7/exorcist/internal/repository"
+	userService "github.com/slugger7/exorcist/internal/service/user"
 )
 
-type Service struct {
-	env        *environment.EnvironmentVariables
-	JobService jobService.IJobService
+type IService interface {
+	UserService() userService.IUserService
 }
 
-func New(env *environment.EnvironmentVariables) *Service {
-	serviceInstance := &Service{
-		env:        env,
-		JobService: jobService.New(env),
+type Service struct {
+	env         *environment.EnvironmentVariables
+	userService userService.IUserService
+}
+
+var serviceInstance *Service
+
+func New(repo repository.IRepository, env *environment.EnvironmentVariables) IService {
+	if serviceInstance == nil {
+		serviceInstance = &Service{
+			env:         env,
+			userService: userService.New(repo, env),
+		}
+
+		log.Println("Service instance created")
 	}
 	return serviceInstance
+}
+
+func (s *Service) UserService() userService.IUserService {
+	log.Println("Getting UserService")
+	return s.userService
 }

@@ -1,4 +1,4 @@
-create table users (
+create table "user" (
   id uuid primary key default gen_random_uuid(),
   username varchar not null, 
   password varchar not null,
@@ -7,4 +7,4 @@ create table users (
   modified timestamp default current_timestamp not null
 );
 
-create unique index unique_username_constraint on users(username);
+create unique index unique_username_constraint on "user"(username);

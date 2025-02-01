@@ -32,3 +32,6 @@ go.work.sum
 
 # Built files
 build
+
+# VS Code debug binary
+*__debug_bin*
