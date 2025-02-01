@@ -40,10 +40,10 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
 }
 
 func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string) *UserStatement {
-	statement := table.Users.SELECT(table.Users.ID, table.Users.Username).
-		FROM(table.Users).
-		WHERE(table.Users.Username.EQ(postgres.String(username)).
-			AND(table.Users.Password.EQ(postgres.String(password))))
+	statement := table.User.SELECT(table.User.ID, table.User.Username).
+		FROM(table.User).
+		WHERE(table.User.Username.EQ(postgres.String(username)).
+			AND(table.User.Password.EQ(postgres.String(password))))
 
 	util.DebugCheck(ur.Env, statement)
 	return &UserStatement{statement, ur.db}

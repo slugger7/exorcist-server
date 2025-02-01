@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type Users struct {
+type User struct {
 	ID       uuid.UUID `sql:"primary_key"`
 	Username string
 	Password string

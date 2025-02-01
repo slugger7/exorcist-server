@@ -20,7 +20,7 @@ func (s *Server) GetUsers(c *gin.Context) {
 	//user := session.Get(userKey)
 	log.Println("Getting users")
 	var users []struct {
-		model.Users
+		model.User
 	}
 	err := s.repo.UserRepo().
 		GetUserByUsernameAndPassword("admin", "admin").

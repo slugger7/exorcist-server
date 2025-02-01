@@ -14,7 +14,7 @@ func Test_GetUserByUsernameAndPassword(t *testing.T) {
 
 	actual, _ := s.GetUserByUsernameAndPassword("someUsername", "somePassword").Sql()
 
-	exected := "\nSELECT users.id AS \"users.id\",\n     users.username AS \"users.username\"\nFROM public.users\nWHERE (users.username = $1::text) AND (users.password = $2::text);\n"
+	exected := "\nSELECT \"user\".id AS \"user.id\",\n     \"user\".username AS \"user.username\"\nFROM public.\"user\"\nWHERE (\"user\".username = $1::text) AND (\"user\".password = $2::text);\n"
 	if exected != actual {
 		t.Errorf("Expected %v but got %v", exected, actual)
 	}
