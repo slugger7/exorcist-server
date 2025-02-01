@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"strings"
 
@@ -11,7 +12,7 @@ import (
 
 var secret = []byte("secret")
 
-const userKey = "user"
+const userKey = "userId"
 
 func (s *Server) RegisterAuthenticationRoutes(r *gin.Engine) *gin.Engine {
 	r.Use(sessions.Sessions("mysession", cookie.NewStore([]byte(s.env.Secret))))
@@ -36,20 +37,29 @@ func (s *Server) AuthRequired(c *gin.Context) {
 
 func (s *Server) Login(c *gin.Context) {
 	session := sessions.Default(c)
-	username := c.PostForm("username")
-	password := c.PostForm("password")
+	var userBody struct {
+		Username string
+		Password string
+	}
 
-	if strings.Trim(username, " ") == "" || strings.Trim(password, " ") == "" {
+	if err := c.BindJSON(&userBody); err != nil {
+		log.Println("Could not read body on login")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not read body of request"})
+		return
+	}
+
+	if strings.Trim(userBody.Username, " ") == "" || strings.Trim(userBody.Password, " ") == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameters can't be empty"})
 		return
 	}
 
-	if username != "hello" || password != "world" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
+	user, err := s.service.UserService().ValidateUser(userBody.Username, userBody.Password)
+	if err != nil || user == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "could not authenticate with credentials"})
 		return
 	}
 
-	session.Set(userKey, username)
+	session.Set(userKey, user.ID.String())
 	if err := session.Save(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
 		return

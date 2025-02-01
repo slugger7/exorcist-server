@@ -18,7 +18,7 @@ type UserStatement struct {
 
 type IUserRepository interface {
 	GetUserByUsernameAndPassword(username, password string) *UserStatement
-	GetUserByUsername(username string) *UserStatement
+	GetUserByUsername(username string, columns ...postgres.Projection) *UserStatement
 	CreateUser(user model.User) *UserStatement
 }
 
@@ -58,8 +58,11 @@ func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string
 	return &UserStatement{statement, ur.db}
 }
 
-func (ur *UserRepository) GetUserByUsername(username string) *UserStatement {
-	statement := table.User.SELECT(table.User.Username).
+func (ur *UserRepository) GetUserByUsername(username string, columns ...postgres.Projection) *UserStatement {
+	if len(columns) == 0 {
+		columns = []postgres.Projection{table.User.Username}
+	}
+	statement := table.User.SELECT(columns[0], columns...).
 		FROM(table.User).
 		WHERE(table.User.Username.EQ(postgres.String(username)).
 			AND(table.User.Active.IS_TRUE()))
