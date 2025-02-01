@@ -11,16 +11,17 @@ import (
 )
 
 type Server struct {
-	repo    repository.IRepository
 	env     *environment.EnvironmentVariables
-	Service service.Service
+	repo    repository.IRepository
+	service service.IService
 }
 
 func NewServer(env *environment.EnvironmentVariables) *http.Server {
+	repo := repository.New(env)
 	NewServer := &Server{
-		repo:    repository.New(env),
+		repo:    repo,
 		env:     env,
-		Service: *service.New(env),
+		service: service.New(repo, env),
 	}
 
 	server := &http.Server{

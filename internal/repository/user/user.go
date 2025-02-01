@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/repository/util"
@@ -17,6 +18,8 @@ type UserStatement struct {
 
 type IUserRepository interface {
 	GetUserByUsernameAndPassword(username, password string) *UserStatement
+	GetUserByUsername(username string) *UserStatement
+	CreateUser(user model.User) *UserStatement
 }
 
 type UserRepository struct {
@@ -39,17 +42,37 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
 	return userRepositoryInstance
 }
 
+func (us *UserStatement) Query(destination interface{}) error {
+	log.Println("Querying user statment")
+	return us.Statement.Query(us.db, destination)
+}
+
 func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string) *UserStatement {
 	statement := table.User.SELECT(table.User.ID, table.User.Username).
 		FROM(table.User).
 		WHERE(table.User.Username.EQ(postgres.String(username)).
-			AND(table.User.Password.EQ(postgres.String(password))))
+			AND(table.User.Password.EQ(postgres.String(password))).
+			AND(table.User.Active.IS_TRUE()))
 
 	util.DebugCheck(ur.Env, statement)
 	return &UserStatement{statement, ur.db}
 }
 
-func (us *UserStatement) Query(destination interface{}) error {
-	log.Println("Querying user statment")
-	return us.Statement.Query(us.db, destination)
+func (ur *UserRepository) GetUserByUsername(username string) *UserStatement {
+	statement := table.User.SELECT(table.User.Username).
+		FROM(table.User).
+		WHERE(table.User.Username.EQ(postgres.String(username)).
+			AND(table.User.Active.IS_TRUE()))
+
+	util.DebugCheck(ur.Env, statement)
+	return &UserStatement{statement, ur.db}
+}
+
+func (ur *UserRepository) CreateUser(user model.User) *UserStatement {
+	statement := table.User.INSERT(table.User.Username, table.User.Password).
+		MODEL(user).
+		RETURNING(table.User.ID, table.User.Username, table.User.Active, table.User.Created, table.User.Modified)
+
+	util.DebugCheck(ur.Env, statement)
+	return &UserStatement{statement, ur.db}
 }

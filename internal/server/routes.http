@@ -15,3 +15,13 @@ GET http://localhost:8181/logout
 ### Users
 
 GET http://localhost:8181/api/users
+
+### Create User
+
+POST http://localhost:8181/api/users
+Content-Type: application/json
+
+{
+  "username": "wow",
+  "password": "something cool"
+}
