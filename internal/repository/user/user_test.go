@@ -1,6 +1,7 @@
 package userRepository_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -24,9 +25,13 @@ func Test_GetUserByUsernameAndPassword(t *testing.T) {
 func Test_GetUserByUsername(t *testing.T) {
 	actual, _ := s.GetUserByUsername("someUsername").Sql()
 
-	exected := "\nSELECT \"user\".username AS \"user.username\"\nFROM public.\"user\"\nWHERE (\"user\".username = $1::text) AND \"user\".active IS TRUE;\n"
-	if exected != actual {
-		t.Errorf("Expected %v but got %v", exected, actual)
+	exected := `
+SELECT "user".username AS "user.username"
+FROM public."user"
+WHERE ("user".username = $1::text) AND "user".active IS TRUE;
+`
+	if strings.Trim(exected, " ") != strings.Trim(actual, " ") {
+		t.Errorf("Expected %s but got %s", exected, actual)
 	}
 }
 

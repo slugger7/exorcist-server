@@ -62,7 +62,7 @@ func (ur *UserRepository) GetUserByUsername(username string, columns ...postgres
 	if len(columns) == 0 {
 		columns = []postgres.Projection{table.User.Username}
 	}
-	statement := table.User.SELECT(columns[0], columns...).
+	statement := table.User.SELECT(columns[0], columns[1:]...).
 		FROM(table.User).
 		WHERE(table.User.Username.EQ(postgres.String(username)).
 			AND(table.User.Active.IS_TRUE()))
