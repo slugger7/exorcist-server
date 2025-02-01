@@ -10,8 +10,13 @@ import (
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
+type JobStatement struct {
+	postgres.Statement
+	db *sql.DB
+}
+
 type IJobRepository interface {
-	FetchNextJob() postgres.SelectStatement
+	FetchNextJob() JobStatement
 }
 
 type JobRepository struct {
@@ -32,7 +37,7 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IJobRepository {
 	return jobRepoInstance
 }
 
-func (s *JobRepository) FetchNextJob() postgres.SelectStatement {
+func (s *JobRepository) FetchNextJob() JobStatement {
 	statment := table.Job.SELECT(table.Job.AllColumns).
 		FROM(table.Job).
 		WHERE(table.Job.Status.EQ(enum.JobStatusEnum.NotStarted)).
@@ -41,5 +46,9 @@ func (s *JobRepository) FetchNextJob() postgres.SelectStatement {
 
 	util.DebugCheck(s.Env, statment)
 
-	return statment
+	return JobStatement{statment, s.db}
+}
+
+func (js JobStatement) Query(destination interface{}) error {
+	return js.Statement.Query(js.db, destination)
 }

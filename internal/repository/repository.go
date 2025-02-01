@@ -17,6 +17,7 @@ import (
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
+	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
@@ -30,6 +31,7 @@ type IRepository interface {
 	LibraryRepo() libraryRepository.ILibraryRepository
 	LibraryPathRepo() libraryPathRepository.ILibraryPathRepository
 	VideoRepo() videoRepository.IVideoRepository
+	UserRepo() userRepository.IUserRepository
 }
 
 type Repository struct {
@@ -39,6 +41,7 @@ type Repository struct {
 	libraryRepo     libraryRepository.ILibraryRepository
 	libraryPathRepo libraryPathRepository.ILibraryPathRepository
 	videoRepo       videoRepository.IVideoRepository
+	userRepo        userRepository.IUserRepository
 }
 
 var dbInstance *Repository
@@ -66,12 +69,14 @@ func New(env *environment.EnvironmentVariables) IRepository {
 		libraryRepo:     libraryRepository.New(db, env),
 		libraryPathRepo: libraryPathRepository.New(db, env),
 		videoRepo:       videoRepository.New(db, env),
+		userRepo:        userRepository.New(db, env),
 	}
 
-	err = dbInstance.RunMigrations()
+	err = dbInstance.runMigrations()
 	if err != nil {
 		log.Printf("Migrations were not run because %v", err)
 	}
+	log.Println("Database instance created")
 	return dbInstance
 }
 
@@ -89,6 +94,11 @@ func (s *Repository) LibraryPathRepo() libraryPathRepository.ILibraryPathReposit
 
 func (s *Repository) VideoRepo() videoRepository.IVideoRepository {
 	return s.videoRepo
+}
+
+func (s *Repository) UserRepo() userRepository.IUserRepository {
+	log.Println("Getting user repo")
+	return s.userRepo
 }
 
 func (s *Repository) Db() *sql.DB {
@@ -155,7 +165,7 @@ func (s *Repository) Close() error {
 	return s.db.Close()
 }
 
-func (s *Repository) RunMigrations() error {
+func (s *Repository) runMigrations() error {
 	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
 	if err != nil {
 		return err

@@ -10,12 +10,13 @@ import (
 )
 
 func GenerateChecksums(repo repository.IRepository) {
-	selectStatement := repo.VideoRepo().GetVideoWithoutChecksumStatement()
 	var data []struct {
 		model.LibraryPath
 		model.Video
 	}
-	err := selectStatement.Query(repo.Db(), &data)
+	err := repo.VideoRepo().
+		GetVideoWithoutChecksumStatement().
+		Query(&data)
 	if err != nil {
 		log.Printf("Error while fetching a video without a checksum %v", err.Error())
 	}
@@ -31,7 +32,7 @@ func GenerateChecksums(repo repository.IRepository) {
 		v.Video.Checksum = &checksum
 
 		_, err = repo.VideoRepo().UpdateVideoChecksum(v.Video).
-			Exec(repo.Db())
+			Exec()
 		if err != nil {
 			log.Printf("Could not update the checksum of video (%v): %v", v.Video.ID, err)
 		}
