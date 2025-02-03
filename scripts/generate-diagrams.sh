@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "Generating diagrams"
 
 SOURCE_DIR="./diagrams/src"
