@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
 func (s *Server) RegisterUserRoutes(r *gin.RouterGroup) *gin.RouterGroup {
@@ -23,12 +22,15 @@ func (s *Server) CreateUser(c *gin.Context) {
 
 	if err := c.BindJSON(&newUser); err != nil {
 		log.Println("Colud not read body")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not read body of request"})
 		return
 	}
 
 	user, err := s.service.UserService().CreateUser(newUser.Username, newUser.Password)
-	errs.CheckError(err)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusCreated, user)
 }

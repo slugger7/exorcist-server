@@ -60,7 +60,7 @@ func Test_AuthRequiredMiddleware_Succeeds(t *testing.T) {
 	}
 }
 
-func Test_Login_IncorrectBody(t *testing.T) {
+func Test_Login_InvalidBody(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}
 
@@ -111,7 +111,7 @@ func Test_Login_InvalidParametersInBody(t *testing.T) {
 func Test_Login_NoUserFromValidateUser(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}
-	s.service = mockService{mockUserService{validateUserModel: nil}}
+	s.service = mockService{mockUserService{returningModel: nil}}
 
 	r.POST("/", s.Login)
 
@@ -141,7 +141,7 @@ func Test_Login_Success(t *testing.T) {
 		t.Fatalf("could not generate random uuid %v", err)
 	}
 	s.service = mockService{userService: mockUserService{
-		validateUserModel: &model.User{Username: "admin", ID: id},
+		returningModel: &model.User{Username: "admin", ID: id},
 	}}
 
 	r.POST("/", s.Login)
@@ -176,7 +176,7 @@ func Test_Login_Success(t *testing.T) {
 func Test_Logout_InvalidSessionToken(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}
-	s.service = mockService{mockUserService{validateUserModel: nil}}
+	s.service = mockService{mockUserService{returningModel: nil}}
 
 	r.GET("/", s.Logout)
 
@@ -201,7 +201,7 @@ func Test_Logout_InvalidSessionToken(t *testing.T) {
 func Test_Logout_Success(t *testing.T) {
 	s := &Server{}
 	r := setupEngine()
-	s.service = mockService{mockUserService{validateUserModel: nil}}
+	s.service = mockService{mockUserService{returningModel: nil}}
 
 	r.GET("/", s.Logout)
 
