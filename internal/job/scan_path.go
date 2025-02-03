@@ -90,7 +90,7 @@ func ScanPath(repo repository.IRepository) {
 			FileName:      v.FileName,
 			Height:        int32(height),
 			Width:         int32(width),
-			Runtime:       int64(runtime),
+			Runtime:       int64(runtime), // FIXME: this value is off by a factor and needs fixing
 			Size:          int64(size),
 			Checksum:      nil,
 		})
@@ -129,7 +129,7 @@ func getVideosInLibraryPath(repo repository.IRepository, libraryPathId uuid.UUID
 	}
 	err := repo.VideoRepo().
 		GetVideosInLibraryPath(libraryPathId).
-		Query(videos)
+		Query(&videos)
 	errs.CheckError(err)
 
 	return videos
