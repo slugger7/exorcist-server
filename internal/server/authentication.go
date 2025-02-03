@@ -47,7 +47,7 @@ func (s *Server) Login(c *gin.Context) {
 	}
 
 	if strings.Trim(userBody.Username, " ") == "" || strings.Trim(userBody.Password, " ") == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameters can't be empty"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "parameters can't be empty"})
 		return
 	}
 
@@ -63,7 +63,7 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Successfully authenticated user"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Successfully authenticated user"})
 }
 
 func (s *Server) Logout(c *gin.Context) {

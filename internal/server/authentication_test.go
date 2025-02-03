@@ -22,7 +22,7 @@ type mockService struct {
 }
 
 type mockUserService struct {
-	validateUserModel model.User
+	validateUserModel *model.User
 	validateUserError error
 }
 
@@ -38,26 +38,27 @@ func (mus mockUserService) CreateUser(username, password string) (*model.User, e
 }
 
 func (mus mockUserService) ValidateUser(username, password string) (*model.User, error) {
-	return &mus.validateUserModel, mus.validateUserError
+	return mus.validateUserModel, mus.validateUserError
 }
 
-func Test_Login_Success(t *testing.T) {
-	s := &Server{}
+func setupEngine() *gin.Engine {
 	r := gin.New()
 	r.Use(sessions.Sessions("exorcist", cookie.NewStore([]byte("cookieSecret"))))
+
+	return r
+}
+
+func body(body string) *bytes.Reader {
+	return bytes.NewReader([]byte(body))
+}
+
+func Test_Login_IncorrectBody(t *testing.T) {
+	r := setupEngine()
+	s := &Server{}
+
 	r.POST("/", s.Login)
 
-	id, err := uuid.NewRandom()
-	if err != nil {
-		t.Fatalf("could not generate random uuid %v", err)
-	}
-
-	s.service = mockService{userService: mockUserService{
-		validateUserModel: model.User{Username: "admin", ID: id},
-	}}
-	body := []byte(`{"username": "admin", "password": "admin"}`)
-
-	req, err := http.NewRequest("POST", "/", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", "/", body(`{invalid json}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,11 +66,87 @@ func Test_Login_Success(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusOK {
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", http.StatusBadRequest, status)
+	}
+	expectedBody := `{"error":"could not read body of request"}`
+	if body := rr.Body.String(); body != expectedBody {
+		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
+	}
+}
+
+func Test_Login_InvalidParametersInBody(t *testing.T) {
+	r := setupEngine()
+	s := &Server{}
+
+	r.POST("/", s.Login)
+
+	req, err := http.NewRequest("POST", "/", body(`{"username": " ", "password": " "}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", http.StatusBadRequest, status)
+	}
+	expectedBody := `{"error":"parameters can't be empty"}`
+	if body := rr.Body.String(); body != expectedBody {
+		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
+	}
+}
+
+func Test_Login_NoUserFromValidateUser(t *testing.T) {
+	r := setupEngine()
+	s := &Server{}
+	s.service = mockService{mockUserService{validateUserModel: nil}}
+
+	r.POST("/", s.Login)
+
+	req, err := http.NewRequest("POST", "/", body(`{"username": "admin", "password": "admin"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+	if status := rr.Code; status != http.StatusUnauthorized {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", http.StatusBadRequest, status)
+	}
+	expectedBody := `{"error":"could not authenticate with credentials"}`
+	if body := rr.Body.String(); body != expectedBody {
+		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
+	}
+}
+
+func Test_Login_Success(t *testing.T) {
+	r := setupEngine()
+	s := &Server{}
+	id, err := uuid.NewRandom()
+	if err != nil {
+		t.Fatalf("could not generate random uuid %v", err)
+	}
+	s.service = mockService{userService: mockUserService{
+		validateUserModel: &model.User{Username: "admin", ID: id},
+	}}
+
+	r.POST("/", s.Login)
+
+	req, err := http.NewRequest("POST", "/", body(`{"username": "admin", "password": "admin"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+	if status := rr.Code; status != http.StatusCreated {
 		t.Errorf("Got an error %v %v", status, err)
 	}
 
-	// check to see if cookie was set
 	cookie := strings.Trim(rr.Header().Get("Set-Cookie"), " ")
 	if cookie == "" {
 		t.Errorf("No header is being set for exorcist")
