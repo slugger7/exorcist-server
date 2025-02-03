@@ -16,6 +16,7 @@ type LibraryStatement struct {
 }
 type ILibraryRepository interface {
 	CreateLibraryStatement(name string) LibraryStatement
+	GetLibraryByName(name string) LibraryStatement
 }
 
 type LibraryRepository struct {
@@ -36,6 +37,10 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryRepository {
 	return libraryRepoInstance
 }
 
+func (ls LibraryStatement) Query(destination interface{}) error {
+	return ls.Statement.Query(ls.db, destination)
+}
+
 func (ls *LibraryRepository) CreateLibraryStatement(name string) LibraryStatement {
 	newLibrary := model.Library{
 		Name: name,
@@ -50,6 +55,11 @@ func (ls *LibraryRepository) CreateLibraryStatement(name string) LibraryStatemen
 	return LibraryStatement{insertStatement, ls.db}
 }
 
-func (ls LibraryStatement) Query(destination interface{}) error {
-	return ls.Statement.Query(ls.db, destination)
+func (i *LibraryRepository) GetLibraryByName(name string) LibraryStatement {
+	statement := table.Library.SELECT(table.Library.ID).
+		FROM(table.Library).
+		WHERE(table.Library.Name.EQ(postgres.String(name)))
+
+	util.DebugCheck(i.Env, statement)
+	return LibraryStatement{statement, i.db}
 }
