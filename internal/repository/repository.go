@@ -25,7 +25,6 @@ type IRepository interface {
 	Health() map[string]string
 
 	Close() error
-	Db() *sql.DB
 
 	JobRepo() jobRepository.IJobRepository
 	LibraryRepo() libraryRepository.ILibraryRepository

@@ -17,7 +17,7 @@ func (mus mockUserService) ValidateUser(username, password string) (*model.User,
 	panic("not implemented")
 }
 
-func (mls mockLibraryService) CreateLibrary(_ *model.Library) error {
+func (mls mockLibraryService) CreateLibrary(_ model.Library) (*model.Library, error) {
 	panic("not implemented")
 }
 

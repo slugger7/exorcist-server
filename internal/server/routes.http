@@ -28,3 +28,12 @@ Content-Type: application/json
   "username": "another",
   "password": "admin"
 }
+
+### Create library
+
+POST http://localhost:8181/api/libraries
+Content-Type: application
+
+{
+  "name": "new name"
+}

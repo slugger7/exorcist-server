@@ -11,7 +11,7 @@ import (
 )
 
 type ILibraryService interface {
-	CreateLibrary(newLibrary *model.Library) error
+	CreateLibrary(newLibrary model.Library) (*model.Library, error)
 }
 
 type LibraryService struct {
@@ -33,7 +33,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) *Li
 	return libraryServiceInstance
 }
 
-func (i LibraryService) CreateLibrary(newLibrary *model.Library) error {
+func (i LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library, error) {
 	var libraries []struct {
 		model.Library
 	}
@@ -41,18 +41,18 @@ func (i LibraryService) CreateLibrary(newLibrary *model.Library) error {
 		GetLibraryByName(newLibrary.Name).
 		Query(&libraries); err != nil {
 		log.Printf("Could not fetch library by name %v", newLibrary.Name)
-		return err
+		return nil, err
 	}
 	if len(libraries) > 0 {
-		return errors.New(fmt.Sprintf("library named %v already exists", newLibrary.Name))
+		return nil, errors.New(fmt.Sprintf("library named %v already exists", newLibrary.Name))
 	}
 
 	if err := i.repo.LibraryRepo().
 		CreateLibraryStatement(newLibrary.Name).
-		Query(&newLibrary); err != nil {
+		Query(&libraries); err != nil {
 		log.Printf("could not create library with name %v", newLibrary.Name)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &libraries[len(libraries)-1].Library, nil
 }

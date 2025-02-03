@@ -13,7 +13,7 @@ var lr = libraryRepository.LibraryRepository{
 
 func Test_CreateLibraryStatment(t *testing.T) {
 	statment := lr.CreateLibraryStatement("TestName")
-	sql, _ := statment.Sql()
+	sql := statment.Sql()
 
 	expectedSql := "\nINSERT INTO public.library (name)\nVALUES ($1)\nRETURNING library.id AS \"library.id\";\n"
 	if sql != expectedSql {
@@ -23,7 +23,7 @@ func Test_CreateLibraryStatment(t *testing.T) {
 
 func Test_GetLibraryByName(t *testing.T) {
 	statment := lr.GetLibraryByName("TestName")
-	sql, _ := statment.Sql()
+	sql := statment.Sql()
 
 	expectedSql := "\nSELECT library.id AS \"library.id\"\nFROM public.library\nWHERE library.name = $1::text;\n"
 	if sql != expectedSql {

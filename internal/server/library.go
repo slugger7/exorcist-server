@@ -29,15 +29,16 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 		return
 	}
 
-	newLibrary := &model.Library{
+	newLibrary := model.Library{
 		Name: body.Name,
 	}
 
-	if err := s.service.LibraryService().CreateLibrary(newLibrary); err != nil {
+	lib, err := s.service.LibraryService().CreateLibrary(newLibrary)
+	if err != nil {
 		log.Printf("Something went wrong creating a library: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not create new library"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, newLibrary)
+	c.JSON(http.StatusCreated, lib.ID)
 }

@@ -45,14 +45,8 @@ func (ms mockService) LibraryService() libraryService.ILibraryService {
 	return ms.libraryService
 }
 
-func (ls mockLibraryService) CreateLibrary(actual *model.Library) error {
-	if ls.returningModel != nil {
-		actual.ID = ls.returningModel.ID
-		actual.Name = ls.returningModel.Name
-		actual.Created = ls.returningModel.Created
-		actual.Modified = ls.returningModel.Modified
-	}
-	return ls.returningError
+func (ls mockLibraryService) CreateLibrary(actual model.Library) (*model.Library, error) {
+	return ls.returningModel, ls.returningError
 }
 
 const SET_COOKIE_URL = "/set"
