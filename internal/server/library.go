@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,7 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 	}
 
 	if err := c.BindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "could not parse body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not read body of request"})
 		return
 	}
 
@@ -33,6 +34,7 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 	}
 
 	if err := s.service.LibraryService().CreateLibrary(newLibrary); err != nil {
+		log.Printf("Something went wrong creating a library: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not create new library"})
 		return
 	}

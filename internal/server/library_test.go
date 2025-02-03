@@ -7,14 +7,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
-func Test_Create_InvalidBody(t *testing.T) {
+func Test_CreateLibrary_InvalidBody(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}
 
-	r.POST("/", s.CreateUser)
+	r.POST("/", s.CreateLibrary)
 
 	req, err := http.NewRequest("POST", "/", body(`{invalid json}`))
 	if err != nil {
@@ -34,18 +35,16 @@ func Test_Create_InvalidBody(t *testing.T) {
 	}
 }
 
-func Test_Create_ServiceReturnsError(t *testing.T) {
+func Test_CreateLibrary_ErrorByService(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}
 
-	expectedErrorMessage := "expected error"
-	s.service = mockService{
-		mockUserService{returningModel: nil, returningError: errors.New(expectedErrorMessage)},
-		mockLibraryService{},
-	}
-	r.POST("/", s.CreateUser)
+	expectedErrorMessage := "expected error message"
+	s.service = mockService{mockUserService{}, mockLibraryService{returningModel: nil, returningError: errors.New(expectedErrorMessage)}}
+	r.POST("/", s.CreateLibrary)
 
-	req, err := http.NewRequest("POST", "/", body(`{"username":"someUsername","password":"somePassword"}`))
+	expectedName := "expectedLibraryName"
+	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedName)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,24 +56,26 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 	if rr.Code != expectedStatusCode {
 		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
-	expectedBody := fmt.Sprintf(`{"error":"%s"}`, expectedErrorMessage)
+	expectedBody := `{"error":"could not create new library"}`
 	if body := rr.Body.String(); body != expectedBody {
 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
 	}
 }
 
-func Test_Create_Success(t *testing.T) {
+func Test_CreateLibrary_Success(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}
 
-	expectedModel := &model.User{
-		Username: "expecedUsername",
-		Password: "",
-	}
-	s.service = mockService{mockUserService{returningModel: expectedModel}, mockLibraryService{}}
-	r.POST("/", s.CreateUser)
+	expectedId, _ := uuid.NewRandom()
 
-	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"username":"%s","password":"somePassword"}`, expectedModel.Username)))
+	expectedLibraryName := "some expected library name"
+	s.service = mockService{mockUserService{}, mockLibraryService{returningModel: &model.Library{
+		ID:   expectedId,
+		Name: expectedLibraryName,
+	}, returningError: nil}}
+	r.POST("/", s.CreateLibrary)
+
+	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedLibraryName)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +87,7 @@ func Test_Create_Success(t *testing.T) {
 	if rr.Code != expectedStatusCode {
 		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
-	expectedBody := fmt.Sprintf(`{"ID":"00000000-0000-0000-0000-000000000000","Username":"%s","Password":"","Active":false,"Created":"0001-01-01T00:00:00Z","Modified":"0001-01-01T00:00:00Z"}`, expectedModel.Username)
+	expectedBody := fmt.Sprintf(`{"ID":"%v","Name":"%v","Created":"0001-01-01T00:00:00Z","Modified":"0001-01-01T00:00:00Z"}`, expectedId.String(), expectedLibraryName)
 	if body := rr.Body.String(); body != expectedBody {
 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
 	}

@@ -111,7 +111,7 @@ func Test_Login_InvalidParametersInBody(t *testing.T) {
 func Test_Login_NoUserFromValidateUser(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}
-	s.service = mockService{mockUserService{returningModel: nil}}
+	s.service = mockService{mockUserService{returningModel: nil}, mockLibraryService{}}
 
 	r.POST("/", s.Login)
 
@@ -176,7 +176,7 @@ func Test_Login_Success(t *testing.T) {
 func Test_Logout_InvalidSessionToken(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}
-	s.service = mockService{mockUserService{returningModel: nil}}
+	s.service = mockService{mockUserService{returningModel: nil}, mockLibraryService{}}
 
 	r.GET("/", s.Logout)
 
@@ -201,7 +201,7 @@ func Test_Logout_InvalidSessionToken(t *testing.T) {
 func Test_Logout_Success(t *testing.T) {
 	s := &Server{}
 	r := setupEngine()
-	s.service = mockService{mockUserService{returningModel: nil}}
+	s.service = mockService{mockUserService{returningModel: nil}, mockLibraryService{}}
 
 	r.GET("/", s.Logout)
 

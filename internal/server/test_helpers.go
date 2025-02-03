@@ -15,7 +15,8 @@ import (
 )
 
 type mockService struct {
-	userService userService.IUserService
+	userService    userService.IUserService
+	libraryService libraryService.ILibraryService
 }
 
 type mockUserService struct {
@@ -23,11 +24,13 @@ type mockUserService struct {
 	returningError error
 }
 
+type mockLibraryService struct {
+	returningModel *model.Library
+	returningError error
+}
+
 func (ms mockService) UserService() userService.IUserService {
 	return ms.userService
-}
-func (ms mockService) LibraryService() libraryService.ILibraryService {
-	panic("not implemented")
 }
 
 func (mus mockUserService) CreateUser(username, password string) (*model.User, error) {
@@ -36,6 +39,20 @@ func (mus mockUserService) CreateUser(username, password string) (*model.User, e
 
 func (mus mockUserService) ValidateUser(username, password string) (*model.User, error) {
 	return mus.returningModel, mus.returningError
+}
+
+func (ms mockService) LibraryService() libraryService.ILibraryService {
+	return ms.libraryService
+}
+
+func (ls mockLibraryService) CreateLibrary(actual *model.Library) error {
+	if ls.returningModel != nil {
+		actual.ID = ls.returningModel.ID
+		actual.Name = ls.returningModel.Name
+		actual.Created = ls.returningModel.Created
+		actual.Modified = ls.returningModel.Modified
+	}
+	return ls.returningError
 }
 
 const SET_COOKIE_URL = "/set"
