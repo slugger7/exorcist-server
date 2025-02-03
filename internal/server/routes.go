@@ -28,6 +28,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	authenticated := r.Group("/api")
 	authenticated.Use(s.AuthRequired)
 	authenticated = s.RegisterUserRoutes(authenticated)
+	s.RegisterLibraryRoutes(authenticated)
 
 	r.GET("/health", s.HealthHandler)
 	r.GET("/", s.HelloWorldHandler)

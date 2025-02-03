@@ -1,13 +1,13 @@
 GET http://localhost:8181
 ###
-GET http://localhost:8181/library/scan
+GET http://localhost:8181/api/libraries/scan
 
 ### Login
 POST http://localhost:8181/login
 Content-Type: application/json
 
 {
-  "username": "admin",
+  "username": "elise",
   "password": "admin"
 }
 
@@ -25,6 +25,6 @@ POST http://localhost:8181/api/users
 Content-Type: application/json
 
 {
-  "username": "wow",
+  "username": "elise",
   "password": "admin"
 }
