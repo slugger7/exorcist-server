@@ -10,8 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var secret = []byte("secret")
-
 const userKey = "userId"
 
 func (s *Server) RegisterAuthenticationRoutes(r *gin.Engine) *gin.Engine {
