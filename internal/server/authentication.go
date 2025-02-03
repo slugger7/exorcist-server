@@ -59,26 +59,26 @@ func (s *Server) Login(c *gin.Context) {
 
 	session.Set(userKey, user.ID.String())
 	if err := session.Save(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save session"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Successfully authenticated user"})
+	c.JSON(http.StatusCreated, gin.H{"message": "successfully authenticated user"})
 }
 
 func (s *Server) Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userKey)
 	if user == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session token"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session token"})
 		return
 	}
 
 	session.Delete(userKey)
 	if err := session.Save(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save session"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
+	c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
 }
