@@ -6,9 +6,59 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
+
+func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
+	r := setupEngine()
+	s := &Server{}
+
+	r.Use(s.AuthRequired)
+	r.GET("/", func(ctx *gin.Context) {
+		t.Errorf("Should not have run this function")
+	})
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+	expectedStatusCode := http.StatusUnauthorized
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
+	}
+}
+
+func Test_AuthRequiredMiddleware_Succeeds(t *testing.T) {
+	r := setupEngine()
+	s := &Server{}
+
+	r.Use(s.AuthRequired)
+	expectedStatusCode := http.StatusOK
+	r.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(expectedStatusCode, gin.H{"message": "success"})
+	})
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	setupCookies(req, r)
+	r.ServeHTTP(rr, req)
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
+	}
+	expectedBody := `{"message":"success"}`
+	if body := rr.Body.String(); body != expectedBody {
+		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
+	}
+}
 
 func Test_Login_IncorrectBody(t *testing.T) {
 	r := setupEngine()
@@ -24,8 +74,9 @@ func Test_Login_IncorrectBody(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusBadRequest {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", http.StatusBadRequest, status)
+	expectedStatusCode := http.StatusBadRequest
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
 	expectedBody := `{"error":"could not read body of request"}`
 	if body := rr.Body.String(); body != expectedBody {
@@ -47,8 +98,9 @@ func Test_Login_InvalidParametersInBody(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusBadRequest {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", http.StatusBadRequest, status)
+	expectedStatusCode := http.StatusBadRequest
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
 	expectedBody := `{"error":"parameters can't be empty"}`
 	if body := rr.Body.String(); body != expectedBody {
@@ -71,8 +123,9 @@ func Test_Login_NoUserFromValidateUser(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusUnauthorized {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", http.StatusBadRequest, status)
+	expectedStatusCode := http.StatusUnauthorized
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
 	expectedBody := `{"error":"could not authenticate with credentials"}`
 	if body := rr.Body.String(); body != expectedBody {
@@ -101,8 +154,9 @@ func Test_Login_Success(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusCreated {
-		t.Errorf("Got an error %v %v", status, err)
+	expectedStatusCode := http.StatusCreated
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
 
 	expectedBody := `{"message":"successfully authenticated user"}`
@@ -134,8 +188,9 @@ func Test_Logout_InvalidSessionToken(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
-	if status := rr.Code; status != http.StatusBadRequest {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", http.StatusBadRequest, status)
+	expectedStatusCode := http.StatusBadRequest
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
 	expectedBody := `{"error":"invalid session token"}`
 	if body := rr.Body.String(); body != expectedBody {
@@ -156,9 +211,9 @@ func Test_Logout_Success(t *testing.T) {
 	setupCookies(req, r)
 
 	r.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", http.StatusOK, status)
+	expectedStatusCode := http.StatusOK
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
 	expectedBody := `{"message":"successfully logged out"}`
 	if body := rr.Body.String(); body != expectedBody {
