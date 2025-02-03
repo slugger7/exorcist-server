@@ -15,7 +15,7 @@ var secret = []byte("secret")
 const userKey = "userId"
 
 func (s *Server) RegisterAuthenticationRoutes(r *gin.Engine) *gin.Engine {
-	r.Use(sessions.Sessions("mysession", cookie.NewStore([]byte(s.env.Secret))))
+	r.Use(sessions.Sessions("exorcist", cookie.NewStore([]byte(s.env.Secret))))
 
 	r.POST("/login", s.Login)
 	r.GET("/logout", s.Logout)
