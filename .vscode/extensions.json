@@ -2,6 +2,7 @@
     "recommendations": [
         "golang.go",
         "editorconfig.editorconfig",
-        "terrastruct.d2"
+        "terrastruct.d2",
+        "ms-ossdata.vscode-postgresql"
     ],
 }
