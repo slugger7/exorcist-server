@@ -7,7 +7,7 @@ POST http://localhost:8181/login
 Content-Type: application/json
 
 {
-  "username": "elise",
+  "username": "admin",
   "password": "admin"
 }
 
@@ -25,6 +25,6 @@ POST http://localhost:8181/api/users
 Content-Type: application/json
 
 {
-  "username": "elise",
+  "username": "another",
   "password": "admin"
 }
