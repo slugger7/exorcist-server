@@ -89,7 +89,7 @@ func (s *Repository) LibraryRepo() libraryRepository.ILibraryRepository {
 }
 
 func (s *Repository) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
-	return s.LibraryPathRepo()
+	return s.libraryPathRepo
 }
 
 func (s *Repository) VideoRepo() videoRepository.IVideoRepository {
