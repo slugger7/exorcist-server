@@ -31,17 +31,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	s.RegisterLibraryRoutes(authenticated)
 
 	r.GET("/health", s.HealthHandler)
-	r.GET("/", s.HelloWorldHandler)
 	return r
 }
 
 func (s *Server) HealthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.repo.Health())
-}
-
-func (s *Server) HelloWorldHandler(c *gin.Context) {
-	resp := make(map[string]string)
-	resp["message"] = "Hello World"
-
-	c.JSON(http.StatusOK, resp)
 }
