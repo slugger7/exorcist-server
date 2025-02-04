@@ -2,7 +2,6 @@ package libraryRepository
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -27,15 +26,6 @@ func (ls *LibraryRepository) createLibraryStatement(name string) *LibraryStateme
 	util.DebugCheck(ls.Env, insertStatement)
 
 	return &LibraryStatement{insertStatement, ls.db}
-}
-
-func (ls *LibraryRepository) CreateLibrary(name string) (*model.Library, error) {
-	var library struct{ model.Library }
-	if err := ls.createLibraryStatement(name).Query(&library); err != nil {
-		log.Println("something went wrong creating the library")
-		return nil, err
-	}
-	return &library.Library, nil
 }
 
 func (i *LibraryRepository) getLibraryByNameStatement(name string) *LibraryStatement {
