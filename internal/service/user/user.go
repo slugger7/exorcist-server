@@ -73,21 +73,18 @@ func (us *UserService) CreateUser(username, password string) (*model.User, error
 }
 
 func (us *UserService) ValidateUser(username, password string) (*model.User, error) {
-	var users []struct {
-		model.User
-	}
 	user, err := us.repo.UserRepo().
 		GetUserByUsername(username, table.User.ID, table.User.Password)
 	if err != nil {
 		return nil, err
 	}
-	if len(users) > 1 {
-		panic("Found more than one active user for a username")
+
+	if user == nil {
+		return nil, errors.New(fmt.Sprintf("user with username %v does not exist", username))
 	}
 
 	if !compareHashedPassword(user.Password, password) {
-		log.Printf("Password did not match hashed password in database for user %v", username)
-		return nil, nil
+		return nil, errors.New(fmt.Sprintf("password for user %v did not match", username))
 	}
 	user.Password = "" // do not want to return the hash of the password
 

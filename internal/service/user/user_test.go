@@ -150,6 +150,63 @@ func Test_CreateUser_UserExistsFalse_RepoCreatesUser_ShouldReturnUser(t *testing
 	}
 }
 
+func Test_ValidateUser_RepoReturnsError_ShouldReturnError(t *testing.T) {
+	models, errs := beforeEach()
+	us := &UserService{repo: mockRepo{mockUserRepo{mockModels: models, mockErrors: errs}}}
+
+	expecedError := errors.New("expected error")
+	errs[0] = expecedError
+	if _, err := us.ValidateUser("", ""); err.Error() != expecedError.Error() {
+		t.Errorf("Expected error: %v\nGot error: %v", expecedError.Error(), err.Error())
+	}
+}
+
+func Test_ValidateUser_RepoReturnsNilUser_ShouldReturnError(t *testing.T) {
+	models, errs := beforeEach()
+	us := &UserService{repo: mockRepo{mockUserRepo{mockModels: models, mockErrors: errs}}}
+
+	username := "someUsername"
+	expectedError := errors.New(fmt.Sprintf("user with username %v does not exist", username))
+
+	if _, err := us.ValidateUser(username, ""); err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v\nGot error: %v", expectedError.Error(), err.Error())
+	}
+}
+
+func Test_ValidateUser_PasswordsDoNotMatch(t *testing.T) {
+	models, errs := beforeEach()
+	us := &UserService{repo: mockRepo{mockUserRepo{mockModels: models, mockErrors: errs}}}
+	models[0] = &model.User{Password: ""}
+	username := "someUsername"
+	expectedError := errors.New(fmt.Sprintf("password for user %v did not match", username))
+
+	if _, err := us.ValidateUser(username, ""); err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v\nGot error: %v", expectedError.Error(), err.Error())
+	}
+}
+
+func Test_ValidateUser_PasswordsMatch_ShouldReturnUser(t *testing.T) {
+	models, errs := beforeEach()
+	us := &UserService{repo: mockRepo{mockUserRepo{mockModels: models, mockErrors: errs}}}
+	password := "somePassword"
+	username := "someUsername"
+	models[0] = &model.User{Username: username, Password: hashPassword(password)}
+
+	user, err := us.ValidateUser(username, password)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if user == nil {
+		t.Error("Expected user to be returned")
+	}
+	if user.Username != username {
+		t.Errorf("Unexpected user returned.\nExpected: %v\nGot: %v", username, user.Username)
+	}
+	if user.Password != "" {
+		t.Errorf("Password was not cleared before returning")
+	}
+}
+
 // Unused mocks
 
 func (mr mockRepo) Health() map[string]string {
