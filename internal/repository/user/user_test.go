@@ -1,4 +1,4 @@
-package userRepository_test
+package userRepository
 
 import (
 	"strings"
@@ -6,15 +6,14 @@ import (
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
-	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 )
 
-var s = userRepository.UserRepository{
+var s = UserRepository{
 	Env: &environment.EnvironmentVariables{DebugSql: false},
 }
 
 func Test_GetUserByUsernameAndPassword(t *testing.T) {
-	actual, _ := s.GetUserByUsernameAndPassword("someUsername", "somePassword").Sql()
+	actual, _ := s.getUserByUsernameAndPasswordStatement("someUsername", "somePassword").Sql()
 
 	exected := "\nSELECT \"user\".id AS \"user.id\",\n     \"user\".username AS \"user.username\"\nFROM public.\"user\"\nWHERE ((\"user\".username = $1::text) AND (\"user\".password = $2::text)) AND \"user\".active IS TRUE;\n"
 	if exected != actual {
@@ -23,7 +22,7 @@ func Test_GetUserByUsernameAndPassword(t *testing.T) {
 }
 
 func Test_GetUserByUsername(t *testing.T) {
-	actual, _ := s.GetUserByUsername("someUsername").Sql()
+	actual, _ := s.getUserByUsernameStatement("someUsername").Sql()
 
 	exected := `
 SELECT "user".username AS "user.username"
@@ -40,7 +39,7 @@ func Test_CreateUser(t *testing.T) {
 		Username: "someUsername",
 		Password: "somePassword",
 	}
-	actual, _ := s.CreateUser(user).Sql()
+	actual, _ := s.createUserStatement(user).Sql()
 
 	exected := "\nINSERT INTO public.\"user\" (username, password)\nVALUES ($1, $2)\nRETURNING \"user\".id AS \"user.id\",\n          \"user\".username AS \"user.username\",\n          \"user\".active AS \"user.active\",\n          \"user\".created AS \"user.created\",\n          \"user\".modified AS \"user.modified\";\n"
 	if exected != actual {

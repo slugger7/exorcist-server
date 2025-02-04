@@ -6,9 +6,7 @@ import (
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
-	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
 type UserStatement struct {
@@ -17,9 +15,9 @@ type UserStatement struct {
 }
 
 type IUserRepository interface {
-	GetUserByUsernameAndPassword(username, password string) *UserStatement
-	GetUserByUsername(username string, columns ...postgres.Projection) *UserStatement
-	CreateUser(user model.User) *UserStatement
+	GetUserByUsernameAndPassword(username, password string) (*model.User, error)
+	GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error)
+	CreateUser(user model.User) (*model.User, error)
 }
 
 type UserRepository struct {
@@ -47,35 +45,37 @@ func (us *UserStatement) Query(destination interface{}) error {
 	return us.Statement.Query(us.db, destination)
 }
 
-func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string) *UserStatement {
-	statement := table.User.SELECT(table.User.ID, table.User.Username).
-		FROM(table.User).
-		WHERE(table.User.Username.EQ(postgres.String(username)).
-			AND(table.User.Password.EQ(postgres.String(password))).
-			AND(table.User.Active.IS_TRUE()))
-
-	util.DebugCheck(ur.Env, statement)
-	return &UserStatement{statement, ur.db}
-}
-
-func (ur *UserRepository) GetUserByUsername(username string, columns ...postgres.Projection) *UserStatement {
-	if len(columns) == 0 {
-		columns = []postgres.Projection{table.User.Username}
+func (ur *UserRepository) CreateUser(user model.User) (*model.User, error) {
+	var newUser struct{ model.User }
+	if err := ur.createUserStatement(user).Query(&newUser); err != nil {
+		log.Println("something went wrong creating the library")
+		return nil, err
 	}
-	statement := table.User.SELECT(columns[0], columns[1:]...).
-		FROM(table.User).
-		WHERE(table.User.Username.EQ(postgres.String(username)).
-			AND(table.User.Active.IS_TRUE()))
-
-	util.DebugCheck(ur.Env, statement)
-	return &UserStatement{statement, ur.db}
+	return &newUser.User, nil
 }
 
-func (ur *UserRepository) CreateUser(user model.User) *UserStatement {
-	statement := table.User.INSERT(table.User.Username, table.User.Password).
-		MODEL(user).
-		RETURNING(table.User.ID, table.User.Username, table.User.Active, table.User.Created, table.User.Modified)
+func (ur *UserRepository) GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error) {
+	var users []struct{ model.User }
+	if err := ur.getUserByUsernameStatement(username, columns...).Query(&users); err != nil {
+		log.Println("something went wrong getting user by username")
+		return nil, err
+	}
+	var user *model.User
+	if len(users) > 0 {
+		user = &users[len(users)-1].User
+	}
+	return user, nil
+}
 
-	util.DebugCheck(ur.Env, statement)
-	return &UserStatement{statement, ur.db}
+func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string) (*model.User, error) {
+	var users []struct{ model.User }
+	if err := ur.getUserByUsernameAndPasswordStatement(username, password).Query(&users); err != nil {
+		log.Println("something went wrong getting user by username")
+		return nil, err
+	}
+	var user *model.User
+	if len(users) > 0 {
+		user = &users[len(users)-1].User
+	}
+	return user, nil
 }

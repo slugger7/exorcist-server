@@ -37,17 +37,12 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) *Us
 }
 
 func (us *UserService) UserExists(username string) (bool, error) {
-	var users []struct {
-		model.User
-	}
-	userRepo := us.repo.UserRepo()
-	err := userRepo.GetUserByUsername(username).
-		Query(&users)
+	user, err := us.repo.UserRepo().GetUserByUsername(username)
 	if err != nil {
 		return false, err
 	}
 
-	return len(users) > 0, nil
+	return user != nil, nil
 }
 
 func (us *UserService) CreateUser(username, password string) (*model.User, error) {
@@ -61,26 +56,23 @@ func (us *UserService) CreateUser(username, password string) (*model.User, error
 
 	user := model.User{
 		Username: username,
-		Password: hashPassword(password), // needs to be hashed and salted
+		Password: hashPassword(password),
 	}
-	var users []struct {
-		model.User
-	}
-	err = us.repo.UserRepo().CreateUser(user).Query(&users)
+
+	newUser, err := us.repo.UserRepo().CreateUser(user)
 	if err != nil {
 		return nil, errors.Join(errors.New("could not create a new user"), err)
 	}
 
-	return &users[len(users)-1].User, nil
+	return newUser, nil
 }
 
 func (us *UserService) ValidateUser(username, password string) (*model.User, error) {
 	var users []struct {
 		model.User
 	}
-	err := us.repo.UserRepo().
-		GetUserByUsername(username, table.User.ID, table.User.Password).
-		Query(&users)
+	user, err := us.repo.UserRepo().
+		GetUserByUsername(username, table.User.ID, table.User.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -88,19 +80,13 @@ func (us *UserService) ValidateUser(username, password string) (*model.User, err
 		panic("Found more than one active user for a username")
 	}
 
-	if len(users) != 1 {
-		return nil, nil
-	}
-
-	user := users[len(users)-1].User
-
 	if !compareHashedPassword(user.Password, password) {
 		log.Printf("Password did not match hashed password in database for user %v", username)
 		return nil, nil
 	}
 	user.Password = "" // do not want to return the hash of the password
 
-	return &user, nil
+	return user, nil
 }
 
 func hashPassword(password string) string {
