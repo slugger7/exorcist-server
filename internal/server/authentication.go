@@ -10,12 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var secret = []byte("secret")
-
 const userKey = "userId"
 
 func (s *Server) RegisterAuthenticationRoutes(r *gin.Engine) *gin.Engine {
-	r.Use(sessions.Sessions("mysession", cookie.NewStore([]byte(s.env.Secret))))
+	r.Use(sessions.Sessions("exorcist", cookie.NewStore([]byte(s.env.Secret))))
 
 	r.POST("/login", s.Login)
 	r.GET("/logout", s.Logout)
@@ -49,7 +47,7 @@ func (s *Server) Login(c *gin.Context) {
 	}
 
 	if strings.Trim(userBody.Username, " ") == "" || strings.Trim(userBody.Password, " ") == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameters can't be empty"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "parameters can't be empty"})
 		return
 	}
 
@@ -61,26 +59,26 @@ func (s *Server) Login(c *gin.Context) {
 
 	session.Set(userKey, user.ID.String())
 	if err := session.Save(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save session"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Successfully authenticated user"})
+	c.JSON(http.StatusCreated, gin.H{"message": "successfully authenticated user"})
 }
 
 func (s *Server) Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userKey)
 	if user == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session token"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session token"})
 		return
 	}
 
 	session.Delete(userKey)
 	if err := session.Save(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save session"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
+	c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
 }

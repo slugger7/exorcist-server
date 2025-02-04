@@ -2,20 +2,15 @@ package libraryRepository
 
 import (
 	"database/sql"
+	"log"
 
-	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
-	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
-type LibraryStatement struct {
-	postgres.Statement
-	db *sql.DB
-}
 type ILibraryRepository interface {
-	CreateLibraryStatement(name string) LibraryStatement
+	CreateLibrary(name string) (*model.Library, error)
+	GetLibraryByName(name string) (*model.Library, error)
 }
 
 type LibraryRepository struct {
@@ -36,20 +31,24 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryRepository {
 	return libraryRepoInstance
 }
 
-func (ls *LibraryRepository) CreateLibraryStatement(name string) LibraryStatement {
-	newLibrary := model.Library{
-		Name: name,
-	}
-
-	insertStatement := table.Library.INSERT(table.Library.Name).
-		MODEL(newLibrary).
-		RETURNING(table.Library.ID)
-
-	util.DebugCheck(ls.Env, insertStatement)
-
-	return LibraryStatement{insertStatement, ls.db}
+func (ls *LibraryStatement) Query(destination interface{}) error {
+	return ls.Statement.Query(ls.db, destination)
 }
 
-func (ls LibraryStatement) Query(destination interface{}) error {
-	return ls.Statement.Query(ls.db, destination)
+func (ls *LibraryStatement) Sql() string {
+	sql, _ := ls.Statement.Sql()
+	return sql
+}
+
+func (ls *LibraryRepository) GetLibraryByName(name string) (*model.Library, error) {
+	var libraries []struct{ model.Library }
+	if err := ls.getLibraryByNameStatement(name).Query(&libraries); err != nil {
+		log.Printf("something went wrong getting the library by name: %v", err)
+		return nil, err
+	}
+	var library *model.Library
+	if len(libraries) > 0 {
+		library = &libraries[len(libraries)-1].Library
+	}
+	return library, nil
 }

@@ -25,7 +25,6 @@ type IRepository interface {
 	Health() map[string]string
 
 	Close() error
-	Db() *sql.DB
 
 	JobRepo() jobRepository.IJobRepository
 	LibraryRepo() libraryRepository.ILibraryRepository
@@ -89,7 +88,7 @@ func (s *Repository) LibraryRepo() libraryRepository.ILibraryRepository {
 }
 
 func (s *Repository) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
-	return s.LibraryPathRepo()
+	return s.libraryPathRepo
 }
 
 func (s *Repository) VideoRepo() videoRepository.IVideoRepository {

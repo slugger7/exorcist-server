@@ -1,6 +1,6 @@
 GET http://localhost:8181
 ###
-GET http://localhost:8181/library/scan
+GET http://localhost:8181/api/libraries/scan
 
 ### Login
 POST http://localhost:8181/login
@@ -25,6 +25,15 @@ POST http://localhost:8181/api/users
 Content-Type: application/json
 
 {
-  "username": "wow",
+  "username": "another",
   "password": "admin"
+}
+
+### Create library
+
+POST http://localhost:8181/api/libraries
+Content-Type: application
+
+{
+  "name": "new name"
 }
