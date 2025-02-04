@@ -40,5 +40,5 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, lib.ID)
+	c.JSON(http.StatusCreated, gin.H{"id": lib.ID})
 }

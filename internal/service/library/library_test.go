@@ -40,40 +40,29 @@ func (mr mockRepo) UserRepo() userRepository.IUserRepository {
 	panic("not implemented")
 }
 
-type mockLibraryRepo struct {
-	mockLibraryStatement
-}
-
-type mockLibraryStatement struct {
-	mockError  error
-	mockModels map[int][]struct{ model.Library }
-}
-
-func (mlr mockLibraryRepo) CreateLibraryStatement(name string) libraryRepository.ILibraryStatement {
-	return mlr.mockLibraryStatement
-}
-func (mlr mockLibraryRepo) GetLibraryByName(name string) libraryRepository.ILibraryStatement {
-	return mlr.mockLibraryStatement
-}
-
 var count = 0
 
-func (mls mockLibraryStatement) Query(destination interface{}) error {
-	if mls.mockModels[count] != nil {
-		typedDest := *destination.(*[]struct{ model.Library })
-		mockedReturn := mls.mockModels[count]
-		copy(typedDest, mockedReturn)
-	}
-	count = count + 1
-	return mls.mockError
+type mockLibraryRepo struct {
+	mockModel map[int]*model.Library
+	mockError error
 }
-func (mls mockLibraryStatement) Sql() string {
-	panic("not implemented")
+
+func (mlr mockLibraryRepo) CreateLibrary(name string) (*model.Library, error) {
+	if len(mlr.mockModel) > count {
+		return mlr.mockModel[count], mlr.mockError
+	}
+	return nil, mlr.mockError
+}
+func (mlr mockLibraryRepo) GetLibraryByName(name string) (*model.Library, error) {
+	if len(mlr.mockModel) > count {
+		return mlr.mockModel[count], mlr.mockError
+	}
+	return nil, mlr.mockError
 }
 
 func Test_CreateLibrary_ProduceErrorWhileFetchingExistingLibraries(t *testing.T) {
 	expectedErr := errors.New("expected error")
-	ls := &LibraryService{repo: mockRepo{mockLibraryRepo{mockLibraryStatement{mockError: expectedErr}}}}
+	ls := &LibraryService{repo: mockRepo{mockLibraryRepo{mockError: expectedErr}}}
 	lib := model.Library{}
 
 	if _, err := ls.CreateLibrary(lib); err.Error() != expectedErr.Error() {
@@ -82,12 +71,11 @@ func Test_CreateLibrary_ProduceErrorWhileFetchingExistingLibraries(t *testing.T)
 }
 
 func Test_CreateLibrary_WithExistingLibrary_ShouldThrowError(t *testing.T) {
-	count = 0
 	expectedId, _ := uuid.NewRandom()
-	var mockModels = make(map[int][]struct{ model.Library })
-	mockModels[0] = []struct{ model.Library }{}
-	mockModels[1] = []struct{ model.Library }{{Library: model.Library{ID: expectedId}}}
-	ls := &LibraryService{repo: mockRepo{mockLibraryRepo{mockLibraryStatement{mockModels: mockModels}}}}
+	var mockModels = make(map[int]*model.Library)
+	mockModels[0] = nil
+	mockModels[1] = &model.Library{ID: expectedId}
+	ls := &LibraryService{repo: mockRepo{mockLibraryRepo{mockModel: mockModels}}}
 
 	lib := model.Library{}
 	library, err := ls.CreateLibrary(lib)

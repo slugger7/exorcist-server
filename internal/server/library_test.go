@@ -87,7 +87,7 @@ func Test_CreateLibrary_Success(t *testing.T) {
 	if rr.Code != expectedStatusCode {
 		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
-	expectedBody := fmt.Sprintf(`{"ID":"%v","Name":"%v","Created":"0001-01-01T00:00:00Z","Modified":"0001-01-01T00:00:00Z"}`, expectedId.String(), expectedLibraryName)
+	expectedBody := fmt.Sprintf(`{"id":"%v"}`, expectedId.String())
 	if body := rr.Body.String(); body != expectedBody {
 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
 	}

@@ -1,18 +1,17 @@
-package libraryRepository_test
+package libraryRepository
 
 import (
 	"testing"
 
 	"github.com/slugger7/exorcist/internal/environment"
-	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 )
 
-var lr = libraryRepository.LibraryRepository{
+var lr = LibraryRepository{
 	Env: &environment.EnvironmentVariables{DebugSql: false},
 }
 
 func Test_CreateLibraryStatment(t *testing.T) {
-	statment := lr.CreateLibraryStatement("TestName")
+	statment := lr.createLibraryStatement("TestName")
 	sql := statment.Sql()
 
 	expectedSql := "\nINSERT INTO public.library (name)\nVALUES ($1)\nRETURNING library.id AS \"library.id\";\n"
@@ -22,7 +21,7 @@ func Test_CreateLibraryStatment(t *testing.T) {
 }
 
 func Test_GetLibraryByName(t *testing.T) {
-	statment := lr.GetLibraryByName("TestName")
+	statment := lr.getLibraryByNameStatement("TestName")
 	sql := statment.Sql()
 
 	expectedSql := "\nSELECT library.id AS \"library.id\"\nFROM public.library\nWHERE library.name = $1::text;\n"
