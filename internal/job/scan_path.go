@@ -171,19 +171,16 @@ func getOrCreateLibraryPath(repo repository.IRepository, path string) (libraryPa
 }
 
 func createLibWithPath(repo repository.IRepository, path string) model.LibraryPath {
-	var libraries []struct {
-		model.Library
-	}
-	err := repo.LibraryRepo().
-		CreateLibraryStatement("New Lib").
-		Query(&libraries)
+
+	library, err := repo.LibraryRepo().
+		CreateLibrary("New Lib")
 	errs.CheckError(err)
 
 	var libraryPaths []struct {
 		model.LibraryPath
 	}
 	err = repo.LibraryPathRepo().
-		CreateLibraryPath(libraries[len(libraries)-1].ID, path).
+		CreateLibraryPath(library.ID, path).
 		Query(&libraryPaths)
 	errs.CheckError(err)
 
