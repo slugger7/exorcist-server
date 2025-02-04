@@ -2,6 +2,7 @@ package userService
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -48,7 +49,9 @@ func (us *UserService) UserExists(username string) (bool, error) {
 func (us *UserService) CreateUser(username, password string) (*model.User, error) {
 	log.Println("Creating user in service")
 	userExists, err := us.UserExists(username)
-	errs.CheckError(err)
+	if err != nil {
+		return nil, errors.Join(errors.New(fmt.Sprintf("could not determine if user '%v' exists", username)), err)
+	}
 
 	if userExists {
 		return nil, errors.New("user already exists")
@@ -63,6 +66,8 @@ func (us *UserService) CreateUser(username, password string) (*model.User, error
 	if err != nil {
 		return nil, errors.Join(errors.New("could not create a new user"), err)
 	}
+
+	newUser.Password = ""
 
 	return newUser, nil
 }
