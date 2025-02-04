@@ -40,6 +40,15 @@ func (ls *LibraryStatement) Sql() string {
 	return sql
 }
 
+func (ls *LibraryRepository) CreateLibrary(name string) (*model.Library, error) {
+	var library struct{ model.Library }
+	if err := ls.createLibraryStatement(name).Query(&library); err != nil {
+		log.Println("something went wrong creating the library")
+		return nil, err
+	}
+	return &library.Library, nil
+}
+
 func (ls *LibraryRepository) GetLibraryByName(name string) (*model.Library, error) {
 	var libraries []struct{ model.Library }
 	if err := ls.getLibraryByNameStatement(name).Query(&libraries); err != nil {
