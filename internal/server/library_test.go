@@ -35,6 +35,30 @@ func Test_CreateLibrary_InvalidBody(t *testing.T) {
 	}
 }
 
+func Test_CreateLibrary_NoNameSpecified_ShouldThrowError(t *testing.T) {
+	r := setupEngine()
+	s := &Server{}
+
+	r.POST("/", s.CreateLibrary)
+
+	req, err := http.NewRequest("POST", "/", body(`{"name": ""}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+	expectedStatusCode := http.StatusBadRequest
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
+	}
+	expectedBody := `{"error":"no value for name"}`
+	if body := rr.Body.String(); body != expectedBody {
+		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
+	}
+}
+
 func Test_CreateLibrary_ErrorByService(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}

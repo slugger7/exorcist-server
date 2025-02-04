@@ -29,6 +29,11 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 		return
 	}
 
+	if body.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no value for name"})
+		return
+	}
+
 	newLibrary := model.Library{
 		Name: body.Name,
 	}
