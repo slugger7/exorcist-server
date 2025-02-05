@@ -2,6 +2,8 @@ package libraryRepository
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -11,6 +13,7 @@ import (
 type ILibraryRepository interface {
 	CreateLibrary(name string) (*model.Library, error)
 	GetLibraryByName(name string) (*model.Library, error)
+	GetLibraries() ([]model.Library, error)
 }
 
 type LibraryRepository struct {
@@ -52,12 +55,24 @@ func (ls *LibraryRepository) CreateLibrary(name string) (*model.Library, error) 
 func (ls *LibraryRepository) GetLibraryByName(name string) (*model.Library, error) {
 	var libraries []struct{ model.Library }
 	if err := ls.getLibraryByNameStatement(name).Query(&libraries); err != nil {
-		log.Printf("something went wrong getting the library by name: %v", err)
-		return nil, err
+		return nil, errors.Join(fmt.Errorf("something went wrong getting the library by name: %v", err), err)
 	}
 	var library *model.Library
 	if len(libraries) > 0 {
 		library = &libraries[len(libraries)-1].Library
 	}
 	return library, nil
+}
+
+func (ls *LibraryRepository) GetLibraries() ([]model.Library, error) {
+	var libraries []struct{ model.Library }
+	if err := ls.getLibrariesStatement().Query(&libraries); err != nil {
+		return nil, errors.Join(errors.New("error getting libraries from database"), err)
+	}
+	var libs []model.Library
+	for _, v := range libraries {
+		libs = append(libs, v.Library)
+	}
+
+	return libs, nil
 }
