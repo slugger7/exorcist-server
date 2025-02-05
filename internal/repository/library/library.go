@@ -55,7 +55,7 @@ func (ls *LibraryRepository) CreateLibrary(name string) (*model.Library, error) 
 func (ls *LibraryRepository) GetLibraryByName(name string) (*model.Library, error) {
 	var libraries []struct{ model.Library }
 	if err := ls.getLibraryByNameStatement(name).Query(&libraries); err != nil {
-		return nil, errors.Join(errors.New(fmt.Sprintf("something went wrong getting the library by name: %v", err)), err)
+		return nil, errors.Join(fmt.Errorf("something went wrong getting the library by name: %v", err), err)
 	}
 	var library *model.Library
 	if len(libraries) > 0 {
