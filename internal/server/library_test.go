@@ -117,30 +117,29 @@ func Test_CreateLibrary_Success(t *testing.T) {
 	}
 }
 
-// func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
-// 	r := setupEngine()
-// 	s := &Server{}
+func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
+	r := setupEngine()
+	ms, services := setupService()
+	s := &Server{service: ms}
+	expectedError := errors.New("expected error")
+	services.libraryService.mockErrors[0] = expectedError
 
-// 	s.service = mockService{mockUserService{}, mockLibraryService{returningModel: &model.Library{
-// 		ID:   expectedId,
-// 		Name: expectedLibraryName,
-// 	}, returningError: nil}}
-// 	r.POST("/", s.CreateLibrary)
+	r.GET("/", s.GetLibraries)
 
-// 	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedLibraryName)))
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	rr := httptest.NewRecorder()
+	rr := httptest.NewRecorder()
 
-// 	r.ServeHTTP(rr, req)
-// 	expectedStatusCode := http.StatusCreated
-// 	if rr.Code != expectedStatusCode {
-// 		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-// 	}
-// 	expectedBody := fmt.Sprintf(`{"id":"%v"}`, expectedId.String())
-// 	if body := rr.Body.String(); body != expectedBody {
-// 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-// 	}
-// }
+	r.ServeHTTP(rr, req)
+	expectedStatusCode := http.StatusInternalServerError
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
+	}
+	expectedBody := `{"error":"could not fetch libraries"}`
+	if body := rr.Body.String(); body != expectedBody {
+		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
+	}
+}
