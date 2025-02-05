@@ -1,0 +1,9 @@
+### Create User
+
+POST {{host}}:{{port}}/api/users
+Content-Type: application/json
+
+{
+  "username": "another",
+  "password": "admin"
+}

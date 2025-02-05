@@ -1,0 +1,11 @@
+### Login
+POST {{host}}:{{port}}/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### Logout
+GET {{host}}:{{port}}/logout
