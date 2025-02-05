@@ -41,6 +41,9 @@ func (mlr mockLibraryRepo) GetLibraryByName(name string) (*model.Library, error)
 	}
 	return nil, mlr.mockError
 }
+func (mlr mockLibraryRepo) GetLibraries() ([]model.Library, error) {
+	panic("not implemented")
+}
 
 func Test_CreateLibrary_ProduceErrorWhileFetchingExistingLibraries(t *testing.T) {
 	expectedErr := errors.New("expected error")
