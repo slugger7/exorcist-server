@@ -67,7 +67,7 @@ func (ls *LibraryRepository) GetLibraryByName(name string) (*model.Library, erro
 func (ls *LibraryRepository) GetLibraries() ([]model.Library, error) {
 	var libraries []struct{ model.Library }
 	if err := ls.getLibrariesStatement().Query(&libraries); err != nil {
-		return nil, errors.Join(errors.New("Colud not get libraries from database"), err)
+		return nil, errors.Join(errors.New("error getting libraries from database"), err)
 	}
 	var libs []model.Library
 	for _, v := range libraries {

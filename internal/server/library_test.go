@@ -116,3 +116,31 @@ func Test_CreateLibrary_Success(t *testing.T) {
 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
 	}
 }
+
+// func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
+// 	r := setupEngine()
+// 	s := &Server{}
+
+// 	s.service = mockService{mockUserService{}, mockLibraryService{returningModel: &model.Library{
+// 		ID:   expectedId,
+// 		Name: expectedLibraryName,
+// 	}, returningError: nil}}
+// 	r.POST("/", s.CreateLibrary)
+
+// 	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedLibraryName)))
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+
+// 	rr := httptest.NewRecorder()
+
+// 	r.ServeHTTP(rr, req)
+// 	expectedStatusCode := http.StatusCreated
+// 	if rr.Code != expectedStatusCode {
+// 		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
+// 	}
+// 	expectedBody := fmt.Sprintf(`{"id":"%v"}`, expectedId.String())
+// 	if body := rr.Body.String(); body != expectedBody {
+// 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
+// 	}
+// }

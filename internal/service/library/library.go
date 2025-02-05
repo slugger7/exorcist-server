@@ -53,3 +53,12 @@ func (i LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library,
 
 	return library, nil
 }
+
+func (i LibraryService) GetLibraries() ([]model.Library, error) {
+	libraries, err := i.repo.LibraryRepo().GetLibraries()
+	if err != nil {
+		return nil, errors.Join(errors.New("error getting libraries in repo"), err)
+	}
+
+	return libraries, nil
+}

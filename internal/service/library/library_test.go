@@ -25,29 +25,38 @@ func (mr mockRepo) LibraryRepo() libraryRepository.ILibraryRepository {
 var count = 0
 
 type mockLibraryRepo struct {
-	mockModels map[int]*model.Library
-	mockError  error
+	mockModels    map[int]*model.Library
+	mockErrors    map[int]error
+	mockLibraries map[int][]model.Library
 }
 
 func (mlr mockLibraryRepo) CreateLibrary(name string) (*model.Library, error) {
-	if len(mlr.mockModels) > count {
-		return mlr.mockModels[count], mlr.mockError
-	}
-	return nil, mlr.mockError
+	count = count + 1
+	return mlr.mockModels[count-1], mlr.mockErrors[count-1]
 }
 func (mlr mockLibraryRepo) GetLibraryByName(name string) (*model.Library, error) {
-	if len(mlr.mockModels) > count {
-		return mlr.mockModels[count], mlr.mockError
-	}
-	return nil, mlr.mockError
+	count = count + 1
+	return mlr.mockModels[count-1], mlr.mockErrors[count-1]
 }
 func (mlr mockLibraryRepo) GetLibraries() ([]model.Library, error) {
-	panic("not implemented")
+	count = count + 1
+	return mlr.mockLibraries[count-1], mlr.mockErrors[count-1]
+}
+
+func beforeEach() (*LibraryService, mockLibraryRepo) {
+	count = 0
+	mockModels := make(map[int]*model.Library)
+	mockErrors := make(map[int]error)
+	mockLibraries := make(map[int][]model.Library)
+	mlr := mockLibraryRepo{mockModels, mockErrors, mockLibraries}
+	ls := &LibraryService{repo: mockRepo{mlr}}
+	return ls, mlr
 }
 
 func Test_CreateLibrary_ProduceErrorWhileFetchingExistingLibraries(t *testing.T) {
+	ls, mlr := beforeEach()
 	expectedErr := errors.New("expected error")
-	ls := &LibraryService{repo: mockRepo{mockLibraryRepo{mockError: expectedErr}}}
+	mlr.mockErrors[0] = expectedErr
 	lib := model.Library{}
 
 	if _, err := ls.CreateLibrary(lib); err.Error() != expectedErr.Error() {
@@ -56,11 +65,10 @@ func Test_CreateLibrary_ProduceErrorWhileFetchingExistingLibraries(t *testing.T)
 }
 
 func Test_CreateLibrary_WithExistingLibrary_ShouldThrowError(t *testing.T) {
+	ls, mlr := beforeEach()
 	expectedId, _ := uuid.NewRandom()
-	var mockModels = make(map[int]*model.Library)
-	mockModels[0] = nil
-	mockModels[1] = &model.Library{ID: expectedId}
-	ls := &LibraryService{repo: mockRepo{mockLibraryRepo{mockModels: mockModels}}}
+	mlr.mockModels[0] = nil
+	mlr.mockModels[1] = &model.Library{ID: expectedId}
 
 	lib := model.Library{}
 	library, err := ls.CreateLibrary(lib)
@@ -69,6 +77,18 @@ func Test_CreateLibrary_WithExistingLibrary_ShouldThrowError(t *testing.T) {
 	}
 	fmt.Println(library)
 }
+
+func Test_GetLibraries_RepoReturnsErro_ShouldReturnError(t *testing.T) {
+	ls, mlr := beforeEach()
+	expectedError := errors.New("expected error")
+	mlr.mockErrors[0] = expectedError
+	wrappedError := errors.Join(errors.New("error getting libraries in repo"), expectedError)
+	if _, err := ls.GetLibraries(); err.Error() != wrappedError.Error() {
+		t.Errorf("Expected: %v\nGot: %v", wrappedError.Error(), err.Error())
+	}
+}
+
+// func Test_GetLibraries_ReturnsLibraries(t *)
 
 func (mr mockRepo) Health() map[string]string {
 	panic("not implemented")
