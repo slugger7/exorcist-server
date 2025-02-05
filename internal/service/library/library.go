@@ -12,6 +12,7 @@ import (
 
 type ILibraryService interface {
 	CreateLibrary(newLibrary model.Library) (*model.Library, error)
+	GetLibraries() ([]model.Library, error)
 }
 
 type LibraryService struct {
