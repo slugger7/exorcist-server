@@ -88,7 +88,21 @@ func Test_GetLibraries_RepoReturnsErro_ShouldReturnError(t *testing.T) {
 	}
 }
 
-// func Test_GetLibraries_ReturnsLibraries(t *)
+func Test_GetLibraries_ReturnsLibraries(t *testing.T) {
+	ls, mlr := beforeEach()
+	expectedName := "expected library name"
+	mlr.mockLibraries[0] = []model.Library{{Name: expectedName}}
+	actual, err := ls.repo.LibraryRepo().GetLibraries()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(actual) != 1 {
+		t.Error("Length of libraries did not match expected length of 1")
+	}
+	if actual[0].Name != expectedName {
+		t.Errorf("Expected name: %v\nGot: %v", expectedName, actual[0].Name)
+	}
+}
 
 func (mr mockRepo) Health() map[string]string {
 	panic("not implemented")

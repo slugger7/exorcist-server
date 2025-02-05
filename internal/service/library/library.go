@@ -41,7 +41,7 @@ func (i LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library,
 		return nil, err
 	}
 	if library != nil {
-		return nil, errors.New(fmt.Sprintf("library named %v already exists", newLibrary.Name))
+		return nil, fmt.Errorf("library named %v already exists", newLibrary.Name)
 	}
 
 	library, err = i.repo.LibraryRepo().
