@@ -29,3 +29,13 @@ func Test_GetLibraryByName(t *testing.T) {
 		t.Errorf("Expected %v but got %v", expectedSql, sql)
 	}
 }
+
+func Test_GetLibraries(t *testing.T) {
+	statment := lr.getLibrariesStatement()
+	sql := statment.Sql()
+
+	expectedSql := "\nSELECT library.id AS \"library.id\",\n     library.name AS \"library.name\"\nFROM public.library;\n"
+	if sql != expectedSql {
+		t.Errorf("Expected %v but got %v", expectedSql, sql)
+	}
+}

@@ -12,6 +12,7 @@ import (
 func (s *Server) RegisterLibraryRoutes(r *gin.RouterGroup) *gin.RouterGroup {
 	r.GET("/libraries/scan", s.ScanLibrary)
 	r.POST("/libraries", s.CreateLibrary)
+	r.GET("/libraries", s.GetLibraries)
 	return r
 }
 
@@ -46,4 +47,15 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"id": lib.ID})
+}
+
+func (s *Server) GetLibraries(c *gin.Context) {
+	libs, err := s.service.LibraryService().GetLibraries()
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch libraries"})
+		return
+	}
+
+	c.JSON(http.StatusOK, libs)
 }

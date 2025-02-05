@@ -24,9 +24,18 @@ type mockUserService struct {
 	returningError error
 }
 
+var count = 0
+
 type mockLibraryService struct {
 	returningModel *model.Library
 	returningError error
+	mockLibraries  map[int][]model.Library
+	mockErrors     map[int]error
+}
+
+type mockServices struct {
+	libraryService mockLibraryService
+	userService    mockUserService
 }
 
 func (ms mockService) UserService() userService.IUserService {
@@ -47,6 +56,11 @@ func (ms mockService) LibraryService() libraryService.ILibraryService {
 
 func (ls mockLibraryService) CreateLibrary(actual model.Library) (*model.Library, error) {
 	return ls.returningModel, ls.returningError
+}
+
+func (ls mockLibraryService) GetLibraries() ([]model.Library, error) {
+	count = count + 1
+	return ls.mockLibraries[count-1], ls.mockErrors[count-1]
 }
 
 const SET_COOKIE_URL = "/set"
@@ -82,4 +96,19 @@ func setupCookies(req *http.Request, r *gin.Engine) {
 
 func body(body string) *bytes.Reader {
 	return bytes.NewReader([]byte(body))
+}
+
+func setupService() (*mockService, *mockServices) {
+	count = 0
+	mockLibraries := make(map[int][]model.Library)
+	mockErrors := make(map[int]error)
+	mockServices := mockServices{
+		userService:    mockUserService{},
+		libraryService: mockLibraryService{mockLibraries: mockLibraries, mockErrors: mockErrors},
+	}
+	ms := &mockService{
+		userService:    mockServices.userService,
+		libraryService: mockServices.libraryService,
+	}
+	return ms, &mockServices
 }

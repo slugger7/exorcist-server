@@ -116,3 +116,30 @@ func Test_CreateLibrary_Success(t *testing.T) {
 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
 	}
 }
+
+func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
+	r := setupEngine()
+	ms, services := setupService()
+	s := &Server{service: ms}
+	expectedError := errors.New("expected error")
+	services.libraryService.mockErrors[0] = expectedError
+
+	r.GET("/", s.GetLibraries)
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+	expectedStatusCode := http.StatusInternalServerError
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
+	}
+	expectedBody := `{"error":"could not fetch libraries"}`
+	if body := rr.Body.String(); body != expectedBody {
+		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
+	}
+}

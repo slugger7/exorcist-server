@@ -36,3 +36,12 @@ func (i *LibraryRepository) getLibraryByNameStatement(name string) *LibraryState
 	util.DebugCheck(i.Env, statement)
 	return &LibraryStatement{statement, i.db}
 }
+
+func (ls *LibraryRepository) getLibrariesStatement() *LibraryStatement {
+	statement := table.Library.SELECT(table.Library.ID, table.Library.Name).
+		FROM(table.Library)
+
+	util.DebugCheck(ls.Env, statement)
+
+	return &LibraryStatement{statement, ls.db}
+}
