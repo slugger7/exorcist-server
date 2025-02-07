@@ -22,16 +22,18 @@ type mockService struct {
 }
 
 type mockUserService struct {
-	returningModel *model.User
-	returningError error
+	returningModel *model.User // deprecated
+	returningError error       // deprecated
+	mockModels     map[int][]model.User
+	mockErrors     map[int]error
 }
 
 var count = 0
 
 type mockLibraryService struct {
-	returningModel *model.Library
-	returningError error
-	mockLibraries  map[int][]model.Library
+	returningModel *model.Library // deprecated
+	returningError error          // deprecated
+	mockModels     map[int][]model.Library
 	mockErrors     map[int]error
 }
 
@@ -62,7 +64,7 @@ func (ls mockLibraryService) CreateLibrary(actual model.Library) (*model.Library
 
 func (ls mockLibraryService) GetLibraries() ([]model.Library, error) {
 	count = count + 1
-	return ls.mockLibraries[count-1], ls.mockErrors[count-1]
+	return ls.mockModels[count-1], ls.mockErrors[count-1]
 }
 
 const SET_COOKIE_URL = "/set"
@@ -104,17 +106,28 @@ func body(body string) *bytes.Reader {
 	return bytes.NewReader([]byte(body))
 }
 
+func setupMockUserService() mockUserService {
+	mockModels := make(map[int][]model.User)
+	mockErrors := make(map[int]error)
+	return mockUserService{mockModels: mockModels, mockErrors: mockErrors}
+}
+
+func setupMockLibraryService() mockLibraryService {
+	mockModels := make(map[int][]model.Library)
+	mockErrors := make(map[int]error)
+	return mockLibraryService{mockModels: mockModels, mockErrors: mockErrors}
+}
+
 func setupService() (*mockService, *mockServices) {
 	count = 0
-	mockLibraries := make(map[int][]model.Library)
-	mockErrors := make(map[int]error)
-	mockServices := mockServices{
-		userService:    mockUserService{},
-		libraryService: mockLibraryService{mockLibraries: mockLibraries, mockErrors: mockErrors},
+
+	mockServices := &mockServices{
+		userService:    setupMockUserService(),
+		libraryService: setupMockLibraryService(),
 	}
 	ms := &mockService{
 		userService:    mockServices.userService,
 		libraryService: mockServices.libraryService,
 	}
-	return ms, &mockServices
+	return ms, mockServices
 }
