@@ -21,7 +21,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 	}
 
 	if err := c.BindJSON(&newUser); err != nil {
-		log.Println("Colud not read body")
+		s.logger.Info("Colud not read body")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not read body of request"})
 		return
 	}

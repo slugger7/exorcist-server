@@ -3,7 +3,6 @@ package media
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
 type File struct {
@@ -25,14 +25,14 @@ type File struct {
 func CalculateMD5(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return "", fmt.Errorf("error opening file: %w", err)
+		return "", errs.BuildError(err, "error opening file")
 	}
 	defer file.Close()
 
 	hash := md5.New()
 
 	if _, err := io.Copy(hash, file); err != nil {
-		return "", fmt.Errorf("error calculating MD5 hash: %w", err)
+		return "", errs.BuildError(err, "error calculating MD5 hash")
 	}
 
 	checksum := hex.EncodeToString(hash.Sum(nil))

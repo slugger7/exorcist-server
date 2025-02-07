@@ -20,7 +20,7 @@ func getFilesByExtensionAsync(path string, extensions []string, ch chan []media.
 	defer wg.Done()
 
 	values, err := media.GetFilesByExtensions(path, extensions)
-	errs.CheckError(err)
+	errs.PanicError(err)
 	ch <- values
 }
 
@@ -130,7 +130,7 @@ func getVideosInLibraryPath(repo repository.IRepository, libraryPathId uuid.UUID
 	err := repo.VideoRepo().
 		GetVideosInLibraryPath(libraryPathId).
 		Query(&videos)
-	errs.CheckError(err)
+	errs.PanicError(err)
 
 	return videos
 }
@@ -174,7 +174,7 @@ func createLibWithPath(repo repository.IRepository, path string) model.LibraryPa
 
 	library, err := repo.LibraryRepo().
 		CreateLibrary("New Lib")
-	errs.CheckError(err)
+	errs.PanicError(err)
 
 	var libraryPaths []struct {
 		model.LibraryPath
@@ -182,7 +182,7 @@ func createLibWithPath(repo repository.IRepository, path string) model.LibraryPa
 	err = repo.LibraryPathRepo().
 		CreateLibraryPath(library.ID, path).
 		Query(&libraryPaths)
-	errs.CheckError(err)
+	errs.PanicError(err)
 
 	return libraryPaths[len(libraryPaths)-1].LibraryPath
 }

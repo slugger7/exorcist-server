@@ -10,6 +10,8 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/environment"
+	"github.com/slugger7/exorcist/internal/logger"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 )
@@ -84,6 +86,10 @@ func setupEngine() *gin.Engine {
 		c.String(http.StatusOK, OK)
 	})
 	return r
+}
+
+func setupServer() *Server {
+	return &Server{logger: logger.New(&environment.EnvironmentVariables{LogLevel: "none"})}
 }
 
 func setupCookies(req *http.Request, r *gin.Engine) {

@@ -1,12 +1,7 @@
 package errs
 
-import (
-	"log"
-)
-
-func CheckError(err error) {
+func PanicError(err error) {
 	if err != nil {
-		log.Println("Found an error")
 		panic(err)
 	}
 }

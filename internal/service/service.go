@@ -1,9 +1,8 @@
 package service
 
 import (
-	"log"
-
 	"github.com/slugger7/exorcist/internal/environment"
+	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	userService "github.com/slugger7/exorcist/internal/service/user"
@@ -16,6 +15,7 @@ type IService interface {
 
 type Service struct {
 	env            *environment.EnvironmentVariables
+	logger         logger.ILogger
 	userService    userService.IUserService
 	libraryService libraryService.ILibraryService
 }
@@ -26,21 +26,22 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) ISe
 	if serviceInstance == nil {
 		serviceInstance = &Service{
 			env:            env,
+			logger:         logger.New(env),
 			userService:    userService.New(repo, env),
 			libraryService: libraryService.New(repo, env),
 		}
 
-		log.Println("Service instance created")
+		serviceInstance.logger.Info("Service instance created")
 	}
 	return serviceInstance
 }
 
 func (s *Service) UserService() userService.IUserService {
-	log.Println("Getting UserService")
+	s.logger.Debug("Getting UserService")
 	return s.userService
 }
 
 func (s *Service) LibraryService() libraryService.ILibraryService {
-	log.Println("Getting LibraryService")
+	s.logger.Debug("Getting LibraryService")
 	return s.libraryService
 }

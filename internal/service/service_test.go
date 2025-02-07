@@ -4,12 +4,18 @@ import (
 	"testing"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/environment"
+	"github.com/slugger7/exorcist/internal/logger"
 )
 
 type mockUserService struct{}
 type mockLibraryService struct{}
 
-var service = &Service{env: nil, userService: mockUserService{}, libraryService: mockLibraryService{}}
+var service = &Service{
+	env:            nil,
+	logger:         logger.New(&environment.EnvironmentVariables{LogLevel: "none"}),
+	userService:    mockUserService{},
+	libraryService: mockLibraryService{}}
 
 func Test_UserService(t *testing.T) {
 	actualUserService := service.UserService()

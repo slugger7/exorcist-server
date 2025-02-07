@@ -14,6 +14,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/logger"
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
@@ -35,6 +36,7 @@ type IRepository interface {
 
 type Repository struct {
 	db              *sql.DB
+	logger          logger.ILogger
 	Env             *environment.EnvironmentVariables
 	jobRepo         jobRepository.IJobRepository
 	libraryRepo     libraryRepository.ILibraryRepository
@@ -57,11 +59,12 @@ func New(env *environment.EnvironmentVariables) IRepository {
 			log.Printf("connection_string: %v", psqlconn)
 		}
 		db, err := sql.Open("postgres", psqlconn)
-		errs.CheckError(err)
+		errs.PanicError(err)
 
 		dbInstance = &Repository{
 			db:              db,
 			Env:             env,
+			logger:          logger.New(env),
 			jobRepo:         jobRepository.New(db, env),
 			libraryRepo:     libraryRepository.New(db, env),
 			libraryPathRepo: libraryPathRepository.New(db, env),
@@ -71,9 +74,9 @@ func New(env *environment.EnvironmentVariables) IRepository {
 
 		err = dbInstance.runMigrations()
 		if err != nil {
-			log.Printf("Migrations were not run because %v", err)
+			dbInstance.logger.Warningf("Migrations were not run because %v", err)
 		}
-		log.Println("Database instance created")
+		dbInstance.logger.Info("Database instance created")
 	}
 
 	return dbInstance
@@ -116,7 +119,8 @@ func (s *Repository) Health() map[string]string {
 	if err != nil {
 		stats["status"] = "down"
 		stats["error"] = fmt.Sprintf("db down: %v", err)
-		log.Fatalf("db down: %v", err) // Log the error and terminate the program
+		s.logger.Errorf("db down: %v", err) // Log the error and terminate the program
+		errs.PanicError(err)
 		return stats
 	}
 
@@ -175,11 +179,11 @@ func (s *Repository) runMigrations() error {
 		return err
 	}
 
-	log.Println("Running migrations")
+	s.logger.Info("Running migrations")
 	err = m.Up()
 	if err != nil {
 		return err
 	}
-	log.Println("Migrations completed")
+	s.logger.Info("Migrations completed")
 	return nil
 }

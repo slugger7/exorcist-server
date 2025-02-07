@@ -9,7 +9,7 @@ import (
 
 func main() {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
-	errs.CheckError(err)
+	errs.PanicError(err)
 
 	log.Println(string(hashedPassword))
 }

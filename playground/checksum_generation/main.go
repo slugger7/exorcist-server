@@ -11,7 +11,7 @@ import (
 
 func main() {
 	err := godotenv.Load()
-	errs.CheckError(err)
+	errs.PanicError(err)
 
 	env := environment.GetEnvironmentVariables()
 

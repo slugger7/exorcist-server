@@ -9,7 +9,7 @@ import (
 
 func main() {
 	a, err := ffmpeg.Probe("<insert video path here>")
-	CheckError(err)
+	PanicError(err)
 
 	fmt.Println(a)
 }

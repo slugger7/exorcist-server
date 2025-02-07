@@ -29,6 +29,7 @@ type EnvironmentVariables struct {
 	MediaPath        string
 	Port             int
 	Secret           string
+	LogLevel         string
 }
 
 const (
@@ -42,6 +43,7 @@ const (
 	APP_ENV           = "APP_ENV"
 	PORT              = "PORT"
 	SECRET            = "SECRET"
+	LOG_LEVEL         = "LOG_LEVEL"
 )
 
 var env *EnvironmentVariables
@@ -67,12 +69,21 @@ func RefreshEnvironmentVariables() {
 		AppEnv:           handleAppEnv(os.Getenv(APP_ENV)),
 		Port:             getIntValue(PORT),
 		Secret:           os.Getenv(SECRET),
+		LogLevel:         getValueOrDefault(LOG_LEVEL, "debug"),
 	}
+}
+
+func getValueOrDefault(key, value string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return value
+	}
+	return val
 }
 
 func getIntValue(key string) int {
 	value, err := strconv.Atoi(os.Getenv(key))
-	errs.CheckError(err)
+	errs.PanicError(err)
 
 	return value
 }

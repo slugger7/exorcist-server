@@ -1,12 +1,12 @@
 package libraryService
 
 import (
-	"errors"
 	"fmt"
-	"log"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
+	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
@@ -16,8 +16,9 @@ type ILibraryService interface {
 }
 
 type LibraryService struct {
-	Env  *environment.EnvironmentVariables
-	repo repository.IRepository
+	Env    *environment.EnvironmentVariables
+	repo   repository.IRepository
+	logger logger.ILogger
 }
 
 var libraryServiceInstance *LibraryService
@@ -25,11 +26,12 @@ var libraryServiceInstance *LibraryService
 func New(repo repository.IRepository, env *environment.EnvironmentVariables) *LibraryService {
 	if libraryServiceInstance == nil {
 		libraryServiceInstance = &LibraryService{
-			Env:  env,
-			repo: repo,
+			Env:    env,
+			repo:   repo,
+			logger: logger.New(env),
 		}
 
-		log.Println("LibraryService instance created")
+		libraryServiceInstance.logger.Info("LibraryService instance created")
 	}
 	return libraryServiceInstance
 }
@@ -38,8 +40,7 @@ func (i LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library,
 	library, err := i.repo.LibraryRepo().
 		GetLibraryByName(newLibrary.Name)
 	if err != nil {
-		log.Printf("Could not fetch library by name %v", newLibrary.Name)
-		return nil, err
+		return nil, errs.BuildError(err, "Could not fetch library by name %v", newLibrary.Name)
 	}
 	if library != nil {
 		return nil, fmt.Errorf("library named %v already exists", newLibrary.Name)
@@ -48,8 +49,7 @@ func (i LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library,
 	library, err = i.repo.LibraryRepo().
 		CreateLibrary(newLibrary.Name)
 	if err != nil {
-		log.Printf("could not create library with name %v", newLibrary.Name)
-		return nil, err
+		return nil, errs.BuildError(err, "could not create library with name %v", newLibrary.Name)
 	}
 
 	return library, nil
@@ -58,7 +58,7 @@ func (i LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library,
 func (i LibraryService) GetLibraries() ([]model.Library, error) {
 	libraries, err := i.repo.LibraryRepo().GetLibraries()
 	if err != nil {
-		return nil, errors.Join(errors.New("error getting libraries in repo"), err)
+		return nil, errs.BuildError(err, "error getting libraries in repo")
 	}
 
 	return libraries, nil

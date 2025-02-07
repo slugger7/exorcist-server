@@ -13,7 +13,7 @@ import (
 
 func Test_CreateLibrary_InvalidBody(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
 	r.POST("/", s.CreateLibrary)
 
@@ -37,7 +37,7 @@ func Test_CreateLibrary_InvalidBody(t *testing.T) {
 
 func Test_CreateLibrary_NoNameSpecified_ShouldThrowError(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
 	r.POST("/", s.CreateLibrary)
 
@@ -61,7 +61,7 @@ func Test_CreateLibrary_NoNameSpecified_ShouldThrowError(t *testing.T) {
 
 func Test_CreateLibrary_ErrorByService(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
 	expectedErrorMessage := "expected error message"
 	s.service = mockService{mockUserService{}, mockLibraryService{returningModel: nil, returningError: errors.New(expectedErrorMessage)}}
@@ -88,7 +88,7 @@ func Test_CreateLibrary_ErrorByService(t *testing.T) {
 
 func Test_CreateLibrary_Success(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
 	expectedId, _ := uuid.NewRandom()
 
@@ -120,7 +120,8 @@ func Test_CreateLibrary_Success(t *testing.T) {
 func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
 	ms, services := setupService()
-	s := &Server{service: ms}
+	s := setupServer()
+	s.service = ms
 	expectedError := errors.New("expected error")
 	services.libraryService.mockErrors[0] = expectedError
 

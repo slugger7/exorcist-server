@@ -15,7 +15,7 @@ import (
 
 func main() {
 	err := godotenv.Load()
-	CheckError(err)
+	PanicError(err)
 
 	host := os.Getenv("DATABASE_HOST")
 	port := os.Getenv("DATABASE_PORT")
@@ -27,11 +27,11 @@ func main() {
 	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	fmt.Println("Opening DB")
 	db, err := sql.Open("postgres", psqlconn)
-	CheckError(err)
+	PanicError(err)
 	defer db.Close()
 
 	err = db.Ping()
-	CheckError(err)
+	PanicError(err)
 
 	stmnt := SELECT(Library.AllColumns).FROM(Library)
 

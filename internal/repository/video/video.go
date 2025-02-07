@@ -2,7 +2,6 @@ package videoRepository
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
@@ -109,15 +108,9 @@ func (ds *VideoRepository) InsertVideosStatement(videos []model.Video) *VideoSta
 }
 
 func (vs *VideoStatement) Query(destination interface{}) error {
-	if vs != nil {
-		return vs.Statement.Query(vs.db, destination)
-	}
-	return errors.New("No video statement provided to query")
+	return vs.Statement.Query(vs.db, destination)
 }
 
 func (vs *VideoStatement) Exec() (sql.Result, error) {
-	if vs != nil {
-		return vs.Statement.Exec(vs.db)
-	}
-	return nil, errors.New("No video statement to execute on")
+	return vs.Statement.Exec(vs.db)
 }

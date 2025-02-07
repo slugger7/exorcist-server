@@ -230,16 +230,16 @@ func main() {
 	var structdata *ffmpeg.Probe
 
 	err = json.Unmarshal([]byte(jsonData), &structdata)
-	CheckError(err)
+	PanicError(err)
 
 	i, err := strconv.Atoi(structdata.Format.Size)
-	CheckError(err)
+	PanicError(err)
 
 	fmt.Printf("json map: %v\n", structdata.Format.Size)
 	fmt.Printf("size: %v\n", i)
 
 	width, height, err := ffmpeg.GetDimensions(structdata.Streams)
-	CheckError(err)
+	PanicError(err)
 
 	fmt.Printf("Width & Height: %v %v\n", width, height)
 }

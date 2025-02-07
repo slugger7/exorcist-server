@@ -2,12 +2,10 @@ package libraryRepository
 
 import (
 	"database/sql"
-	"errors"
-	"fmt"
-	"log"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
+	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
 type ILibraryRepository interface {
@@ -46,8 +44,7 @@ func (ls *LibraryStatement) Sql() string {
 func (ls *LibraryRepository) CreateLibrary(name string) (*model.Library, error) {
 	var library struct{ model.Library }
 	if err := ls.createLibraryStatement(name).Query(&library); err != nil {
-		log.Println("something went wrong creating the library")
-		return nil, err
+		return nil, errs.BuildError(err, "error while creating library")
 	}
 	return &library.Library, nil
 }
@@ -55,7 +52,7 @@ func (ls *LibraryRepository) CreateLibrary(name string) (*model.Library, error) 
 func (ls *LibraryRepository) GetLibraryByName(name string) (*model.Library, error) {
 	var libraries []struct{ model.Library }
 	if err := ls.getLibraryByNameStatement(name).Query(&libraries); err != nil {
-		return nil, errors.Join(fmt.Errorf("something went wrong getting the library by name: %v", err), err)
+		return nil, errs.BuildError(err, "could not get library by name '%v'", name)
 	}
 	var library *model.Library
 	if len(libraries) > 0 {
@@ -67,7 +64,7 @@ func (ls *LibraryRepository) GetLibraryByName(name string) (*model.Library, erro
 func (ls *LibraryRepository) GetLibraries() ([]model.Library, error) {
 	var libraries []struct{ model.Library }
 	if err := ls.getLibrariesStatement().Query(&libraries); err != nil {
-		return nil, errors.Join(errors.New("error getting libraries from database"), err)
+		return nil, errs.BuildError(err, "could not get libraries")
 	}
 	var libs []model.Library
 	for _, v := range libraries {
