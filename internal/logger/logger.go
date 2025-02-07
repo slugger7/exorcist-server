@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -10,9 +11,13 @@ import (
 
 type ILogger interface {
 	Debug(message string)
+	Debugf(format string, args ...any)
 	Info(message string)
+	Infof(format string, args ...any)
 	Warning(message string)
+	Warningf(format string, args ...any)
 	Error(message string)
+	Errorf(format string, args ...any)
 }
 
 type logger struct {
@@ -29,38 +34,77 @@ func New(env *environment.EnvironmentVariables) ILogger {
 	if loggerInstance == nil {
 		loggerInstance = &logger{
 			env:           env,
-			debugLogger:   log.New(os.Stdout, "[DEBUG]", log.LUTC),
+			debugLogger:   log.New(os.Stdout, "[DEBUG]", log.Default().Flags()),
 			infoLogger:    log.New(os.Stdout, "[INFO] ", log.Default().Flags()),
-			warningLogger: log.New(os.Stdout, "[WARN]", 0),
-			errorLogger:   log.New(os.Stdout, "[ERROR]", 0),
+			warningLogger: log.New(os.Stdout, "[WARN]", log.Default().Flags()),
+			errorLogger:   log.New(os.Stdout, "[ERROR]", log.Default().Flags()),
 		}
 	}
 	return loggerInstance
 }
 
-func reflectFunction() (string, string, int) {
-	pc := make([]uintptr, 10) // at least 1 entry needed
-	runtime.Callers(2, pc)
-	f := runtime.FuncForPC(pc[1])
-	file, line := f.FileLine(pc[1])
-	return file, f.Name(), line
+type callerInfo struct {
+	file     string
+	funcName string
+	lineNo   int
+}
+
+func getCallerInformation(skip int) callerInfo {
+	pc, file, lineNo, ok := runtime.Caller(skip)
+	if !ok {
+		log.Println("runtime.Caller() failed")
+	}
+	funcName := runtime.FuncForPC(pc).Name()
+
+	return callerInfo{file: file, funcName: funcName, lineNo: lineNo}
+}
+
+func (l *logger) logDebug(message string) {
+	ci := getCallerInformation(3)
+	l.debugLogger.Printf("%v@%v(%v): %v", ci.file, ci.lineNo, ci.funcName, message)
 }
 
 func (l *logger) Debug(message string) {
-	file, funcName, line := reflectFunction()
-	l.debugLogger.Printf("%v@%v(%v): %v", file, line, funcName, message)
+	l.logDebug(message)
+}
+func (l *logger) Debugf(format string, args ...any) {
+	message := fmt.Sprintf(format, args...)
+	l.logDebug(message)
 }
 
 func (l *logger) Info(message string) {
 	l.infoLogger.Println(message)
 }
 
+func (l *logger) Infof(format string, args ...any) {
+	message := fmt.Sprintf(format, args...)
+	l.Info(message)
+}
+
+func (l *logger) logWarning(message string) {
+	ci := getCallerInformation(3)
+	l.warningLogger.Printf("%v: %v", ci.funcName, message)
+}
+
 func (l *logger) Warning(message string) {
-	_, funcName, _ := reflectFunction()
-	l.debugLogger.Printf("%v: %v", funcName, message)
+	l.logWarning(message)
+}
+
+func (l *logger) Warningf(format string, args ...any) {
+	message := fmt.Sprintf(format, args...)
+	l.logWarning(message)
+}
+
+func (l *logger) logErorr(message string) {
+	ci := getCallerInformation(3)
+	l.errorLogger.Printf("%v@%v(%v): %v", ci.file, ci.lineNo, ci.funcName, message)
 }
 
 func (l *logger) Error(message string) {
-	file, funcName, line := reflectFunction()
-	l.errorLogger.Printf("%v@%v(%v): %v", file, line, funcName, message)
+	l.logErorr(message)
+}
+
+func (l *logger) Errorf(format string, args ...any) {
+	message := fmt.Sprintf(format, args...)
+	l.logErorr(message)
 }
