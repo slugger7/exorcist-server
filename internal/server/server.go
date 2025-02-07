@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/slugger7/exorcist/internal/environment"
+	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
 	"github.com/slugger7/exorcist/internal/service"
 )
@@ -14,6 +15,7 @@ type Server struct {
 	env     *environment.EnvironmentVariables
 	repo    repository.IRepository
 	service service.IService
+	logger  logger.ILogger
 }
 
 func NewServer(env *environment.EnvironmentVariables) *http.Server {
@@ -22,6 +24,7 @@ func NewServer(env *environment.EnvironmentVariables) *http.Server {
 		repo:    repo,
 		env:     env,
 		service: service.New(repo, env),
+		logger:  logger.New(env),
 	}
 
 	server := &http.Server{
