@@ -90,7 +90,7 @@ type callerInfo struct {
 func getCallerInformation(skip int) callerInfo {
 	pc, file, lineNo, ok := runtime.Caller(skip)
 	if !ok {
-		log.Println("runtime.Caller() failed")
+		log.Println("LOGGER: runtime.Caller() failed")
 	}
 	funcName := runtime.FuncForPC(pc).Name()
 
