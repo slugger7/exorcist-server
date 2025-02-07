@@ -59,8 +59,9 @@ func Test_CreateLibrary_ProduceErrorWhileFetchingExistingLibraries(t *testing.T)
 	mlr.mockErrors[0] = expectedErr
 	lib := model.Library{}
 
-	if _, err := ls.CreateLibrary(lib); err.Error() != expectedErr.Error() {
-		t.Errorf("Encountered an unexpected error creating library\nExpected: %v\nGot: %v", expectedErr.Error(), err.Error())
+	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library.LibraryService.CreateLibrary@43: Could not fetch library by name \n%v", expectedErr.Error())
+	if _, err := ls.CreateLibrary(lib); err.Error() != expectedErrorMessage {
+		t.Errorf("Encountered an unexpected error creating library\nExpected: %v\nGot: %v", expectedErrorMessage, err.Error())
 	}
 }
 
@@ -82,9 +83,9 @@ func Test_GetLibraries_RepoReturnsErro_ShouldReturnError(t *testing.T) {
 	ls, mlr := beforeEach()
 	expectedError := errors.New("expected error")
 	mlr.mockErrors[0] = expectedError
-	wrappedError := errors.Join(errors.New("error getting libraries in repo"), expectedError)
-	if _, err := ls.GetLibraries(); err.Error() != wrappedError.Error() {
-		t.Errorf("Expected: %v\nGot: %v", wrappedError.Error(), err.Error())
+	wrappedError := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library.LibraryService.GetLibraries@61: error getting libraries in repo\n%v", expectedError.Error())
+	if _, err := ls.GetLibraries(); err.Error() != wrappedError {
+		t.Errorf("Expected: %v\nGot: %v", wrappedError, err.Error())
 	}
 }
 
