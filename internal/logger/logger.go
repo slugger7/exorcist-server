@@ -22,10 +22,47 @@ type ILogger interface {
 
 type logger struct {
 	env           *environment.EnvironmentVariables
+	level         int
 	debugLogger   *log.Logger
 	infoLogger    *log.Logger
 	warningLogger *log.Logger
 	errorLogger   *log.Logger
+}
+
+const (
+	debug = "debug"
+	info  = "info"
+	warn  = "warn"
+	err   = "error"
+	none  = "none"
+)
+
+const (
+	debugLevel = iota
+	infoLevel
+	warnLevel
+	errorLevel
+	noneLevel
+)
+
+func resolveLogLevel(level string) (logLevel int) {
+	switch level {
+	case debug:
+		logLevel = debugLevel
+	case info:
+		logLevel = infoLevel
+	case warn:
+		logLevel = warnLevel
+	case err:
+		logLevel = errorLevel
+	case none:
+		logLevel = noneLevel
+	default:
+		logLevel = debugLevel
+	}
+
+	log.Printf("LogLevel: %v=%v", level, logLevel)
+	return logLevel
 }
 
 var loggerInstance *logger
@@ -34,6 +71,7 @@ func New(env *environment.EnvironmentVariables) ILogger {
 	if loggerInstance == nil {
 		loggerInstance = &logger{
 			env:           env,
+			level:         resolveLogLevel(env.LogLevel),
 			debugLogger:   log.New(os.Stdout, "[DEBUG]", log.Default().Flags()),
 			infoLogger:    log.New(os.Stdout, "[INFO] ", log.Default().Flags()),
 			warningLogger: log.New(os.Stdout, "[WARN]", log.Default().Flags()),
@@ -60,8 +98,30 @@ func getCallerInformation(skip int) callerInfo {
 }
 
 func (l *logger) logDebug(message string) {
-	ci := getCallerInformation(3)
-	l.debugLogger.Printf("%v@%v(%v): %v", ci.file, ci.lineNo, ci.funcName, message)
+	if l.level <= debugLevel {
+		ci := getCallerInformation(3)
+		l.debugLogger.Printf("%v@%v(%v): %v", ci.file, ci.lineNo, ci.funcName, message)
+	}
+}
+
+func (l *logger) logInfo(message string) {
+	if l.level <= infoLevel {
+		l.infoLogger.Println(message)
+	}
+}
+
+func (l *logger) logWarning(message string) {
+	if l.level <= warnLevel {
+		ci := getCallerInformation(3)
+		l.warningLogger.Printf("%v: %v", ci.funcName, message)
+	}
+}
+
+func (l *logger) logErorr(message string) {
+	if l.level <= errorLevel {
+		ci := getCallerInformation(3)
+		l.errorLogger.Printf("%v@%v(%v): %v", ci.file, ci.lineNo, ci.funcName, message)
+	}
 }
 
 func (l *logger) Debug(message string) {
@@ -73,17 +133,12 @@ func (l *logger) Debugf(format string, args ...any) {
 }
 
 func (l *logger) Info(message string) {
-	l.infoLogger.Println(message)
+	l.logInfo(message)
 }
 
 func (l *logger) Infof(format string, args ...any) {
 	message := fmt.Sprintf(format, args...)
-	l.Info(message)
-}
-
-func (l *logger) logWarning(message string) {
-	ci := getCallerInformation(3)
-	l.warningLogger.Printf("%v: %v", ci.funcName, message)
+	l.logInfo(message)
 }
 
 func (l *logger) Warning(message string) {
@@ -93,11 +148,6 @@ func (l *logger) Warning(message string) {
 func (l *logger) Warningf(format string, args ...any) {
 	message := fmt.Sprintf(format, args...)
 	l.logWarning(message)
-}
-
-func (l *logger) logErorr(message string) {
-	ci := getCallerInformation(3)
-	l.errorLogger.Printf("%v@%v(%v): %v", ci.file, ci.lineNo, ci.funcName, message)
 }
 
 func (l *logger) Error(message string) {

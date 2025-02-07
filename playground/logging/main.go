@@ -20,7 +20,7 @@ func functionWrappedLogs(logg logger.ILogger) {
 }
 
 func main() {
-	env := environment.EnvironmentVariables{}
+	env := environment.EnvironmentVariables{LogLevel: "none"}
 	logg := logger.New(&env)
 
 	logg.Debug("std debug")
