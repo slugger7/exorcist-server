@@ -12,7 +12,7 @@ import (
 
 func Test_Create_InvalidBody(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
 	r.POST("/", s.CreateUser)
 
@@ -36,7 +36,7 @@ func Test_Create_InvalidBody(t *testing.T) {
 
 func Test_Create_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
 	expectedErrorMessage := "expected error"
 	s.service = mockService{
@@ -65,7 +65,7 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 
 func Test_Create_Success(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
 	expectedModel := &model.User{
 		Username: "expecedUsername",
