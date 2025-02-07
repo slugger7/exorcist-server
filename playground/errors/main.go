@@ -1,18 +1,21 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+
+	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
 func main() {
-	err := thatThrowsError()
+	err := nestError(4)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func thatThrowsError() error {
-	err := fmt.Errorf("some error that has a value of %v", 666)
-	return errors.Join(err, fmt.Errorf("Error number two %v", 777))
+func nestError(count int) error {
+	if count != 0 {
+		return errs.BuildError(nestError(count-1), "erorr at count %v", count)
+	}
+	return fmt.Errorf("base error")
 }
