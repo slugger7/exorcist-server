@@ -83,7 +83,7 @@ func getValueOrDefault(key, value string) string {
 
 func getIntValue(key string) int {
 	value, err := strconv.Atoi(os.Getenv(key))
-	errs.CheckError(err)
+	errs.PanicError(err)
 
 	return value
 }

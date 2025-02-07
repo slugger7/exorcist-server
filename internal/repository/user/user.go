@@ -7,6 +7,7 @@ import (
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
+	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
 type UserStatement struct {
@@ -41,15 +42,13 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
 }
 
 func (us *UserStatement) Query(destination interface{}) error {
-	log.Println("Querying user statment")
 	return us.Statement.Query(us.db, destination)
 }
 
 func (ur *UserRepository) CreateUser(user model.User) (*model.User, error) {
 	var newUser struct{ model.User }
 	if err := ur.createUserStatement(user).Query(&newUser); err != nil {
-		log.Println("something went wrong creating the library")
-		return nil, err
+		return nil, errs.BuildError(err, "could not create user %v", user)
 	}
 	return &newUser.User, nil
 }
@@ -58,7 +57,7 @@ func (ur *UserRepository) GetUserByUsername(username string, columns ...postgres
 	var users []struct{ model.User }
 	if err := ur.getUserByUsernameStatement(username, columns...).Query(&users); err != nil {
 		log.Println("something went wrong getting user by username")
-		return nil, err
+		return nil, errs.BuildError(err, "could not get user by username '%v'", username)
 	}
 	var user *model.User
 	if len(users) > 0 {
@@ -71,7 +70,7 @@ func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string
 	var users []struct{ model.User }
 	if err := ur.getUserByUsernameAndPasswordStatement(username, password).Query(&users); err != nil {
 		log.Println("something went wrong getting user by username")
-		return nil, err
+		return nil, errs.BuildError(err, "could not get user by username '%v' and password", username)
 	}
 	var user *model.User
 	if len(users) > 0 {

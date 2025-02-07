@@ -36,7 +36,7 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 
 func main() {
 	err := godotenv.Load()
-	errs.CheckError(err)
+	errs.PanicError(err)
 	env := environment.GetEnvironmentVariables()
 
 	server := server.NewServer(env)

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -41,7 +40,6 @@ func (s *Server) Login(c *gin.Context) {
 	}
 
 	if err := c.BindJSON(&userBody); err != nil {
-		log.Println("Could not read body on login")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not read body of request"})
 		return
 	}

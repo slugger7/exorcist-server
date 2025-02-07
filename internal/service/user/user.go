@@ -93,7 +93,7 @@ func (us *UserService) ValidateUser(username, password string) (*model.User, err
 
 func hashPassword(password string) string {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	errs.CheckError(err)
+	errs.PanicError(err)
 
 	return string(hashedPassword)
 }

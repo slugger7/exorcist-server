@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -41,7 +40,7 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 
 	lib, err := s.service.LibraryService().CreateLibrary(newLibrary)
 	if err != nil {
-		log.Printf("Something went wrong creating a library: %v", err)
+		s.logger.Errorf("could not create library: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not create new library"})
 		return
 	}
@@ -52,7 +51,7 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 func (s *Server) GetLibraries(c *gin.Context) {
 	libs, err := s.service.LibraryService().GetLibraries()
 	if err != nil {
-		log.Println(err)
+		s.logger.Errorf("could not get libraries: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch libraries"})
 		return
 	}
