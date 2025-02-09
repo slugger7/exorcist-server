@@ -102,7 +102,7 @@ func Test_CreateUser_UserExistsRaisesError_ShouldReturnError(t *testing.T) {
 	expectedError := errors.New("expected error")
 	mr.mockUserRepo.mockErrors[0] = expectedError
 	username := ""
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).CreateUser@54: could not determine if user '%v' exists\n%v", username, expectedError.Error())
+	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).CreateUser: could not determine if user '%v' exists\n%v", username, expectedError.Error())
 	if _, err := us.CreateUser(username, ""); err.Error() != expectedErrorMessage {
 		t.Errorf("Unexpected error thrown\nExpected: %v\nGot: %v", expectedErrorMessage, err.Error())
 	}
@@ -126,7 +126,7 @@ func Test_CreateUser_UserExistsFalse_RepoCreateReturnsError_ShouldReturnError(t 
 	expectedError := errors.New("expected error")
 	mr.mockUserRepo.mockErrors[1] = expectedError
 	username := ""
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).CreateUser@68: could not create a new user\n%v", expectedError.Error())
+	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).CreateUser: could not create a new user\n%v", expectedError.Error())
 
 	if _, err := us.CreateUser(username, ""); err.Error() != expectedErrorMessage {
 		t.Errorf("Unexpected error thrown\nExpected: %v\nGot: %v", expectedErrorMessage, err.Error())
