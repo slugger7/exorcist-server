@@ -8,14 +8,13 @@ import (
 	"testing"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/mocks/mservice"
 )
 
 func Test_Create_InvalidBody(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
 
-	r.POST("/", s.CreateUser)
+	r.POST("/", s.server.CreateUser)
 
 	req, err := http.NewRequest("POST", "/", body(`{invalid json}`))
 	if err != nil {
@@ -38,12 +37,10 @@ func Test_Create_InvalidBody(t *testing.T) {
 func Test_Create_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := mservice.SetupMockService()
-	s.service = svc
 
 	expectedErrorMessage := "expected error"
-	mSvc.UserService.MockErrors[0] = errors.New(expectedErrorMessage)
-	r.POST("/", s.CreateUser)
+	s.mockService.UserService.MockErrors[0] = errors.New(expectedErrorMessage)
+	r.POST("/", s.server.CreateUser)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username":"someUsername","password":"somePassword"}`))
 	if err != nil {
@@ -66,16 +63,14 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 func Test_Create_Success(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := mservice.SetupMockService()
-	s.service = svc
 
 	expectedModel := &model.User{
 		Username: "expecedUsername",
 		Password: "",
 	}
-	mSvc.UserService.MockModel[0] = expectedModel
+	s.mockService.UserService.MockModel[0] = expectedModel
 
-	r.POST("/", s.CreateUser)
+	r.POST("/", s.server.CreateUser)
 
 	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"username":"%s","password":"somePassword"}`, expectedModel.Username)))
 	if err != nil {

@@ -9,14 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/mocks/mservice"
 )
 
 func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
-	r.Use(s.AuthRequired)
+	r.Use(s.server.AuthRequired)
 	r.GET("/", func(ctx *gin.Context) {
 		t.Errorf("Should not have run this function")
 	})
@@ -36,9 +35,9 @@ func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
 
 func Test_AuthRequiredMiddleware_Succeeds(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
-	r.Use(s.AuthRequired)
+	r.Use(s.server.AuthRequired)
 	expectedStatusCode := http.StatusOK
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(expectedStatusCode, gin.H{"message": "success"})
@@ -63,9 +62,9 @@ func Test_AuthRequiredMiddleware_Succeeds(t *testing.T) {
 
 func Test_Login_InvalidBody(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
-	r.POST("/", s.Login)
+	r.POST("/", s.server.Login)
 
 	req, err := http.NewRequest("POST", "/", body(`{invalid json}`))
 	if err != nil {
@@ -87,9 +86,9 @@ func Test_Login_InvalidBody(t *testing.T) {
 
 func Test_Login_InvalidParametersInBody(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
-	r.POST("/", s.Login)
+	r.POST("/", s.server.Login)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username": " ", "password": " "}`))
 	if err != nil {
@@ -111,11 +110,9 @@ func Test_Login_InvalidParametersInBody(t *testing.T) {
 
 func Test_Login_NoUserFromValidateUser(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
-	svc, _ := mservice.SetupMockService()
-	s.service = svc
+	s := setupServer()
 
-	r.POST("/", s.Login)
+	r.POST("/", s.server.Login)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username": "admin", "password": "admin"}`))
 	if err != nil {
@@ -138,15 +135,14 @@ func Test_Login_NoUserFromValidateUser(t *testing.T) {
 func Test_Login_Success(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := mservice.SetupMockService()
-	s.service = svc
+
 	id, err := uuid.NewRandom()
 	if err != nil {
 		t.Fatalf("could not generate random uuid %v", err)
 	}
-	mSvc.UserService.MockModel[0] = &model.User{Username: "admin", ID: id}
+	s.mockService.UserService.MockModel[0] = &model.User{Username: "admin", ID: id}
 
-	r.POST("/", s.Login)
+	r.POST("/", s.server.Login)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username": "admin", "password": "admin"}`))
 	if err != nil {
@@ -178,10 +174,8 @@ func Test_Login_Success(t *testing.T) {
 func Test_Logout_InvalidSessionToken(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, _ := mservice.SetupMockService()
-	s.service = svc
 
-	r.GET("/", s.Logout)
+	r.GET("/", s.server.Logout)
 
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
@@ -203,11 +197,9 @@ func Test_Logout_InvalidSessionToken(t *testing.T) {
 
 func Test_Logout_Success(t *testing.T) {
 	r := setupEngine()
-	svc, _ := mservice.SetupMockService()
 	s := setupServer()
-	s.service = svc
 
-	r.GET("/", s.Logout)
+	r.GET("/", s.server.Logout)
 
 	rr := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)

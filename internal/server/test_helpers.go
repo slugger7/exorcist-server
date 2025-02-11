@@ -11,10 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/mocks/mservice"
 )
 
 const SET_COOKIE_URL = "/set"
 const OK = "ok"
+
+type TestServer struct {
+	server      *Server
+	mockService *mservice.MockServices
+}
 
 func setupEngine() *gin.Engine {
 	r := gin.New()
@@ -36,8 +42,10 @@ func setupEngine() *gin.Engine {
 	return r
 }
 
-func setupServer() *Server {
-	return &Server{logger: logger.New(&environment.EnvironmentVariables{LogLevel: "none"})}
+func setupServer() *TestServer {
+	svc, mSvc := mservice.SetupMockService()
+	server := &Server{logger: logger.New(&environment.EnvironmentVariables{LogLevel: "none"}), service: svc}
+	return &TestServer{server: server, mockService: mSvc}
 }
 
 func setupCookies(req *http.Request, r *gin.Engine) {
