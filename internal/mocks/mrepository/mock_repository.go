@@ -2,8 +2,6 @@ package mrepository
 
 import (
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
-	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
-	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
@@ -17,15 +15,15 @@ func incStack() int {
 
 type MockRepo struct {
 	MockLibraryRepo
+	MockLibraryPathRepo
 }
 
 func SetupMockRespository() *MockRepo {
 	stackCount = 0
-	return &MockRepo{MockLibraryRepo: *SetupMockLibraryRepository()}
-}
-
-func (mr MockRepo) LibraryRepo() libraryRepository.ILibraryRepository {
-	return mr.MockLibraryRepo
+	return &MockRepo{
+		MockLibraryRepo:     *SetupMockLibraryRepository(),
+		MockLibraryPathRepo: *SetupMockLibraryPathRepository(),
+	}
 }
 
 func (mr MockRepo) Health() map[string]string {
@@ -35,9 +33,6 @@ func (mr MockRepo) Close() error {
 	panic("not implemented")
 }
 func (mr MockRepo) JobRepo() jobRepository.IJobRepository {
-	panic("not implemented")
-}
-func (mr MockRepo) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
 	panic("not implemented")
 }
 func (mr MockRepo) VideoRepo() videoRepository.IVideoRepository {

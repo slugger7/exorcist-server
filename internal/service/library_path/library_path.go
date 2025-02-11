@@ -1,10 +1,18 @@
 package libraryPathService
 
 import (
+	"fmt"
+
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
+	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
+)
+
+const (
+	LibraryPathWasNilErr = "library path model was nil"
+	LibraryNilErr        = "library was nil for id: %v"
 )
 
 type ILibraryPathService interface {
@@ -34,5 +42,23 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILi
 }
 
 func (lps *LibraryPathService) Create(libPathModel *model.LibraryPath) (*model.LibraryPath, error) {
-	panic("not implemented")
+	if libPathModel == nil {
+		return nil, fmt.Errorf(LibraryPathWasNilErr)
+	}
+
+	library, err := lps.repo.LibraryRepo().GetLibraryById(libPathModel.LibraryID)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get library by id")
+	}
+
+	if library == nil {
+		return nil, fmt.Errorf(LibraryNilErr, libPathModel.LibraryID)
+	}
+
+	libraryPath, err := lps.repo.LibraryPathRepo().Create(libPathModel)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not create new library path")
+	}
+
+	return libraryPath, nil
 }

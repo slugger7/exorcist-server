@@ -1,7 +1,6 @@
 package mservice
 
 import (
-	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
@@ -19,11 +18,6 @@ func (ls MockLibraryService) CreateLibrary(actual model.Library) (*model.Library
 func (ls MockLibraryService) GetLibraries() ([]model.Library, error) {
 	stack := incStack()
 	return ls.MockModels[stack], ls.MockErrors[stack]
-}
-
-func (ls MockLibraryService) GetLibraryById(uuid.UUID) (*model.Library, error) {
-	stack := incStack()
-	return ls.MockModel[stack], ls.MockErrors[stack]
 }
 
 func SetupMockLibraryService() MockLibraryService {
