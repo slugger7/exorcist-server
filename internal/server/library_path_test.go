@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -59,52 +58,22 @@ func Test_CreateLibraryPath_NoPathSpecified_ShouldThrowError(t *testing.T) {
 	}
 }
 
-// func Test_CreateLibraryPath_ErrorWhileFetchingLibraryById(t *testing.T) {
-// 	r := setupEngine()
-// 	s := setupServer()
-// }
-
-func Test_CreateLibraryPath_ErrorByService(t *testing.T) {
-	r := setupEngine()
-	s := setupServer()
-
-	expectedErrorMessage := "expected error message"
-	s.mockService.LibraryService.MockErrors[0] = errors.New(expectedErrorMessage)
-	r.POST("/", s.server.CreateLibrary)
-
-	expectedName := "expectedLibraryName"
-	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedName)))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusBadRequest
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"could not create new library"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
-}
-
 func Test_CreateLibraryPath_Success(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
 
 	expectedId, _ := uuid.NewRandom()
-	expectedLibraryName := "some expected library name"
-	s.mockService.LibraryService.MockModel[0] = &model.Library{
-		ID:   expectedId,
-		Name: expectedLibraryName,
+	expectedLibraryId, _ := uuid.NewRandom()
+	expectedLibraryPath := "some/expected/path"
+	s.mockService.LibraryPathService.MockModel[0] = &model.LibraryPath{
+		ID:        expectedId,
+		LibraryID: expectedLibraryId,
+		Path:      expectedLibraryPath,
 	}
 
-	r.POST("/", s.server.CreateLibrary)
+	r.POST("/", s.server.CreateLibraryPath)
 
-	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedLibraryName)))
+	req, err := http.NewRequest("POST", "/", body(`{"path":"%v", "libraryId": "%v"}`, expectedLibraryPath, expectedLibraryId))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +85,7 @@ func Test_CreateLibraryPath_Success(t *testing.T) {
 	if rr.Code != expectedStatusCode {
 		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
 	}
-	expectedBody := fmt.Sprintf(`{"id":"%v"}`, expectedId.String())
+	expectedBody := fmt.Sprintf(`{"ID":"%v","LibraryID":"%v","Path":"%v","Created":"0001-01-01T00:00:00Z","Modified":"0001-01-01T00:00:00Z"}`, expectedId.String(), expectedLibraryId.String(), expectedLibraryPath)
 	if body := rr.Body.String(); body != expectedBody {
 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
 	}

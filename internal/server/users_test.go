@@ -72,7 +72,7 @@ func Test_Create_Success(t *testing.T) {
 
 	r.POST("/", s.server.CreateUser)
 
-	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"username":"%s","password":"somePassword"}`, expectedModel.Username)))
+	req, err := http.NewRequest("POST", "/", body(`{"username":"%s","password":"somePassword"}`, expectedModel.Username))
 	if err != nil {
 		t.Fatal(err)
 	}

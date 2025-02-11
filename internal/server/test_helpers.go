@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -56,6 +57,10 @@ func setupCookies(req *http.Request, r *gin.Engine) {
 	req.Header.Set("Cookie", strings.Join(res.Header().Values("Set-Cookie"), "; "))
 }
 
-func body(body string) *bytes.Reader {
-	return bytes.NewReader([]byte(body))
+func body(body string, args ...any) *bytes.Reader {
+	message := body
+	if args != nil {
+		message = fmt.Sprintf(body, args...)
+	}
+	return bytes.NewReader([]byte(message))
 }

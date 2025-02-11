@@ -68,7 +68,7 @@ func Test_CreateLibrary_ErrorByService(t *testing.T) {
 	r.POST("/", s.server.CreateLibrary)
 
 	expectedName := "expectedLibraryName"
-	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedName)))
+	req, err := http.NewRequest("POST", "/", body(`{"name":"%v"}`, expectedName))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func Test_CreateLibrary_Success(t *testing.T) {
 
 	r.POST("/", s.server.CreateLibrary)
 
-	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedLibraryName)))
+	req, err := http.NewRequest("POST", "/", body(`{"name":"%v"}`, expectedLibraryName))
 	if err != nil {
 		t.Fatal(err)
 	}
