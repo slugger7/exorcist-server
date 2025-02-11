@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/mocks"
+	"github.com/slugger7/exorcist/internal/mocks/mservice"
 )
 
 func Test_Create_InvalidBody(t *testing.T) {
@@ -38,7 +38,7 @@ func Test_Create_InvalidBody(t *testing.T) {
 func Test_Create_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := mocks.SetupMockService()
+	svc, mSvc := mservice.SetupMockService()
 	s.service = svc
 
 	expectedErrorMessage := "expected error"
@@ -66,7 +66,7 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 func Test_Create_Success(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := mocks.SetupMockService()
+	svc, mSvc := mservice.SetupMockService()
 	s.service = svc
 
 	expectedModel := &model.User{

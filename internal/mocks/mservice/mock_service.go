@@ -1,4 +1,4 @@
-package mocks
+package mservice
 
 import (
 	libraryService "github.com/slugger7/exorcist/internal/service/library"

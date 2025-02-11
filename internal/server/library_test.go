@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/mocks"
+	"github.com/slugger7/exorcist/internal/mocks/mservice"
 )
 
 func Test_CreateLibrary_InvalidBody(t *testing.T) {
@@ -63,7 +63,7 @@ func Test_CreateLibrary_NoNameSpecified_ShouldThrowError(t *testing.T) {
 func Test_CreateLibrary_ErrorByService(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := mocks.SetupMockService()
+	svc, mSvc := mservice.SetupMockService()
 	s.service = svc
 
 	expectedErrorMessage := "expected error message"
@@ -92,7 +92,7 @@ func Test_CreateLibrary_ErrorByService(t *testing.T) {
 func Test_CreateLibrary_Success(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := mocks.SetupMockService()
+	svc, mSvc := mservice.SetupMockService()
 	s.service = svc
 
 	expectedId, _ := uuid.NewRandom()
@@ -124,7 +124,7 @@ func Test_CreateLibrary_Success(t *testing.T) {
 
 func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
-	ms, services := mocks.SetupMockService()
+	ms, services := mservice.SetupMockService()
 	s := setupServer()
 	s.service = ms
 	expectedError := errors.New("expected error")

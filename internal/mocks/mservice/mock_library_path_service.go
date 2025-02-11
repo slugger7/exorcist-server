@@ -1,4 +1,4 @@
-package mocks
+package mservice
 
 import "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 

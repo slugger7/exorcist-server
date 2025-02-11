@@ -1,4 +1,4 @@
-package mocks
+package mservice
 
 import (
 	"github.com/google/uuid"

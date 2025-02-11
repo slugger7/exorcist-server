@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/mocks"
+	"github.com/slugger7/exorcist/internal/mocks/mservice"
 )
 
 func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
@@ -112,7 +112,7 @@ func Test_Login_InvalidParametersInBody(t *testing.T) {
 func Test_Login_NoUserFromValidateUser(t *testing.T) {
 	r := setupEngine()
 	s := &Server{}
-	svc, _ := mocks.SetupMockService()
+	svc, _ := mservice.SetupMockService()
 	s.service = svc
 
 	r.POST("/", s.Login)
@@ -138,7 +138,7 @@ func Test_Login_NoUserFromValidateUser(t *testing.T) {
 func Test_Login_Success(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := mocks.SetupMockService()
+	svc, mSvc := mservice.SetupMockService()
 	s.service = svc
 	id, err := uuid.NewRandom()
 	if err != nil {
@@ -178,7 +178,7 @@ func Test_Login_Success(t *testing.T) {
 func Test_Logout_InvalidSessionToken(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, _ := mocks.SetupMockService()
+	svc, _ := mservice.SetupMockService()
 	s.service = svc
 
 	r.GET("/", s.Logout)
@@ -203,7 +203,7 @@ func Test_Logout_InvalidSessionToken(t *testing.T) {
 
 func Test_Logout_Success(t *testing.T) {
 	r := setupEngine()
-	svc, _ := mocks.SetupMockService()
+	svc, _ := mservice.SetupMockService()
 	s := setupServer()
 	s.service = svc
 
