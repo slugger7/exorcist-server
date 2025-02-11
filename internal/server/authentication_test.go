@@ -144,10 +144,7 @@ func Test_Login_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not generate random uuid %v", err)
 	}
-	mSvc.
-		s.service = mockService{userService: mockUserService{
-		returningModel: &model.User{Username: "admin", ID: id},
-	}}
+	mSvc.UserService.MockModel[0] = &model.User{Username: "admin", ID: id}
 
 	r.POST("/", s.Login)
 
@@ -180,8 +177,9 @@ func Test_Login_Success(t *testing.T) {
 
 func Test_Logout_InvalidSessionToken(t *testing.T) {
 	r := setupEngine()
-	svc, _ := setupService()
-	s := &Server{service: svc}
+	s := setupServer()
+	svc, _ := mocks.SetupMockService()
+	s.service = svc
 
 	r.GET("/", s.Logout)
 
@@ -205,8 +203,9 @@ func Test_Logout_InvalidSessionToken(t *testing.T) {
 
 func Test_Logout_Success(t *testing.T) {
 	r := setupEngine()
-	svc, _ := setupMockService()
-	s := &Server{service: svc}
+	svc, _ := mocks.SetupMockService()
+	s := setupServer()
+	s.service = svc
 
 	r.GET("/", s.Logout)
 

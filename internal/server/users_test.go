@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/mocks"
 )
 
 func Test_Create_InvalidBody(t *testing.T) {
@@ -37,11 +38,11 @@ func Test_Create_InvalidBody(t *testing.T) {
 func Test_Create_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := setupService()
+	svc, mSvc := mocks.SetupMockService()
 	s.service = svc
 
 	expectedErrorMessage := "expected error"
-	mSvc.userService.mockErrors[0] = errors.New(expectedErrorMessage)
+	mSvc.UserService.MockErrors[0] = errors.New(expectedErrorMessage)
 	r.POST("/", s.CreateUser)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username":"someUsername","password":"somePassword"}`))
@@ -65,14 +66,14 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 func Test_Create_Success(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
-	svc, mSvc := setupService()
+	svc, mSvc := mocks.SetupMockService()
 	s.service = svc
 
 	expectedModel := &model.User{
 		Username: "expecedUsername",
 		Password: "",
 	}
-	mSvc.userService.mockModel[0] = expectedModel
+	mSvc.UserService.MockModel[0] = expectedModel
 
 	r.POST("/", s.CreateUser)
 
