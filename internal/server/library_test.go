@@ -62,9 +62,11 @@ func Test_CreateLibrary_NoNameSpecified_ShouldThrowError(t *testing.T) {
 func Test_CreateLibrary_ErrorByService(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
+	svc, mSvc := setupService()
+	s.service = svc
 
 	expectedErrorMessage := "expected error message"
-	s.service = mockService{mockUserService{}, mockLibraryService{returningModel: nil, returningError: errors.New(expectedErrorMessage)}}
+	mSvc.libraryService.mockErrors[0] = errors.New(expectedErrorMessage)
 	r.POST("/", s.CreateLibrary)
 
 	expectedName := "expectedLibraryName"
@@ -89,14 +91,16 @@ func Test_CreateLibrary_ErrorByService(t *testing.T) {
 func Test_CreateLibrary_Success(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
+	svc, mSvc := setupService()
+	s.service = svc
 
 	expectedId, _ := uuid.NewRandom()
-
 	expectedLibraryName := "some expected library name"
-	s.service = mockService{mockUserService{}, mockLibraryService{returningModel: &model.Library{
+	mSvc.libraryService.mockModel[0] = &model.Library{
 		ID:   expectedId,
 		Name: expectedLibraryName,
-	}, returningError: nil}}
+	}
+
 	r.POST("/", s.CreateLibrary)
 
 	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedLibraryName)))

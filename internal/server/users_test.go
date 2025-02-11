@@ -37,12 +37,11 @@ func Test_Create_InvalidBody(t *testing.T) {
 func Test_Create_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
+	svc, mSvc := setupService()
+	s.service = svc
 
 	expectedErrorMessage := "expected error"
-	s.service = mockService{
-		mockUserService{returningModel: nil, returningError: errors.New(expectedErrorMessage)},
-		mockLibraryService{},
-	}
+	mSvc.userService.mockErrors[0] = errors.New(expectedErrorMessage)
 	r.POST("/", s.CreateUser)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username":"someUsername","password":"somePassword"}`))
@@ -66,12 +65,15 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 func Test_Create_Success(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
+	svc, mSvc := setupService()
+	s.service = svc
 
 	expectedModel := &model.User{
 		Username: "expecedUsername",
 		Password: "",
 	}
-	s.service = mockService{mockUserService{returningModel: expectedModel}, mockLibraryService{}}
+	mSvc.userService.mockModel[0] = expectedModel
+
 	r.POST("/", s.CreateUser)
 
 	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"username":"%s","password":"somePassword"}`, expectedModel.Username)))

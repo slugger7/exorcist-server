@@ -3,6 +3,7 @@ package libraryService
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -13,6 +14,7 @@ import (
 type ILibraryService interface {
 	CreateLibrary(newLibrary model.Library) (*model.Library, error)
 	GetLibraries() ([]model.Library, error)
+	GetLibraryById(id uuid.UUID) (*model.Library, error)
 }
 
 type LibraryService struct {
@@ -23,7 +25,7 @@ type LibraryService struct {
 
 var libraryServiceInstance *LibraryService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) *LibraryService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILibraryService {
 	if libraryServiceInstance == nil {
 		libraryServiceInstance = &LibraryService{
 			Env:    env,
@@ -36,7 +38,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) *Li
 	return libraryServiceInstance
 }
 
-func (i LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library, error) {
+func (i *LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library, error) {
 	library, err := i.repo.LibraryRepo().
 		GetLibraryByName(newLibrary.Name)
 	if err != nil {
@@ -55,11 +57,15 @@ func (i LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library,
 	return library, nil
 }
 
-func (i LibraryService) GetLibraries() ([]model.Library, error) {
+func (i *LibraryService) GetLibraries() ([]model.Library, error) {
 	libraries, err := i.repo.LibraryRepo().GetLibraries()
 	if err != nil {
 		return nil, errs.BuildError(err, "error getting libraries in repo")
 	}
 
 	return libraries, nil
+}
+
+func (i *LibraryService) GetLibraryById(id uuid.UUID) (*model.Library, error) {
+	panic("not implemented")
 }
