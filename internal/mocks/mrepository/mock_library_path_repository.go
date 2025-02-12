@@ -1,6 +1,7 @@
 package mrepository
 
 import (
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 )
@@ -22,10 +23,10 @@ func (mr MockRepo) LibraryPathRepo() libraryPathRepository.ILibraryPathRepositor
 	return mr.MockLibraryPathRepo
 }
 
-func (mlp MockLibraryPathRepo) Create(*model.LibraryPath) (*model.LibraryPath, error) {
+func (mlp MockLibraryPathRepo) Create(string, uuid.UUID) (*model.LibraryPath, error) {
 	stack := incStack()
 	return mlp.MockModel[stack], mlp.MockError[stack]
 }
-func (mlp MockLibraryPathRepo) GetLibraryPathsSelect() libraryPathRepository.LibraryPathStatement {
+func (mlp MockLibraryPathRepo) GetLibraryPaths() ([]model.LibraryPath, error) {
 	panic("not implemented")
 }

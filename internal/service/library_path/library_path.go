@@ -55,7 +55,7 @@ func (lps *LibraryPathService) Create(libPathModel *model.LibraryPath) (*model.L
 		return nil, fmt.Errorf(LibraryNilErr, libPathModel.LibraryID)
 	}
 
-	libraryPath, err := lps.repo.LibraryPathRepo().Create(libPathModel)
+	libraryPath, err := lps.repo.LibraryPathRepo().Create(libPathModel.Path, libPathModel.LibraryID)
 	if err != nil {
 		return nil, errs.BuildError(err, "could not create new library path")
 	}

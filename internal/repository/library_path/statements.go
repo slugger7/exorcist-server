@@ -15,7 +15,6 @@ func (ds *LibraryPathRepository) getLibraryPathsSelect() LibraryPathStatement {
 	return LibraryPathStatement{selectQuery, ds.db}
 }
 
-// TODO write test for function
 func (ds *LibraryPathRepository) create(libPath *model.LibraryPath) LibraryPathStatement {
 	insertStatement := table.LibraryPath.
 		INSERT(
