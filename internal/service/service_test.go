@@ -54,3 +54,6 @@ func (mls mockLibraryService) GetLibraryById(uuid.UUID) (*model.Library, error) 
 func (mlps mockLibaryPathService) Create(*model.LibraryPath) (*model.LibraryPath, error) {
 	panic("not implemented")
 }
+func (mlps mockLibaryPathService) GetAll() ([]model.LibraryPath, error) {
+	panic("not implemented")
+}

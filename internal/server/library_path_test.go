@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -88,5 +89,32 @@ func Test_CreateLibraryPath_Success(t *testing.T) {
 	expectedBody := fmt.Sprintf(`{"ID":"%v","LibraryID":"%v","Path":"%v","Created":"0001-01-01T00:00:00Z","Modified":"0001-01-01T00:00:00Z"}`, expectedId.String(), expectedLibraryId.String(), expectedLibraryPath)
 	if body := rr.Body.String(); body != expectedBody {
 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
+	}
+}
+
+func Test_GetAllLibraryPaths_WithServiceThrowingError(t *testing.T) {
+	r := setupEngine()
+	s := setupServer()
+
+	expectedError := "expected error"
+	s.mockService.LibraryPathService.MockError[0] = errors.New(expectedError)
+
+	r.GET("/", s.server.GetAllLibraryPaths)
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+	expectedStatusCode := http.StatusInternalServerError
+	if rr.Code != expectedStatusCode {
+		t.Errorf("wrong status code returned\nExpected: %v Got: %v", expectedStatusCode, rr.Code)
+	}
+	expectedBody := fmt.Sprintf(`{"error":"%v"}`, ErrGetAllLibraryPathsService)
+	if body := rr.Body.String(); body != expectedBody {
+		t.Errorf("Expected: %v\nGot: %v", expectedBody, body)
 	}
 }
