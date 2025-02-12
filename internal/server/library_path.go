@@ -12,6 +12,7 @@ const libraryPathRoute = "/libraryPaths"
 
 func (s *Server) RegisterLibraryPathRoutes(r *gin.RouterGroup) *gin.RouterGroup {
 	r.POST(libraryPathRoute, s.CreateLibraryPath)
+	r.GET(libraryPathRoute, s.GetAllLibraryPaths)
 
 	return r
 }
@@ -40,4 +41,16 @@ func (s *Server) CreateLibraryPath(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, libPath)
+}
+
+const ErrGetAllLibraryPathsService = "could not get all library paths"
+
+func (s *Server) GetAllLibraryPaths(c *gin.Context) {
+	libraryPaths, err := s.service.LibraryPathService().GetAll()
+	if err != nil {
+		s.logger.Errorf("Error getting all libraries\n%v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrGetAllLibraryPathsService})
+		return
+	}
+	c.JSON(http.StatusOK, libraryPaths)
 }

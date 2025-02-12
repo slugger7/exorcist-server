@@ -17,6 +17,7 @@ const (
 
 type ILibraryPathService interface {
 	Create(*model.LibraryPath) (*model.LibraryPath, error)
+	GetAll() ([]model.LibraryPath, error)
 }
 
 type LibraryPathService struct {
@@ -61,4 +62,13 @@ func (lps *LibraryPathService) Create(libPathModel *model.LibraryPath) (*model.L
 	}
 
 	return libraryPath, nil
+}
+
+func (lps *LibraryPathService) GetAll() ([]model.LibraryPath, error) {
+	libPaths, err := lps.repo.LibraryPathRepo().GetLibraryPaths()
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get all library paths")
+	}
+
+	return libPaths, nil
 }
