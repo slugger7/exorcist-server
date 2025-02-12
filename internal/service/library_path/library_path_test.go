@@ -117,3 +117,47 @@ func Test_Create_Succcess(t *testing.T) {
 		t.Errorf("Expected: %v\nGot: %v", libPathModel, lib)
 	}
 }
+
+func Test_GetAll_RepoReturnsError(t *testing.T) {
+	ls, repo := setup()
+
+	expectedError := "exected error"
+	repo.MockLibraryPathRepo.MockError[0] = errors.New(expectedError)
+
+	libPaths, err := ls.GetAll()
+	if err == nil {
+		t.Error("expected error but was nil")
+	}
+	expectedErrorResult := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library_path.(*LibraryPathService).GetAll: could not get all library paths\n%v", expectedError)
+	if err.Error() != expectedErrorResult {
+		t.Errorf("Expected error: %v\nGot error: %v", expectedErrorResult, err.Error())
+	}
+
+	if libPaths != nil {
+		t.Fatal("error received but lib paths was not nil")
+	}
+}
+
+func Test_GetAll_Success(t *testing.T) {
+	ls, repo := setup()
+
+	id, _ := uuid.NewRandom()
+	libPath := model.LibraryPath{ID: id}
+	libPaths := []model.LibraryPath{libPath}
+	repo.MockLibraryPathRepo.MockModels[0] = libPaths
+
+	libPaths, err := ls.GetAll()
+	if err != nil {
+		t.Errorf("Expected no error but got: %v", err)
+	}
+	if libPaths == nil {
+		t.Error("Expected library paths but was nil")
+	}
+	if len(libPaths) != 1 {
+		t.Errorf("Expected result to be of length 1 but was: %v", len(libPaths))
+	}
+	libPath = libPaths[len(libPaths)-1]
+	if libPath.ID != id {
+		t.Errorf("Expected lib path to have id %v but was %v", id, libPath.ID)
+	}
+}

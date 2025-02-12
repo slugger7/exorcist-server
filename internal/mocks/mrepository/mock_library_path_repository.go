@@ -28,5 +28,6 @@ func (mlp MockLibraryPathRepo) Create(string, uuid.UUID) (*model.LibraryPath, er
 	return mlp.MockModel[stack], mlp.MockError[stack]
 }
 func (mlp MockLibraryPathRepo) GetLibraryPaths() ([]model.LibraryPath, error) {
-	panic("not implemented")
+	stack := incStack()
+	return mlp.MockModels[stack], mlp.MockError[stack]
 }

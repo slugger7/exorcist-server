@@ -65,5 +65,10 @@ func (lps *LibraryPathService) Create(libPathModel *model.LibraryPath) (*model.L
 }
 
 func (lps *LibraryPathService) GetAll() ([]model.LibraryPath, error) {
-	panic("not implemented")
+	libPaths, err := lps.repo.LibraryPathRepo().GetLibraryPaths()
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get all library paths")
+	}
+
+	return libPaths, nil
 }
