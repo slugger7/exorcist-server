@@ -77,5 +77,9 @@ func (ls *LibraryRepository) GetLibraries() ([]model.Library, error) {
 }
 
 func (ls *LibraryRepository) GetLibraryById(id uuid.UUID) (*model.Library, error) {
-	panic("not implemented")
+	var library struct{ model.Library }
+	if err := ls.getById(id).Query(&library); err != nil {
+		return nil, errs.BuildError(err, "could not get library by id: %v", id)
+	}
+	return &library.Library, nil
 }

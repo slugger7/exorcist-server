@@ -1,0 +1,8 @@
+### Create Library
+POST {{host}}:{{port}}/api/libraryPaths
+Content-Type: application/json
+
+{
+  "path": "/some/path",
+  "libraryId": "b47b944c-5a51-4835-8e36-87ccf6057b81"
+}

@@ -8,7 +8,7 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
-const libraryPathRoute = "/library"
+const libraryPathRoute = "/libraryPaths"
 
 func (s *Server) RegisterLibraryPathRoutes(r *gin.RouterGroup) *gin.RouterGroup {
 	r.POST(libraryPathRoute, s.CreateLibraryPath)
@@ -34,7 +34,7 @@ func (s *Server) CreateLibraryPath(c *gin.Context) {
 	libPath := &model.LibraryPath{LibraryID: body.LibraryId, Path: body.Path}
 	libPath, err := s.service.LibraryPathService().Create(libPath)
 	if err != nil {
-		s.logger.Errorf("Erorr creating library path: %w", err)
+		s.logger.Errorf("Erorr creating library path\n%v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "colud not create new library path"})
 		return
 	}
