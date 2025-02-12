@@ -12,6 +12,7 @@ const libraryPathRoute = "/libraryPaths"
 
 func (s *Server) RegisterLibraryPathRoutes(r *gin.RouterGroup) *gin.RouterGroup {
 	r.POST(libraryPathRoute, s.CreateLibraryPath)
+	r.GET(libraryPathRoute, s.GetAllLibraryPaths)
 
 	return r
 }
