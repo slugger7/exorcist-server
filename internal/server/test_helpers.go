@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -41,6 +42,28 @@ func setupEngine() *gin.Engine {
 		c.String(http.StatusOK, OK)
 	})
 	return r
+}
+
+func (s *TestServer) setupGetReqRec(f gin.HandlerFunc, reader io.Reader) *httptest.ResponseRecorder {
+	r := setupEngine()
+	r.GET("/", f)
+
+	req, _ := http.NewRequest("GET", "/", reader)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+	return rr
+}
+
+func (s *TestServer) setupPostReqRec(f gin.HandlerFunc, reader io.Reader) *httptest.ResponseRecorder {
+	r := setupEngine()
+	r.POST("/", f)
+
+	req, _ := http.NewRequest("POST", "/", reader)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+	return rr
 }
 
 func setupServer() *TestServer {
