@@ -3,6 +3,7 @@ package libraryRepository
 import (
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -12,6 +13,7 @@ type ILibraryRepository interface {
 	CreateLibrary(name string) (*model.Library, error)
 	GetLibraryByName(name string) (*model.Library, error)
 	GetLibraries() ([]model.Library, error)
+	GetLibraryById(uuid.UUID) (*model.Library, error)
 }
 
 type LibraryRepository struct {
@@ -72,4 +74,12 @@ func (ls *LibraryRepository) GetLibraries() ([]model.Library, error) {
 	}
 
 	return libs, nil
+}
+
+func (ls *LibraryRepository) GetLibraryById(id uuid.UUID) (*model.Library, error) {
+	var library struct{ model.Library }
+	if err := ls.getById(id).Query(&library); err != nil {
+		return nil, errs.BuildError(err, "could not get library by id: %v", id)
+	}
+	return &library.Library, nil
 }

@@ -15,7 +15,7 @@ func Test_CreateLibrary_InvalidBody(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
 
-	r.POST("/", s.CreateLibrary)
+	r.POST("/", s.server.CreateLibrary)
 
 	req, err := http.NewRequest("POST", "/", body(`{invalid json}`))
 	if err != nil {
@@ -39,7 +39,7 @@ func Test_CreateLibrary_NoNameSpecified_ShouldThrowError(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
 
-	r.POST("/", s.CreateLibrary)
+	r.POST("/", s.server.CreateLibrary)
 
 	req, err := http.NewRequest("POST", "/", body(`{"name": ""}`))
 	if err != nil {
@@ -64,11 +64,11 @@ func Test_CreateLibrary_ErrorByService(t *testing.T) {
 	s := setupServer()
 
 	expectedErrorMessage := "expected error message"
-	s.service = mockService{mockUserService{}, mockLibraryService{returningModel: nil, returningError: errors.New(expectedErrorMessage)}}
-	r.POST("/", s.CreateLibrary)
+	s.mockService.LibraryService.MockErrors[0] = errors.New(expectedErrorMessage)
+	r.POST("/", s.server.CreateLibrary)
 
 	expectedName := "expectedLibraryName"
-	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedName)))
+	req, err := http.NewRequest("POST", "/", body(`{"name":"%v"}`, expectedName))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,15 +91,15 @@ func Test_CreateLibrary_Success(t *testing.T) {
 	s := setupServer()
 
 	expectedId, _ := uuid.NewRandom()
-
 	expectedLibraryName := "some expected library name"
-	s.service = mockService{mockUserService{}, mockLibraryService{returningModel: &model.Library{
+	s.mockService.LibraryService.MockModel[0] = &model.Library{
 		ID:   expectedId,
 		Name: expectedLibraryName,
-	}, returningError: nil}}
-	r.POST("/", s.CreateLibrary)
+	}
 
-	req, err := http.NewRequest("POST", "/", body(fmt.Sprintf(`{"name":"%v"}`, expectedLibraryName)))
+	r.POST("/", s.server.CreateLibrary)
+
+	req, err := http.NewRequest("POST", "/", body(`{"name":"%v"}`, expectedLibraryName))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,13 +119,11 @@ func Test_CreateLibrary_Success(t *testing.T) {
 
 func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
-	ms, services := setupService()
 	s := setupServer()
-	s.service = ms
 	expectedError := errors.New("expected error")
-	services.libraryService.mockErrors[0] = expectedError
+	s.mockService.LibraryService.MockErrors[0] = expectedError
 
-	r.GET("/", s.GetLibraries)
+	r.GET("/", s.server.GetLibraries)
 
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {

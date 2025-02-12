@@ -34,8 +34,6 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
 			db:  db,
 			Env: env,
 		}
-
-		log.Println("User repository instance created")
 	}
 
 	return userRepositoryInstance

@@ -6,14 +6,13 @@ import (
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
-	"github.com/slugger7/exorcist/internal/repository/util"
+	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
 type ILibraryPathRepository interface {
-	GetLibraryPathsSelect() LibraryPathStatement
-	CreateLibraryPath(libraryId uuid.UUID, path string) LibraryPathStatement
+	Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error)
+	GetLibraryPaths() ([]model.LibraryPath, error)
 }
 
 type LibraryPathRepository struct {
@@ -40,35 +39,26 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryPathReposito
 	return libraryPathRepoInstance
 }
 
-func (ds *LibraryPathRepository) GetLibraryPathsSelect() LibraryPathStatement {
-	selectQuery := table.LibraryPath.
-		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
-		FROM(table.LibraryPath)
-
-	util.DebugCheck(ds.Env, selectQuery)
-	return LibraryPathStatement{selectQuery, ds.db}
-}
-
-// TODO write test for function
-func (ds *LibraryPathRepository) CreateLibraryPath(libraryId uuid.UUID, path string) LibraryPathStatement {
-	newLibPath := model.LibraryPath{
-		LibraryID: libraryId,
-		Path:      path,
-	}
-
-	insertStatement := table.LibraryPath.
-		INSERT(
-			table.LibraryPath.LibraryID,
-			table.LibraryPath.Path,
-		).
-		MODEL(newLibPath).
-		RETURNING(table.LibraryPath.ID, table.LibraryPath.Path)
-
-	util.DebugCheck(ds.Env, insertStatement)
-
-	return LibraryPathStatement{insertStatement, ds.db}
-}
-
 func (lps LibraryPathStatement) Query(destination interface{}) error {
 	return lps.Statement.Query(lps.db, destination)
+}
+
+func (lps *LibraryPathRepository) Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error) {
+	var libraryPath struct{ model.LibraryPath }
+	if err := lps.create(&model.LibraryPath{Path: path, LibraryID: libraryId}).Query(&libraryPath); err != nil {
+		return nil, errs.BuildError(err, "could not create library path, with \npath: %v\nlibraryId: %v", path, libraryId)
+	}
+	return &libraryPath.LibraryPath, nil
+}
+
+func (lps *LibraryPathRepository) GetLibraryPaths() ([]model.LibraryPath, error) {
+	var libraryPaths []struct{ model.LibraryPath }
+	if err := lps.getLibraryPathsSelect().Query(&libraryPaths); err != nil {
+		return nil, errs.BuildError(err, "could not get library paths")
+	}
+	libPathModels := make([]model.LibraryPath, len(libraryPaths))
+	for _, l := range libraryPaths {
+		libPathModels = append(libPathModels, l.LibraryPath)
+	}
+	return libPathModels, nil
 }

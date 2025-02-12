@@ -5,18 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/job"
 )
 
 func (s *Server) RegisterLibraryRoutes(r *gin.RouterGroup) *gin.RouterGroup {
-	r.GET("/libraries/scan", s.ScanLibrary)
 	r.POST("/libraries", s.CreateLibrary)
 	r.GET("/libraries", s.GetLibraries)
 	return r
-}
-
-func (s *Server) ScanLibrary(c *gin.Context) {
-	go job.ScanPath(s.repo)
 }
 
 func (s *Server) CreateLibrary(c *gin.Context) {

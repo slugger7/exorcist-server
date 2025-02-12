@@ -13,9 +13,9 @@ import (
 
 func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
-	r.Use(s.AuthRequired)
+	r.Use(s.server.AuthRequired)
 	r.GET("/", func(ctx *gin.Context) {
 		t.Errorf("Should not have run this function")
 	})
@@ -35,9 +35,9 @@ func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
 
 func Test_AuthRequiredMiddleware_Succeeds(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
-	r.Use(s.AuthRequired)
+	r.Use(s.server.AuthRequired)
 	expectedStatusCode := http.StatusOK
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(expectedStatusCode, gin.H{"message": "success"})
@@ -62,9 +62,9 @@ func Test_AuthRequiredMiddleware_Succeeds(t *testing.T) {
 
 func Test_Login_InvalidBody(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
-	r.POST("/", s.Login)
+	r.POST("/", s.server.Login)
 
 	req, err := http.NewRequest("POST", "/", body(`{invalid json}`))
 	if err != nil {
@@ -86,9 +86,9 @@ func Test_Login_InvalidBody(t *testing.T) {
 
 func Test_Login_InvalidParametersInBody(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
 
-	r.POST("/", s.Login)
+	r.POST("/", s.server.Login)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username": " ", "password": " "}`))
 	if err != nil {
@@ -110,10 +110,9 @@ func Test_Login_InvalidParametersInBody(t *testing.T) {
 
 func Test_Login_NoUserFromValidateUser(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
-	s.service = mockService{mockUserService{returningModel: nil}, mockLibraryService{}}
+	s := setupServer()
 
-	r.POST("/", s.Login)
+	r.POST("/", s.server.Login)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username": "admin", "password": "admin"}`))
 	if err != nil {
@@ -135,16 +134,15 @@ func Test_Login_NoUserFromValidateUser(t *testing.T) {
 
 func Test_Login_Success(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
+	s := setupServer()
+
 	id, err := uuid.NewRandom()
 	if err != nil {
 		t.Fatalf("could not generate random uuid %v", err)
 	}
-	s.service = mockService{userService: mockUserService{
-		returningModel: &model.User{Username: "admin", ID: id},
-	}}
+	s.mockService.UserService.MockModel[0] = &model.User{Username: "admin", ID: id}
 
-	r.POST("/", s.Login)
+	r.POST("/", s.server.Login)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username": "admin", "password": "admin"}`))
 	if err != nil {
@@ -175,10 +173,9 @@ func Test_Login_Success(t *testing.T) {
 
 func Test_Logout_InvalidSessionToken(t *testing.T) {
 	r := setupEngine()
-	s := &Server{}
-	s.service = mockService{mockUserService{returningModel: nil}, mockLibraryService{}}
+	s := setupServer()
 
-	r.GET("/", s.Logout)
+	r.GET("/", s.server.Logout)
 
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
@@ -199,11 +196,10 @@ func Test_Logout_InvalidSessionToken(t *testing.T) {
 }
 
 func Test_Logout_Success(t *testing.T) {
-	s := &Server{}
 	r := setupEngine()
-	s.service = mockService{mockUserService{returningModel: nil}, mockLibraryService{}}
+	s := setupServer()
 
-	r.GET("/", s.Logout)
+	r.GET("/", s.server.Logout)
 
 	rr := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)

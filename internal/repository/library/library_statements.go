@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/repository/util"
@@ -40,6 +41,16 @@ func (i *LibraryRepository) getLibraryByNameStatement(name string) *LibraryState
 func (ls *LibraryRepository) getLibrariesStatement() *LibraryStatement {
 	statement := table.Library.SELECT(table.Library.ID, table.Library.Name).
 		FROM(table.Library)
+
+	util.DebugCheck(ls.Env, statement)
+
+	return &LibraryStatement{statement, ls.db}
+}
+
+func (ls *LibraryRepository) getById(id uuid.UUID) *LibraryStatement {
+	statement := table.Library.SELECT(table.Library.ID, table.Library.Name).
+		FROM(table.Library).
+		WHERE(table.Library.ID.EQ(postgres.UUID(id)))
 
 	util.DebugCheck(ls.Env, statement)
 

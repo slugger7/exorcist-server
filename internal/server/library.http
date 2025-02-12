@@ -1,6 +1,3 @@
-### Scan libraries
-GET http://localhost:8181/api/libraries/scan
-
 ### Create Library
 POST {{host}}:{{port}}/api/libraries
 Content-Type: application/json
