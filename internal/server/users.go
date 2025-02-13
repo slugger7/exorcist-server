@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +13,6 @@ func (s *Server) RegisterUserRoutes(r *gin.RouterGroup) *gin.RouterGroup {
 }
 
 func (s *Server) CreateUser(c *gin.Context) {
-	log.Println("Creating user")
 	var newUser struct {
 		Username string
 		Password string

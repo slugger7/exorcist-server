@@ -30,6 +30,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	authenticated = s.RegisterUserRoutes(authenticated)
 	authenticated = s.RegisterLibraryRoutes(authenticated)
 	authenticated = s.RegisterLibraryPathRoutes(authenticated)
+	authenticated = s.RegisterVideoRoutes(authenticated)
 
 	r.GET("/health", s.HealthHandler)
 	return r

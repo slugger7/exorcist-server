@@ -1,0 +1,16 @@
+### Create Video
+
+POST {{host}}:{{port}}/api/videos
+Content-Type: application/json
+
+{
+  "libraryPathId": "cc5e4da3-884b-41aa-a4fa-fb3bd295677d",
+  "relativePath": "/relative/path",
+  "title": "Some Title",
+  "fileName": "Some file name",
+  "height": 69,
+  "width": 420,
+  "runtime": 1337,
+  "size": 80085,
+  "checksum": null
+}
