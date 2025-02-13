@@ -15,16 +15,15 @@ func (s *Server) RegisterVideoRoutes(r *gin.RouterGroup) *gin.RouterGroup {
 	return r
 }
 
-type VideoDTO struct {
-	ID            *uuid.UUID
-	LibraryPathId uuid.UUID
-	RelativePath  string
-	Title         string
-	FileName      string
-	Height        int32
-	Width         int32
-	Runtime       int64
-	Size          int64
+type CreateVideoDTO struct {
+	LibraryPathId uuid.UUID `binding:"required"`
+	RelativePath  string    `binding:"required"`
+	Title         string    `binding:"required"`
+	FileName      string    `binding:"required"`
+	Height        int32     `binding:"required"`
+	Width         int32     `binding:"required"`
+	Runtime       int64     `binding:"required"`
+	Size          int64     `binding:"required"`
 	Checksum      *string
 	Deleted       *bool
 	Exists        *bool
@@ -33,10 +32,9 @@ type VideoDTO struct {
 }
 
 func (s Server) CreateVideo(c *gin.Context) {
-	newVideo := VideoDTO{}
-	if err := c.BindJSON(&newVideo); err != nil {
-		s.logger.Info("Could not read body")
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "colud not read body of request"})
+	newVideo := CreateVideoDTO{}
+	if err := c.ShouldBindBodyWithJSON(&newVideo); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 

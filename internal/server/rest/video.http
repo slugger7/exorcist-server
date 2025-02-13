@@ -11,6 +11,5 @@ Content-Type: application/json
   "height": 69,
   "width": 420,
   "runtime": 1337,
-  "size": 80085,
-  "checksum": null
+  "size": 80085
 }
