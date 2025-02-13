@@ -13,7 +13,9 @@ import (
 func Test_CreateLibraryPath_InvalidBody(t *testing.T) {
 	s := setupServer()
 
-	rr := s.setupPostReqRec(s.server.CreateLibraryPath, body(`{invalid json}`))
+	rr := s.withPostEndpoint(s.server.CreateLibraryPath).
+		withPostRequest(body(`{invalid json}`)).
+		exec()
 
 	expectedStatusCode := http.StatusBadRequest
 	if rr.Code != expectedStatusCode {
@@ -28,7 +30,9 @@ func Test_CreateLibraryPath_InvalidBody(t *testing.T) {
 func Test_CreateLibraryPath_NoPathSpecified_ShouldThrowError(t *testing.T) {
 	s := setupServer()
 
-	rr := s.setupPostReqRec(s.server.CreateLibraryPath, body(`{"path": ""}`))
+	rr := s.withPostEndpoint(s.server.CreateLibraryPath).
+		withPostRequest(body(`{"path": ""}`)).
+		exec()
 
 	expectedStatusCode := http.StatusBadRequest
 	if rr.Code != expectedStatusCode {
@@ -52,7 +56,9 @@ func Test_CreateLibraryPath_Success(t *testing.T) {
 		Path:      expectedLibraryPath,
 	}
 
-	rr := s.setupPostReqRec(s.server.CreateLibraryPath, body(`{"path":"%v", "libraryId": "%v"}`, expectedLibraryPath, expectedLibraryId))
+	rr := s.withPostEndpoint(s.server.CreateLibraryPath).
+		withPostRequest(body(`{"path":"%v", "libraryId": "%v"}`, expectedLibraryPath, expectedLibraryId)).
+		exec()
 
 	expectedStatusCode := http.StatusCreated
 	if rr.Code != expectedStatusCode {
@@ -70,7 +76,9 @@ func Test_GetAllLibraryPaths_WithServiceThrowingError(t *testing.T) {
 	expectedError := "expected error"
 	s.mockService.LibraryPathService.MockError[0] = errors.New(expectedError)
 
-	rr := s.setupGetReqRec(s.server.GetAllLibraryPaths, nil)
+	rr := s.withGetEndpoint(s.server.GetAllLibraryPaths).
+		withGetRequest(nil).
+		exec()
 
 	expectedStatusCode := http.StatusInternalServerError
 	if rr.Code != expectedStatusCode {
@@ -90,7 +98,9 @@ func Test_GetAllLibraryPaths_Success(t *testing.T) {
 	libPaths := []model.LibraryPath{libPath}
 	s.mockService.LibraryPathService.MockModels[0] = libPaths
 
-	rr := s.setupGetReqRec(s.server.GetAllLibraryPaths, nil)
+	rr := s.withGetEndpoint(s.server.GetAllLibraryPaths).
+		withGetRequest(nil).
+		exec()
 
 	expectedStatusCode := http.StatusOK
 	if rr.Code != expectedStatusCode {

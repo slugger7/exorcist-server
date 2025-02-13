@@ -22,6 +22,8 @@ const OK = "ok"
 type TestServer struct {
 	server      *Server
 	mockService *mservice.MockServices
+	engine      *gin.Engine
+	request     *http.Request
 }
 
 func setupEngine() *gin.Engine {
@@ -44,32 +46,39 @@ func setupEngine() *gin.Engine {
 	return r
 }
 
-func (s *TestServer) setupGetReqRec(f gin.HandlerFunc, reader io.Reader) *httptest.ResponseRecorder {
-	r := setupEngine()
-	r.GET("/", f)
-
-	req, _ := http.NewRequest("GET", "/", reader)
-
-	rr := httptest.NewRecorder()
-	r.ServeHTTP(rr, req)
-	return rr
+func (s *TestServer) withGetEndpoint(f gin.HandlerFunc) *TestServer {
+	s.engine.GET("/", f)
+	return s
 }
 
-func (s *TestServer) setupPostReqRec(f gin.HandlerFunc, reader io.Reader) *httptest.ResponseRecorder {
-	r := setupEngine()
-	r.POST("/", f)
+func (s *TestServer) withPostEndpoint(f gin.HandlerFunc) *TestServer {
+	s.engine.POST("/", f)
+	return s
+}
 
-	req, _ := http.NewRequest("POST", "/", reader)
+func (s *TestServer) withGetRequest(body io.Reader) *TestServer {
+	req, _ := http.NewRequest("GET", "/", body)
+	s.request = req
+	return s
+}
 
+func (s *TestServer) withPostRequest(body io.Reader) *TestServer {
+	req, _ := http.NewRequest("POST", "/", body)
+	s.request = req
+	return s
+}
+
+func (s *TestServer) exec() *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
-	r.ServeHTTP(rr, req)
+	s.engine.ServeHTTP(rr, s.request)
 	return rr
 }
 
 func setupServer() *TestServer {
 	svc, mSvc := mservice.SetupMockService()
 	server := &Server{logger: logger.New(&environment.EnvironmentVariables{LogLevel: "none"}), service: svc}
-	return &TestServer{server: server, mockService: mSvc}
+	engine := setupEngine()
+	return &TestServer{server: server, mockService: mSvc, engine: engine}
 }
 
 func setupCookies(req *http.Request, r *gin.Engine) {
