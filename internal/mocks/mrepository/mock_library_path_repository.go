@@ -3,23 +3,18 @@ package mrepository
 import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/mocks"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 )
 
-type MockLibraryPathRepo struct {
-	MockModel  map[int]*model.LibraryPath
-	MockModels map[int][]model.LibraryPath
-	MockError  map[int]error
-}
+type MockLibraryPathRepo mocks.MockFixture[model.LibraryPath]
 
 func SetupMockLibraryPathRepository() *MockLibraryPathRepo {
-	mockModels := make(map[int][]model.LibraryPath)
-	mockModel := make(map[int]*model.LibraryPath)
-	mockError := make(map[int]error)
-	return &MockLibraryPathRepo{MockModel: mockModel, MockModels: mockModels, MockError: mockError}
+	x := MockLibraryPathRepo(*mocks.SetupMockFixture[model.LibraryPath]())
+	return &x
 }
 
-func (mr MockRepo) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
+func (mr MockRepository) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
 	return mr.MockLibraryPathRepo
 }
 

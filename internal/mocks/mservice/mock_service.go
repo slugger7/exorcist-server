@@ -22,7 +22,7 @@ type MockService struct {
 type MockServices struct {
 	LibraryService     MockLibraryService
 	UserService        MockUserService
-	LibraryPathService MockLibaryPathService
+	LibraryPathService *MockLibaryPathService
 }
 
 func (ms MockService) User() userService.IUserService {

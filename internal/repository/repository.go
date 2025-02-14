@@ -27,11 +27,11 @@ type IRepository interface {
 
 	Close() error
 
-	JobRepo() jobRepository.IJobRepository
+	Job() jobRepository.IJobRepository
 	LibraryRepo() libraryRepository.ILibraryRepository
 	LibraryPathRepo() libraryPathRepository.ILibraryPathRepository
 	VideoRepo() videoRepository.IVideoRepository
-	UserRepo() userRepository.IUserRepository
+	User() userRepository.IUserRepository
 }
 
 type Repository struct {
@@ -82,7 +82,7 @@ func New(env *environment.EnvironmentVariables) IRepository {
 	return dbInstance
 }
 
-func (s *Repository) JobRepo() jobRepository.IJobRepository {
+func (s *Repository) Job() jobRepository.IJobRepository {
 	return s.jobRepo
 }
 
@@ -98,7 +98,7 @@ func (s *Repository) VideoRepo() videoRepository.IVideoRepository {
 	return s.videoRepo
 }
 
-func (s *Repository) UserRepo() userRepository.IUserRepository {
+func (s *Repository) User() userRepository.IUserRepository {
 	return dbInstance.userRepo
 }
 

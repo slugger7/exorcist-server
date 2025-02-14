@@ -2,13 +2,10 @@ package mservice
 
 import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/mocks"
 )
 
-type MockLibraryService struct {
-	MockModels map[int][]model.Library
-	MockError  map[int]error
-	MockModel  map[int]*model.Library
-}
+type MockLibraryService mocks.MockFixture[model.Library]
 
 func (ls MockLibraryService) Create(actual model.Library) (*model.Library, error) {
 	stack := incStack()

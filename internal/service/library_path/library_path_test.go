@@ -10,7 +10,7 @@ import (
 	"github.com/slugger7/exorcist/internal/mocks/mrepository"
 )
 
-func setup() (*LibraryPathService, *mrepository.MockRepo) {
+func setup() (*LibraryPathService, *mrepository.MockRepository) {
 	mockRepo := mrepository.SetupMockRespository()
 	ls := &LibraryPathService{repo: mockRepo}
 	return ls, mockRepo

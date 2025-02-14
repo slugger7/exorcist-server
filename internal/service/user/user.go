@@ -40,7 +40,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) *Us
 }
 
 func (us *UserService) UserExists(username string) (bool, error) {
-	user, err := us.repo.UserRepo().GetUserByUsername(username)
+	user, err := us.repo.User().GetUserByUsername(username)
 	if err != nil {
 		return false, err
 	}
@@ -63,7 +63,7 @@ func (us *UserService) Create(username, password string) (*model.User, error) {
 		Password: hashPassword(password),
 	}
 
-	newUser, err := us.repo.UserRepo().CreateUser(user)
+	newUser, err := us.repo.User().CreateUser(user)
 	if err != nil {
 		return nil, errs.BuildError(err, "could not create a new user")
 	}
@@ -74,7 +74,7 @@ func (us *UserService) Create(username, password string) (*model.User, error) {
 }
 
 func (us *UserService) Validate(username, password string) (*model.User, error) {
-	user, err := us.repo.UserRepo().
+	user, err := us.repo.User().
 		GetUserByUsername(username, table.User.ID, table.User.Password)
 	if err != nil {
 		return nil, err

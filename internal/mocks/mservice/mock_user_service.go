@@ -1,12 +1,11 @@
 package mservice
 
-import "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+import (
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/mocks"
+)
 
-type MockUserService struct {
-	MockModels map[int][]model.User
-	MockError  map[int]error
-	MockModel  map[int]*model.User
-}
+type MockUserService mocks.MockFixture[model.User]
 
 func (mus MockUserService) Create(username, password string) (*model.User, error) {
 	stack := incStack()

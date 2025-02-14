@@ -2,7 +2,6 @@ package mrepository
 
 import (
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
-	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
@@ -13,31 +12,30 @@ func incStack() int {
 	return stackCount - 1
 }
 
-type MockRepo struct {
-	MockLibraryRepo
-	MockLibraryPathRepo
+type MockRepository struct {
+	*MockLibraryRepo
+	*MockLibraryPathRepo
+	*MockUserRepo
 }
 
-func SetupMockRespository() *MockRepo {
+func SetupMockRespository() *MockRepository {
 	stackCount = 0
-	return &MockRepo{
-		MockLibraryRepo:     *SetupMockLibraryRepository(),
-		MockLibraryPathRepo: *SetupMockLibraryPathRepository(),
+	return &MockRepository{
+		MockLibraryRepo:     SetupMockLibraryRepo(),
+		MockLibraryPathRepo: SetupMockLibraryPathRepository(),
+		MockUserRepo:        SetupMockUserRepository(),
 	}
 }
 
-func (mr MockRepo) Health() map[string]string {
+func (mr MockRepository) Health() map[string]string {
 	panic("not implemented")
 }
-func (mr MockRepo) Close() error {
+func (mr MockRepository) Close() error {
 	panic("not implemented")
 }
-func (mr MockRepo) JobRepo() jobRepository.IJobRepository {
+func (mr MockRepository) Job() jobRepository.IJobRepository {
 	panic("not implemented")
 }
-func (mr MockRepo) VideoRepo() videoRepository.IVideoRepository {
-	panic("not implemented")
-}
-func (mr MockRepo) UserRepo() userRepository.IUserRepository {
+func (mr MockRepository) VideoRepo() videoRepository.IVideoRepository {
 	panic("not implemented")
 }

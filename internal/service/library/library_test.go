@@ -10,7 +10,7 @@ import (
 	"github.com/slugger7/exorcist/internal/mocks/mrepository"
 )
 
-func beforeEach() (*LibraryService, mrepository.MockLibraryRepo) {
+func beforeEach() (*LibraryService, *mrepository.MockLibraryRepo) {
 	mockRepo := mrepository.SetupMockRespository()
 	ls := &LibraryService{repo: mockRepo}
 	return ls, mockRepo.MockLibraryRepo
