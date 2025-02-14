@@ -14,7 +14,7 @@ func SetupMockLibraryRepo() *MockLibraryRepo {
 	return &x
 }
 
-func (mr MockRepository) LibraryRepo() libraryRepository.ILibraryRepository {
+func (mr MockRepository) Library() libraryRepository.ILibraryRepository {
 	return mr.MockLibraryRepo
 }
 

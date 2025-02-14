@@ -36,6 +36,6 @@ func (mr MockRepository) Close() error {
 func (mr MockRepository) Job() jobRepository.IJobRepository {
 	panic("not implemented")
 }
-func (mr MockRepository) VideoRepo() videoRepository.IVideoRepository {
+func (mr MockRepository) Video() videoRepository.IVideoRepository {
 	panic("not implemented")
 }

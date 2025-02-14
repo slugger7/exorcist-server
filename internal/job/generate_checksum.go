@@ -14,7 +14,7 @@ func GenerateChecksums(repo repository.IRepository) {
 		model.LibraryPath
 		model.Video
 	}
-	err := repo.VideoRepo().
+	err := repo.Video().
 		GetVideoWithoutChecksumStatement().
 		Query(&data)
 	if err != nil {
@@ -31,7 +31,7 @@ func GenerateChecksums(repo repository.IRepository) {
 
 		v.Video.Checksum = &checksum
 
-		_, err = repo.VideoRepo().UpdateVideoChecksum(v.Video).
+		_, err = repo.Video().UpdateVideoChecksum(v.Video).
 			Exec()
 		if err != nil {
 			log.Printf("Could not update the checksum of video (%v): %v", v.Video.ID, err)

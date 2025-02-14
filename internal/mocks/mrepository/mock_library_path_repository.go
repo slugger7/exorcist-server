@@ -14,7 +14,7 @@ func SetupMockLibraryPathRepository() *MockLibraryPathRepo {
 	return &x
 }
 
-func (mr MockRepository) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
+func (mr MockRepository) LibraryPath() libraryPathRepository.ILibraryPathRepository {
 	return mr.MockLibraryPathRepo
 }
 

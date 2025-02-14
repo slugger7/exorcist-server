@@ -28,9 +28,9 @@ type IRepository interface {
 	Close() error
 
 	Job() jobRepository.IJobRepository
-	LibraryRepo() libraryRepository.ILibraryRepository
-	LibraryPathRepo() libraryPathRepository.ILibraryPathRepository
-	VideoRepo() videoRepository.IVideoRepository
+	Library() libraryRepository.ILibraryRepository
+	LibraryPath() libraryPathRepository.ILibraryPathRepository
+	Video() videoRepository.IVideoRepository
 	User() userRepository.IUserRepository
 }
 
@@ -86,15 +86,15 @@ func (s *Repository) Job() jobRepository.IJobRepository {
 	return s.jobRepo
 }
 
-func (s *Repository) LibraryRepo() libraryRepository.ILibraryRepository {
+func (s *Repository) Library() libraryRepository.ILibraryRepository {
 	return s.libraryRepo
 }
 
-func (s *Repository) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
+func (s *Repository) LibraryPath() libraryPathRepository.ILibraryPathRepository {
 	return s.libraryPathRepo
 }
 
-func (s *Repository) VideoRepo() videoRepository.IVideoRepository {
+func (s *Repository) Video() videoRepository.IVideoRepository {
 	return s.videoRepo
 }
 
