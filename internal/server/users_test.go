@@ -39,7 +39,7 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 	s := setupServer()
 
 	expectedErrorMessage := "expected error"
-	s.mockService.UserService.MockError[0] = errors.New(expectedErrorMessage)
+	s.mockService.User.MockError[0] = errors.New(expectedErrorMessage)
 	r.POST("/", s.server.CreateUser)
 
 	req, err := http.NewRequest("POST", "/", body(`{"username":"someUsername","password":"somePassword"}`))
@@ -68,7 +68,7 @@ func Test_Create_Success(t *testing.T) {
 		Username: "expecedUsername",
 		Password: "",
 	}
-	s.mockService.UserService.MockModel[0] = expectedModel
+	s.mockService.User.MockModel[0] = expectedModel
 
 	r.POST("/", s.server.CreateUser)
 

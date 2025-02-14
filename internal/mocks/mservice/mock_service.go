@@ -4,6 +4,7 @@ import (
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
 	userService "github.com/slugger7/exorcist/internal/service/user"
+	videoService "github.com/slugger7/exorcist/internal/service/video"
 )
 
 var stackCount = 0
@@ -14,41 +15,32 @@ func incStack() int {
 }
 
 type MockService struct {
-	userService        userService.IUserService
-	libraryService     libraryService.ILibraryService
-	libraryPathService libraryPathService.ILibraryPathService
+	user        userService.IUserService
+	library     libraryService.ILibraryService
+	libraryPath libraryPathService.ILibraryPathService
+	video       videoService.IVideoService
 }
 
 type MockServices struct {
-	LibraryService     MockLibraryService
-	UserService        MockUserService
-	LibraryPathService *MockLibaryPathService
-}
-
-func (ms MockService) User() userService.IUserService {
-	return ms.userService
-}
-
-func (ms MockService) Library() libraryService.ILibraryService {
-	return ms.libraryService
-}
-
-func (ms MockService) LibraryPath() libraryPathService.ILibraryPathService {
-	return ms.libraryPathService
+	Library     *MockLibraryService
+	User        *MockUserService
+	LibraryPath *MockLibaryPathService
+	Video       *MockVideoService
 }
 
 func SetupMockService() (*MockService, *MockServices) {
 	stackCount = 0
 
 	mockServices := &MockServices{
-		UserService:        SetupMockUserService(),
-		LibraryService:     SetupMockLibraryService(),
-		LibraryPathService: SetupMockLibraryPathService(),
+		User:        SetupMockUserService(),
+		Library:     SetupMockLibraryService(),
+		LibraryPath: SetupMockLibraryPathService(),
+		Video:       SetupMockVideoService(),
 	}
 	ms := &MockService{
-		userService:        mockServices.UserService,
-		libraryService:     mockServices.LibraryService,
-		libraryPathService: mockServices.LibraryPathService,
+		user:        mockServices.User,
+		library:     mockServices.Library,
+		libraryPath: mockServices.LibraryPath,
 	}
 	return ms, mockServices
 }
