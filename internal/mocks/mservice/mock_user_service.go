@@ -8,12 +8,12 @@ type MockUserService struct {
 	MockModel  map[int]*model.User
 }
 
-func (mus MockUserService) CreateUser(username, password string) (*model.User, error) {
+func (mus MockUserService) Create(username, password string) (*model.User, error) {
 	stack := incStack()
 	return mus.MockModel[stack], mus.MockError[stack]
 }
 
-func (mus MockUserService) ValidateUser(username, password string) (*model.User, error) {
+func (mus MockUserService) Validate(username, password string) (*model.User, error) {
 	stack := incStack()
 	return mus.MockModel[stack], mus.MockError[stack]
 }

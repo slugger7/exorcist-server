@@ -11,8 +11,8 @@ import (
 )
 
 type ILibraryService interface {
-	CreateLibrary(newLibrary model.Library) (*model.Library, error)
-	GetLibraries() ([]model.Library, error)
+	Create(newLibrary model.Library) (*model.Library, error)
+	GetAll() ([]model.Library, error)
 }
 
 type LibraryService struct {
@@ -36,7 +36,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILi
 	return libraryServiceInstance
 }
 
-func (i *LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library, error) {
+func (i *LibraryService) Create(newLibrary model.Library) (*model.Library, error) {
 	library, err := i.repo.LibraryRepo().
 		GetLibraryByName(newLibrary.Name)
 	if err != nil {
@@ -55,7 +55,7 @@ func (i *LibraryService) CreateLibrary(newLibrary model.Library) (*model.Library
 	return library, nil
 }
 
-func (i *LibraryService) GetLibraries() ([]model.Library, error) {
+func (i *LibraryService) GetAll() ([]model.Library, error) {
 	libraries, err := i.repo.LibraryRepo().GetLibraries()
 	if err != nil {
 		return nil, errs.BuildError(err, "error getting libraries in repo")

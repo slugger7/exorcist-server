@@ -14,8 +14,8 @@ import (
 )
 
 type IUserService interface {
-	CreateUser(username, password string) (*model.User, error)
-	ValidateUser(username, password string) (*model.User, error)
+	Create(username, password string) (*model.User, error)
+	Validate(username, password string) (*model.User, error)
 }
 
 type UserService struct {
@@ -48,7 +48,7 @@ func (us *UserService) UserExists(username string) (bool, error) {
 	return user != nil, nil
 }
 
-func (us *UserService) CreateUser(username, password string) (*model.User, error) {
+func (us *UserService) Create(username, password string) (*model.User, error) {
 	userExists, err := us.UserExists(username)
 	if err != nil {
 		return nil, errs.BuildError(err, "could not determine if user '%v' exists", username)
@@ -73,7 +73,7 @@ func (us *UserService) CreateUser(username, password string) (*model.User, error
 	return newUser, nil
 }
 
-func (us *UserService) ValidateUser(username, password string) (*model.User, error) {
+func (us *UserService) Validate(username, password string) (*model.User, error) {
 	user, err := us.repo.UserRepo().
 		GetUserByUsername(username, table.User.ID, table.User.Password)
 	if err != nil {

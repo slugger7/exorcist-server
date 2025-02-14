@@ -49,7 +49,7 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := s.service.User().ValidateUser(userBody.Username, userBody.Password)
+	user, err := s.service.User().Validate(userBody.Username, userBody.Password)
 	if err != nil || user == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "could not authenticate with credentials"})
 		return

@@ -10,12 +10,12 @@ type MockLibraryService struct {
 	MockModel  map[int]*model.Library
 }
 
-func (ls MockLibraryService) CreateLibrary(actual model.Library) (*model.Library, error) {
+func (ls MockLibraryService) Create(actual model.Library) (*model.Library, error) {
 	stack := incStack()
 	return ls.MockModel[stack], ls.MockError[stack]
 }
 
-func (ls MockLibraryService) GetLibraries() ([]model.Library, error) {
+func (ls MockLibraryService) GetAll() ([]model.Library, error) {
 	stack := incStack()
 	return ls.MockModels[stack], ls.MockError[stack]
 }

@@ -34,7 +34,7 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 		Name: body.Name,
 	}
 
-	lib, err := s.service.Library().CreateLibrary(newLibrary)
+	lib, err := s.service.Library().Create(newLibrary)
 	if err != nil {
 		s.logger.Errorf("could not create library: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not create new library"})
@@ -45,7 +45,7 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 }
 
 func (s *Server) GetLibraries(c *gin.Context) {
-	libs, err := s.service.Library().GetLibraries()
+	libs, err := s.service.Library().GetAll()
 	if err != nil {
 		s.logger.Errorf("could not get libraries: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch libraries"})

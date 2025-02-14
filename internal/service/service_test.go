@@ -9,11 +9,11 @@ import (
 )
 
 var service = &Service{
-	env:                nil,
-	logger:             logger.New(&environment.EnvironmentVariables{LogLevel: "none"}),
-	userService:        mservice.MockUserService{},
-	libraryService:     mservice.MockLibraryService{},
-	libraryPathService: mservice.MockLibaryPathService{},
+	env:         nil,
+	logger:      logger.New(&environment.EnvironmentVariables{LogLevel: "none"}),
+	user:        mservice.MockUserService{},
+	library:     mservice.MockLibraryService{},
+	libraryPath: mservice.MockLibaryPathService{},
 }
 
 func Test_UserService(t *testing.T) {

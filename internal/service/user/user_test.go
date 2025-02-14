@@ -102,8 +102,8 @@ func Test_CreateUser_UserExistsRaisesError_ShouldReturnError(t *testing.T) {
 	expectedError := errors.New("expected error")
 	mr.mockUserRepo.mockErrors[0] = expectedError
 	username := ""
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).CreateUser: could not determine if user '%v' exists\n%v", username, expectedError.Error())
-	if _, err := us.CreateUser(username, ""); err.Error() != expectedErrorMessage {
+	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).Create: could not determine if user '%v' exists\n%v", username, expectedError.Error())
+	if _, err := us.Create(username, ""); err.Error() != expectedErrorMessage {
 		t.Errorf("Unexpected error thrown\nExpected: %v\nGot: %v", expectedErrorMessage, err.Error())
 	}
 }
@@ -116,7 +116,7 @@ func Test_CreateUser_UserExistsTrue_ShouldReturnError(t *testing.T) {
 
 	username := ""
 
-	if _, err := us.CreateUser(username, ""); err.Error() != expectedError.Error() {
+	if _, err := us.Create(username, ""); err.Error() != expectedError.Error() {
 		t.Errorf("Unexpected error thrown\nExpected: %v\nGot: %v", expectedError.Error(), err.Error())
 	}
 }
@@ -126,9 +126,9 @@ func Test_CreateUser_UserExistsFalse_RepoCreateReturnsError_ShouldReturnError(t 
 	expectedError := errors.New("expected error")
 	mr.mockUserRepo.mockErrors[1] = expectedError
 	username := ""
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).CreateUser: could not create a new user\n%v", expectedError.Error())
+	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).Create: could not create a new user\n%v", expectedError.Error())
 
-	if _, err := us.CreateUser(username, ""); err.Error() != expectedErrorMessage {
+	if _, err := us.Create(username, ""); err.Error() != expectedErrorMessage {
 		t.Errorf("Unexpected error thrown\nExpected: %v\nGot: %v", expectedErrorMessage, err.Error())
 	}
 }
@@ -139,7 +139,7 @@ func Test_CreateUser_UserExistsFalse_RepoCreatesUser_ShouldReturnUser(t *testing
 	password := "somePassword"
 	mr.mockUserRepo.mockModels[1] = &model.User{Username: username, Password: password}
 
-	user, err := us.CreateUser(username, "")
+	user, err := us.Create(username, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func Test_ValidateUser_RepoReturnsError_ShouldReturnError(t *testing.T) {
 	expecedError := errors.New("expected error")
 	mr.mockUserRepo.mockErrors[0] = expecedError
 
-	if _, err := us.ValidateUser("", ""); err.Error() != expecedError.Error() {
+	if _, err := us.Validate("", ""); err.Error() != expecedError.Error() {
 		t.Errorf("Expected error: %v\nGot error: %v", expecedError.Error(), err.Error())
 	}
 }
@@ -172,7 +172,7 @@ func Test_ValidateUser_RepoReturnsNilUser_ShouldReturnError(t *testing.T) {
 	username := "someUsername"
 	expectedError := fmt.Errorf("user with username %v does not exist", username)
 
-	if _, err := us.ValidateUser(username, ""); err.Error() != expectedError.Error() {
+	if _, err := us.Validate(username, ""); err.Error() != expectedError.Error() {
 		t.Errorf("Expected error: %v\nGot error: %v", expectedError.Error(), err.Error())
 	}
 }
@@ -183,7 +183,7 @@ func Test_ValidateUser_PasswordsDoNotMatch(t *testing.T) {
 	username := "someUsername"
 	expectedError := fmt.Errorf("password for user %v did not match", username)
 
-	if _, err := us.ValidateUser(username, ""); err.Error() != expectedError.Error() {
+	if _, err := us.Validate(username, ""); err.Error() != expectedError.Error() {
 		t.Errorf("Expected error: %v\nGot error: %v", expectedError.Error(), err.Error())
 	}
 }
@@ -195,7 +195,7 @@ func Test_ValidateUser_PasswordsMatch_ShouldReturnUser(t *testing.T) {
 	username := "someUsername"
 	mr.mockUserRepo.mockModels[0] = &model.User{Username: username, Password: hashPassword(password)}
 
-	user, err := us.ValidateUser(username, password)
+	user, err := us.Validate(username, password)
 	if err != nil {
 		t.Fatal(err)
 	}

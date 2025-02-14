@@ -25,7 +25,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := s.service.User().CreateUser(newUser.Username, newUser.Password)
+	user, err := s.service.User().Create(newUser.Username, newUser.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

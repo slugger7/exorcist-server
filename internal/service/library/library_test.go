@@ -22,8 +22,8 @@ func Test_CreateLibrary_ProduceErrorWhileFetchingExistingLibraries(t *testing.T)
 	mlr.MockError[0] = expectedErr
 	lib := model.Library{}
 
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library.(*LibraryService).CreateLibrary: Could not fetch library by name \n%v", expectedErr.Error())
-	if _, err := ls.CreateLibrary(lib); err.Error() != expectedErrorMessage {
+	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library.(*LibraryService).Create: Could not fetch library by name \n%v", expectedErr.Error())
+	if _, err := ls.Create(lib); err.Error() != expectedErrorMessage {
 		t.Errorf("Encountered an unexpected error creating library\nExpected: %v\nGot: %v", expectedErrorMessage, err.Error())
 	}
 }
@@ -35,7 +35,7 @@ func Test_CreateLibrary_WithExistingLibrary_ShouldThrowError(t *testing.T) {
 	mlr.MockModel[1] = &model.Library{ID: expectedId}
 
 	lib := model.Library{}
-	library, err := ls.CreateLibrary(lib)
+	library, err := ls.Create(lib)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,8 +46,8 @@ func Test_GetLibraries_RepoReturnsErro_ShouldReturnError(t *testing.T) {
 	ls, mlr := beforeEach()
 	expectedError := errors.New("expected error")
 	mlr.MockError[0] = expectedError
-	wrappedError := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library.(*LibraryService).GetLibraries: error getting libraries in repo\n%v", expectedError.Error())
-	if _, err := ls.GetLibraries(); err.Error() != wrappedError {
+	wrappedError := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library.(*LibraryService).GetAll: error getting libraries in repo\n%v", expectedError.Error())
+	if _, err := ls.GetAll(); err.Error() != wrappedError {
 		t.Errorf("Expected: %v\nGot: %v", wrappedError, err.Error())
 	}
 }
