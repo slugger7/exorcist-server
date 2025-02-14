@@ -3,6 +3,7 @@ package videoService
 import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
+	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
 )
@@ -33,5 +34,10 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) *Vi
 }
 
 func (vs *VideoService) GetAll() ([]model.Video, error) {
-	panic("not implemented")
+	vids, err := vs.repo.Video().GetAll()
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get all videos")
+	}
+
+	return vids, nil
 }
