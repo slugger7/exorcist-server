@@ -1,7 +1,6 @@
 package server
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,14 +9,14 @@ import (
 
 const videoRoute = "/videos"
 
-func (s *Server) RegisterVideoRoutes(r *gin.RouterGroup) *gin.RouterGroup {
-	r.POST(videoRoute, s.CreateVideo)
-	return r
+func (s *Server) WithVideoRoutes(r *gin.RouterGroup) *Server {
+	r.GET(videoRoute, s.GetVideos)
+	return s
 }
 
 type CreateVideoDTO struct {
-	LibraryPathId uuid.UUID `binding:"required"`
-	RelativePath  string    `binding:"required"`
+	LibraryPathId uuid.UUID `binding:"required,uuid4"`
+	RelativePath  string    `binding:"required,unix_addr"`
 	Title         string    `binding:"required"`
 	FileName      string    `binding:"required"`
 	Height        int32     `binding:"required"`
@@ -31,12 +30,9 @@ type CreateVideoDTO struct {
 	Modified      time.Time
 }
 
-func (s Server) CreateVideo(c *gin.Context) {
-	newVideo := CreateVideoDTO{}
-	if err := c.ShouldBindBodyWithJSON(&newVideo); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusCreated, newVideo)
+func (s Server) GetVideos(c *gin.Context) {
+	// vids, err := s.service.VideoService().GetVideos()
+	// if err != nil {
+	// 	s.logger.Errorf("could not fetch videos", err)
+	// }
 }

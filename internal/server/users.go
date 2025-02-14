@@ -6,10 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) RegisterUserRoutes(r *gin.RouterGroup) *gin.RouterGroup {
-	r.POST("/users", s.CreateUser)
+const userRoute = "/user"
 
-	return r
+func (s *Server) WithUserRoutes(r *gin.RouterGroup) *Server {
+	r.POST(userRoute, s.CreateUser)
+	return s
 }
 
 func (s *Server) CreateUser(c *gin.Context) {
@@ -24,7 +25,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := s.service.UserService().CreateUser(newUser.Username, newUser.Password)
+	user, err := s.service.User().CreateUser(newUser.Username, newUser.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

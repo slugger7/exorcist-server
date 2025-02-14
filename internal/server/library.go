@@ -7,10 +7,12 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
-func (s *Server) RegisterLibraryRoutes(r *gin.RouterGroup) *gin.RouterGroup {
-	r.POST("/libraries", s.CreateLibrary)
-	r.GET("/libraries", s.GetLibraries)
-	return r
+const libraryRoute = "/libraries"
+
+func (s *Server) WithLibraryRoutes(r *gin.RouterGroup) *Server {
+	r.POST(libraryRoute, s.CreateLibrary)
+	r.GET(libraryRoute, s.GetLibraries)
+	return s
 }
 
 func (s *Server) CreateLibrary(c *gin.Context) {

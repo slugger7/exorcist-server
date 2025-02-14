@@ -10,11 +10,10 @@ import (
 
 const libraryPathRoute = "/libraryPaths"
 
-func (s *Server) RegisterLibraryPathRoutes(r *gin.RouterGroup) *gin.RouterGroup {
+func (s *Server) WithLibraryPathRoutes(r *gin.RouterGroup) *Server {
 	r.POST(libraryPathRoute, s.CreateLibraryPath)
 	r.GET(libraryPathRoute, s.GetAllLibraryPaths)
-
-	return r
+	return s
 }
 
 func (s *Server) CreateLibraryPath(c *gin.Context) {

@@ -6,23 +6,23 @@ import (
 
 type MockLibraryService struct {
 	MockModels map[int][]model.Library
-	MockErrors map[int]error
+	MockError  map[int]error
 	MockModel  map[int]*model.Library
 }
 
 func (ls MockLibraryService) CreateLibrary(actual model.Library) (*model.Library, error) {
 	stack := incStack()
-	return ls.MockModel[stack], ls.MockErrors[stack]
+	return ls.MockModel[stack], ls.MockError[stack]
 }
 
 func (ls MockLibraryService) GetLibraries() ([]model.Library, error) {
 	stack := incStack()
-	return ls.MockModels[stack], ls.MockErrors[stack]
+	return ls.MockModels[stack], ls.MockError[stack]
 }
 
 func SetupMockLibraryService() MockLibraryService {
 	mockModels := make(map[int][]model.Library)
 	mockErrors := make(map[int]error)
 	mockModel := make(map[int]*model.Library)
-	return MockLibraryService{MockModels: mockModels, MockErrors: mockErrors, MockModel: mockModel}
+	return MockLibraryService{MockModels: mockModels, MockError: mockErrors, MockModel: mockModel}
 }

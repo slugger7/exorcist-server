@@ -27,10 +27,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	authenticated := r.Group("/api")
 	authenticated.Use(s.AuthRequired)
-	authenticated = s.RegisterUserRoutes(authenticated)
-	authenticated = s.RegisterLibraryRoutes(authenticated)
-	authenticated = s.RegisterLibraryPathRoutes(authenticated)
-	authenticated = s.RegisterVideoRoutes(authenticated)
+	s.WithUserRoutes(authenticated).
+		WithLibraryRoutes(authenticated).
+		WithLibraryPathRoutes(authenticated).
+		WithVideoRoutes(authenticated)
 
 	r.GET("/health", s.HealthHandler)
 	return r

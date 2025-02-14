@@ -64,7 +64,7 @@ func Test_CreateLibrary_ErrorByService(t *testing.T) {
 	s := setupServer()
 
 	expectedErrorMessage := "expected error message"
-	s.mockService.LibraryService.MockErrors[0] = errors.New(expectedErrorMessage)
+	s.mockService.LibraryService.MockError[0] = errors.New(expectedErrorMessage)
 	r.POST("/", s.server.CreateLibrary)
 
 	expectedName := "expectedLibraryName"
@@ -121,7 +121,7 @@ func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
 	s := setupServer()
 	expectedError := errors.New("expected error")
-	s.mockService.LibraryService.MockErrors[0] = expectedError
+	s.mockService.LibraryService.MockError[0] = expectedError
 
 	r.GET("/", s.server.GetLibraries)
 

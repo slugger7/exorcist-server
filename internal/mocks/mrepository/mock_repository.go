@@ -9,7 +9,7 @@ import (
 var stackCount = 0
 
 func incStack() int {
-	stackCount = stackCount + 1
+	stackCount++
 	return stackCount - 1
 }
 
