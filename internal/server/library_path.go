@@ -32,7 +32,7 @@ func (s *Server) CreateLibraryPath(c *gin.Context) {
 	}
 
 	libPath := &model.LibraryPath{LibraryID: body.LibraryId, Path: body.Path}
-	libPath, err := s.service.LibraryPathService().Create(libPath)
+	libPath, err := s.service.LibraryPath().Create(libPath)
 	if err != nil {
 		s.logger.Errorf("Erorr creating library path\n%v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "colud not create new library path"})
@@ -45,7 +45,7 @@ func (s *Server) CreateLibraryPath(c *gin.Context) {
 const ErrGetAllLibraryPathsService = "could not get all library paths"
 
 func (s *Server) GetAllLibraryPaths(c *gin.Context) {
-	libraryPaths, err := s.service.LibraryPathService().GetAll()
+	libraryPaths, err := s.service.LibraryPath().GetAll()
 	if err != nil {
 		s.logger.Errorf("Error getting all libraries\n%v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrGetAllLibraryPathsService})

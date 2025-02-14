@@ -10,9 +10,9 @@ import (
 )
 
 type IService interface {
-	UserService() userService.IUserService
-	LibraryService() libraryService.ILibraryService
-	LibraryPathService() libraryPathService.ILibraryPathService
+	User() userService.IUserService
+	Library() libraryService.ILibraryService
+	LibraryPath() libraryPathService.ILibraryPathService
 }
 
 type Service struct {
@@ -40,17 +40,17 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) ISe
 	return serviceInstance
 }
 
-func (s *Service) UserService() userService.IUserService {
+func (s *Service) User() userService.IUserService {
 	s.logger.Debug("Getting UserService")
 	return s.userService
 }
 
-func (s *Service) LibraryService() libraryService.ILibraryService {
+func (s *Service) Library() libraryService.ILibraryService {
 	s.logger.Debug("Getting LibraryService")
 	return s.libraryService
 }
 
-func (s *Service) LibraryPathService() libraryPathService.ILibraryPathService {
+func (s *Service) LibraryPath() libraryPathService.ILibraryPathService {
 	s.logger.Debug("Getting LibraryPathService")
 	return s.libraryPathService
 }

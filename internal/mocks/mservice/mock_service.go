@@ -25,15 +25,15 @@ type MockServices struct {
 	LibraryPathService MockLibaryPathService
 }
 
-func (ms MockService) UserService() userService.IUserService {
+func (ms MockService) User() userService.IUserService {
 	return ms.userService
 }
 
-func (ms MockService) LibraryService() libraryService.ILibraryService {
+func (ms MockService) Library() libraryService.ILibraryService {
 	return ms.libraryService
 }
 
-func (ms MockService) LibraryPathService() libraryPathService.ILibraryPathService {
+func (ms MockService) LibraryPath() libraryPathService.ILibraryPathService {
 	return ms.libraryPathService
 }
 
