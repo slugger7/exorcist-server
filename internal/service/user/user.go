@@ -48,14 +48,18 @@ func (us *UserService) UserExists(username string) (bool, error) {
 	return user != nil, nil
 }
 
+const ErrDeterminingUserExists = "could not determine if user '%v' exists"
+const ErrUserExists = "user already exists"
+const ErrCreatingUser = "could not create a new user"
+
 func (us *UserService) Create(username, password string) (*model.User, error) {
 	userExists, err := us.UserExists(username)
 	if err != nil {
-		return nil, errs.BuildError(err, "could not determine if user '%v' exists", username)
+		return nil, errs.BuildError(err, ErrDeterminingUserExists, username)
 	}
 
 	if userExists {
-		return nil, errors.New("user already exists")
+		return nil, errors.New(ErrUserExists)
 	}
 
 	user := model.User{
@@ -65,7 +69,7 @@ func (us *UserService) Create(username, password string) (*model.User, error) {
 
 	newUser, err := us.repo.User().CreateUser(user)
 	if err != nil {
-		return nil, errs.BuildError(err, "could not create a new user")
+		return nil, errs.BuildError(err, ErrCreatingUser)
 	}
 
 	newUser.Password = ""

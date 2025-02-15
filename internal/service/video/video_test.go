@@ -2,11 +2,11 @@ package videoService
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/mocks/mrepository"
 )
 
@@ -19,17 +19,19 @@ func setup() (*VideoService, *mrepository.MockRepository) {
 func Test_GetAll_ErrorFromRepo(t *testing.T) {
 	vs, mr := setup()
 
-	expectedErr := errors.New("expected error")
-	mr.MockVideoRepo.MockError[0] = expectedErr
+	mr.MockVideoRepo.MockError[0] = errors.New("error")
 
 	vids, err := vs.GetAll()
 	if err == nil {
 		t.Error("Expected error but got nil")
 	}
-
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/video.(*VideoService).GetAll: could not get all videos\n%v", expectedErr.Error())
-	if err.Error() != expectedErrorMessage {
-		t.Errorf("Expected error: %v\nGot error: %v", err, expectedErrorMessage)
+	var e errs.IError
+	if errors.As(err, &e) {
+		if e.Message() != ErrGetAllVideos {
+			t.Errorf("Expected error: %v\nGot error: %v", ErrGetAllVideos, e.Message())
+		}
+	} else {
+		t.Errorf("Expected specific error but got: %v", err)
 	}
 
 	if vids != nil {

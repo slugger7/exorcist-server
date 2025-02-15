@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/mocks/mrepository"
 )
 
@@ -56,37 +57,70 @@ func Test_UserExists_UserIsDefined_ShouldReturnTrue(t *testing.T) {
 
 func Test_CreateUser_UserExistsRaisesError_ShouldReturnError(t *testing.T) {
 	us, mr := setup()
-	expectedError := errors.New("expected error")
-	mr.MockUserRepo.MockError[0] = expectedError
-	username := ""
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).Create: could not determine if user '%v' exists\n%v", username, expectedError.Error())
-	if _, err := us.Create(username, ""); err.Error() != expectedErrorMessage {
-		t.Errorf("Unexpected error thrown\nExpected: %v\nGot: %v", expectedErrorMessage, err.Error())
+
+	mr.MockUserRepo.MockError[0] = errors.New("error")
+	username := "someUsername"
+
+	user, err := us.Create(username, "")
+	if err == nil {
+		t.Error("Expected an error but it was nil")
+	}
+	var e errs.IError
+	if errors.As(err, &e) {
+		expectedErr := fmt.Sprintf(ErrDeterminingUserExists, username)
+		if e.Message() != expectedErr {
+			t.Errorf("Expected error: %v\nGot error: %v", expectedErr, e.Message())
+		}
+	} else {
+		t.Errorf("Expected specific error but got: %v", err)
+	}
+
+	if user != nil {
+		t.Error("Error was raised but user was not nil")
 	}
 }
 
 func Test_CreateUser_UserExistsTrue_ShouldReturnError(t *testing.T) {
 	us, mr := setup()
 
-	expectedError := errors.New("user already exists")
 	mr.MockUserRepo.MockModel[0] = &model.User{}
 
-	username := ""
+	username := "someUsername"
 
-	if _, err := us.Create(username, ""); err.Error() != expectedError.Error() {
-		t.Errorf("Unexpected error thrown\nExpected: %v\nGot: %v", expectedError.Error(), err.Error())
+	user, err := us.Create(username, "")
+	if err == nil {
+		t.Error("Expected error but was nil")
+	}
+	if err.Error() != ErrUserExists {
+		t.Errorf("Expected error: %v\nGot error: %v", ErrUserExists, err)
+	}
+
+	if user != nil {
+		t.Error("Err was raised but user was not nil")
 	}
 }
 
 func Test_CreateUser_UserExistsFalse_RepoCreateReturnsError_ShouldReturnError(t *testing.T) {
 	us, mr := setup()
-	expectedError := errors.New("expected error")
-	mr.MockUserRepo.MockError[1] = expectedError
-	username := ""
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/user.(*UserService).Create: could not create a new user\n%v", expectedError.Error())
 
-	if _, err := us.Create(username, ""); err.Error() != expectedErrorMessage {
-		t.Errorf("Unexpected error thrown\nExpected: %v\nGot: %v", expectedErrorMessage, err.Error())
+	mr.MockUserRepo.MockError[1] = fmt.Errorf("error")
+	username := "someUsername"
+
+	user, err := us.Create(username, "")
+	if err == nil {
+		t.Error("Expected an error but was nil")
+	}
+	var e errs.IError
+	if errors.As(err, &e) {
+		if e.Message() != ErrCreatingUser {
+			t.Errorf("Expected error: %v\nGot error: %v", ErrCreatingUser, e.Message())
+		}
+	} else {
+		t.Errorf("Expected specific error but got: %v", err)
+	}
+
+	if user != nil {
+		t.Error("Expected an error and user to be nil but it was not")
 	}
 }
 

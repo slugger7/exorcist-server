@@ -33,10 +33,12 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) *Vi
 	return videoServiceInstance
 }
 
+const ErrGetAllVideos = "could not get all videos"
+
 func (vs *VideoService) GetAll() ([]model.Video, error) {
 	vids, err := vs.repo.Video().GetAll()
 	if err != nil {
-		return nil, errs.BuildError(err, "could not get all videos")
+		return nil, errs.BuildError(err, ErrGetAllVideos)
 	}
 
 	return vids, nil

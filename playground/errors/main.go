@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -9,6 +10,10 @@ import (
 func main() {
 	err := nestError(4)
 	if err != nil {
+		var e errs.IError
+		if errors.As(err, &e) {
+			fmt.Println(e.Message())
+		}
 		panic(err)
 	}
 }

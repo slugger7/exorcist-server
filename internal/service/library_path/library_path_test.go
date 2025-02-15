@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/mocks/mrepository"
 )
 
@@ -35,17 +36,24 @@ func Test_Create_ModelPassedToFunctionNil(t *testing.T) {
 func Test_Create_ErrorWhileGettingLibraryByIdFromRepo(t *testing.T) {
 	ls, repo := setup()
 
-	libPathModel := &model.LibraryPath{}
+	id, _ := uuid.NewRandom()
+	libPathModel := &model.LibraryPath{LibraryID: id}
 
-	expectedError := "expected error"
-	repo.MockLibraryRepo.MockError[0] = errors.New(expectedError)
+	repo.MockLibraryRepo.MockError[0] = errors.New("error")
+
 	lib, err := ls.Create(libPathModel)
+
 	if err == nil {
 		t.Error("expecting an error but was nil")
 	}
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library_path.(*LibraryPathService).Create: could not get library by id\n%v", expectedError)
-	if err.Error() != expectedErrorMessage {
-		t.Errorf("Expected error: %v\nGot error: %v", expectedErrorMessage, err.Error())
+	var e errs.IError
+	if errors.As(err, &e) {
+		expectedErr := fmt.Sprintf(ErrGetLibraryById, id)
+		if e.Message() != expectedErr {
+			t.Errorf("Expected error: %v\nGot error: %v", expectedErr, e.Message())
+		}
+	} else {
+		t.Errorf("Expected a specific error but got: %v", err)
 	}
 
 	if lib != nil {
@@ -80,18 +88,22 @@ func Test_Create_LibraryExists_CreatingLibraryPathReturnsError(t *testing.T) {
 	id, _ := uuid.NewRandom()
 	libPathModel := &model.LibraryPath{Path: "/some/expected/path", LibraryID: id}
 	library := &model.Library{ID: id}
-	expectedError := "expected error"
 
 	repo.MockLibraryRepo.MockModel[0] = library
-	repo.MockLibraryPathRepo.MockError[1] = errors.New(expectedError)
+	repo.MockLibraryPathRepo.MockError[1] = errors.New("error")
 
 	lib, err := ls.Create(libPathModel)
 	if err == nil {
 		t.Error("Expecting an error but was nil")
 	}
-	expectedErrorMessage := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library_path.(*LibraryPathService).Create: could not create new library path\n%v", expectedError)
-	if expectedErrorMessage != err.Error() {
-		t.Errorf("Expected error: %v\nGot error: %v", expectedErrorMessage, err.Error())
+	var e errs.IError
+	if errors.As(err, &e) {
+		expectedError := fmt.Sprintf(ErrCreateLibraryPath)
+		if e.Message() != expectedError {
+			t.Errorf("Expected error: %v\nGot error: %v", expectedError, e.Message())
+		}
+	} else {
+		t.Errorf("Expected specific error but got: %v", err)
 	}
 
 	if lib != nil {
@@ -121,16 +133,20 @@ func Test_Create_Succcess(t *testing.T) {
 func Test_GetAll_RepoReturnsError(t *testing.T) {
 	ls, repo := setup()
 
-	expectedError := "exected error"
-	repo.MockLibraryPathRepo.MockError[0] = errors.New(expectedError)
+	repo.MockLibraryPathRepo.MockError[0] = errors.New("error")
 
 	libPaths, err := ls.GetAll()
 	if err == nil {
 		t.Error("expected error but was nil")
 	}
-	expectedErrorResult := fmt.Sprintf("github.com/slugger7/exorcist/internal/service/library_path.(*LibraryPathService).GetAll: could not get all library paths\n%v", expectedError)
-	if err.Error() != expectedErrorResult {
-		t.Errorf("Expected error: %v\nGot error: %v", expectedErrorResult, err.Error())
+	var e errs.IError
+	if errors.As(err, &e) {
+		expectedErr := fmt.Sprintf(ErrGetAllLibraryPaths)
+		if e.Message() != expectedErr {
+			t.Errorf("Expected error: %v\nGot error: %v", expectedErr, e.Message())
+		}
+	} else {
+		t.Errorf("Expected specific error but got: %v", err)
 	}
 
 	if libPaths != nil {
