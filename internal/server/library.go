@@ -7,10 +7,12 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
-func (s *Server) RegisterLibraryRoutes(r *gin.RouterGroup) *gin.RouterGroup {
-	r.POST("/libraries", s.CreateLibrary)
-	r.GET("/libraries", s.GetLibraries)
-	return r
+const libraryRoute = "/libraries"
+
+func (s *Server) WithLibraryRoutes(r *gin.RouterGroup) *Server {
+	r.POST(libraryRoute, s.CreateLibrary)
+	r.GET(libraryRoute, s.GetLibraries)
+	return s
 }
 
 func (s *Server) CreateLibrary(c *gin.Context) {
@@ -32,7 +34,7 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 		Name: body.Name,
 	}
 
-	lib, err := s.service.LibraryService().CreateLibrary(newLibrary)
+	lib, err := s.service.Library().Create(newLibrary)
 	if err != nil {
 		s.logger.Errorf("could not create library: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "could not create new library"})
@@ -43,7 +45,7 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 }
 
 func (s *Server) GetLibraries(c *gin.Context) {
-	libs, err := s.service.LibraryService().GetLibraries()
+	libs, err := s.service.Library().GetAll()
 	if err != nil {
 		s.logger.Errorf("could not get libraries: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch libraries"})

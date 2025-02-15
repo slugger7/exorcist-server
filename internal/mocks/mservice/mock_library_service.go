@@ -2,27 +2,27 @@ package mservice
 
 import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/mocks"
+	libraryService "github.com/slugger7/exorcist/internal/service/library"
 )
 
-type MockLibraryService struct {
-	MockModels map[int][]model.Library
-	MockErrors map[int]error
-	MockModel  map[int]*model.Library
+type MockLibraryService mocks.MockFixture[model.Library]
+
+func SetupMockLibraryService() *MockLibraryService {
+	x := MockLibraryService(*mocks.SetupMockFixture[model.Library]())
+	return &x
 }
 
-func (ls MockLibraryService) CreateLibrary(actual model.Library) (*model.Library, error) {
+func (ms MockService) Library() libraryService.ILibraryService {
+	return ms.library
+}
+
+func (ls MockLibraryService) Create(actual model.Library) (*model.Library, error) {
 	stack := incStack()
-	return ls.MockModel[stack], ls.MockErrors[stack]
+	return ls.MockModel[stack], ls.MockError[stack]
 }
 
-func (ls MockLibraryService) GetLibraries() ([]model.Library, error) {
+func (ls MockLibraryService) GetAll() ([]model.Library, error) {
 	stack := incStack()
-	return ls.MockModels[stack], ls.MockErrors[stack]
-}
-
-func SetupMockLibraryService() MockLibraryService {
-	mockModels := make(map[int][]model.Library)
-	mockErrors := make(map[int]error)
-	mockModel := make(map[int]*model.Library)
-	return MockLibraryService{MockModels: mockModels, MockErrors: mockErrors, MockModel: mockModel}
+	return ls.MockModels[stack], ls.MockError[stack]
 }

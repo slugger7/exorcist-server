@@ -50,7 +50,7 @@ func Test_CreateLibraryPath_Success(t *testing.T) {
 	expectedId, _ := uuid.NewRandom()
 	expectedLibraryId, _ := uuid.NewRandom()
 	expectedLibraryPath := "some/expected/path"
-	s.mockService.LibraryPathService.MockModel[0] = &model.LibraryPath{
+	s.mockService.LibraryPath.MockModel[0] = &model.LibraryPath{
 		ID:        expectedId,
 		LibraryID: expectedLibraryId,
 		Path:      expectedLibraryPath,
@@ -74,7 +74,7 @@ func Test_GetAllLibraryPaths_WithServiceThrowingError(t *testing.T) {
 	s := setupServer()
 
 	expectedError := "expected error"
-	s.mockService.LibraryPathService.MockError[0] = errors.New(expectedError)
+	s.mockService.LibraryPath.MockError[0] = errors.New(expectedError)
 
 	rr := s.withGetEndpoint(s.server.GetAllLibraryPaths).
 		withGetRequest(nil).
@@ -96,7 +96,7 @@ func Test_GetAllLibraryPaths_Success(t *testing.T) {
 	id, _ := uuid.NewRandom()
 	libPath := model.LibraryPath{ID: id}
 	libPaths := []model.LibraryPath{libPath}
-	s.mockService.LibraryPathService.MockModels[0] = libPaths
+	s.mockService.LibraryPath.MockModels[0] = libPaths
 
 	rr := s.withGetEndpoint(s.server.GetAllLibraryPaths).
 		withGetRequest(nil).

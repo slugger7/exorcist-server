@@ -140,7 +140,7 @@ func Test_Login_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not generate random uuid %v", err)
 	}
-	s.mockService.UserService.MockModel[0] = &model.User{Username: "admin", ID: id}
+	s.mockService.User.MockModel[0] = &model.User{Username: "admin", ID: id}
 
 	r.POST("/", s.server.Login)
 

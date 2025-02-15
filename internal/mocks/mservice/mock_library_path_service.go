@@ -1,18 +1,20 @@
 package mservice
 
-import "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+import (
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/mocks"
+	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
+)
 
-type MockLibaryPathService struct {
-	MockModels map[int][]model.LibraryPath
-	MockModel  map[int]*model.LibraryPath
-	MockError  map[int]error
+type MockLibaryPathService mocks.MockFixture[model.LibraryPath]
+
+func SetupMockLibraryPathService() *MockLibaryPathService {
+	x := MockLibaryPathService(*mocks.SetupMockFixture[model.LibraryPath]())
+	return &x
 }
 
-func SetupMockLibraryPathService() MockLibaryPathService {
-	mockModels := make(map[int][]model.LibraryPath)
-	mockErrors := make(map[int]error)
-	mockModel := make(map[int]*model.LibraryPath)
-	return MockLibaryPathService{mockModels, mockModel, mockErrors}
+func (ms MockService) LibraryPath() libraryPathService.ILibraryPathService {
+	return ms.libraryPath
 }
 
 func (lps MockLibaryPathService) Create(*model.LibraryPath) (*model.LibraryPath, error) {

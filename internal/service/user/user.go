@@ -14,8 +14,8 @@ import (
 )
 
 type IUserService interface {
-	CreateUser(username, password string) (*model.User, error)
-	ValidateUser(username, password string) (*model.User, error)
+	Create(username, password string) (*model.User, error)
+	Validate(username, password string) (*model.User, error)
 }
 
 type UserService struct {
@@ -40,7 +40,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) *Us
 }
 
 func (us *UserService) UserExists(username string) (bool, error) {
-	user, err := us.repo.UserRepo().GetUserByUsername(username)
+	user, err := us.repo.User().GetUserByUsername(username)
 	if err != nil {
 		return false, err
 	}
@@ -48,14 +48,18 @@ func (us *UserService) UserExists(username string) (bool, error) {
 	return user != nil, nil
 }
 
-func (us *UserService) CreateUser(username, password string) (*model.User, error) {
+const ErrDeterminingUserExists = "could not determine if user '%v' exists"
+const ErrUserExists = "user already exists"
+const ErrCreatingUser = "could not create a new user"
+
+func (us *UserService) Create(username, password string) (*model.User, error) {
 	userExists, err := us.UserExists(username)
 	if err != nil {
-		return nil, errs.BuildError(err, "could not determine if user '%v' exists", username)
+		return nil, errs.BuildError(err, ErrDeterminingUserExists, username)
 	}
 
 	if userExists {
-		return nil, errors.New("user already exists")
+		return nil, errors.New(ErrUserExists)
 	}
 
 	user := model.User{
@@ -63,9 +67,9 @@ func (us *UserService) CreateUser(username, password string) (*model.User, error
 		Password: hashPassword(password),
 	}
 
-	newUser, err := us.repo.UserRepo().CreateUser(user)
+	newUser, err := us.repo.User().CreateUser(user)
 	if err != nil {
-		return nil, errs.BuildError(err, "could not create a new user")
+		return nil, errs.BuildError(err, ErrCreatingUser)
 	}
 
 	newUser.Password = ""
@@ -73,8 +77,8 @@ func (us *UserService) CreateUser(username, password string) (*model.User, error
 	return newUser, nil
 }
 
-func (us *UserService) ValidateUser(username, password string) (*model.User, error) {
-	user, err := us.repo.UserRepo().
+func (us *UserService) Validate(username, password string) (*model.User, error) {
+	user, err := us.repo.User().
 		GetUserByUsername(username, table.User.ID, table.User.Password)
 	if err != nil {
 		return nil, err

@@ -27,11 +27,11 @@ type IRepository interface {
 
 	Close() error
 
-	JobRepo() jobRepository.IJobRepository
-	LibraryRepo() libraryRepository.ILibraryRepository
-	LibraryPathRepo() libraryPathRepository.ILibraryPathRepository
-	VideoRepo() videoRepository.IVideoRepository
-	UserRepo() userRepository.IUserRepository
+	Job() jobRepository.IJobRepository
+	Library() libraryRepository.ILibraryRepository
+	LibraryPath() libraryPathRepository.ILibraryPathRepository
+	Video() videoRepository.IVideoRepository
+	User() userRepository.IUserRepository
 }
 
 type Repository struct {
@@ -82,23 +82,23 @@ func New(env *environment.EnvironmentVariables) IRepository {
 	return dbInstance
 }
 
-func (s *Repository) JobRepo() jobRepository.IJobRepository {
+func (s *Repository) Job() jobRepository.IJobRepository {
 	return s.jobRepo
 }
 
-func (s *Repository) LibraryRepo() libraryRepository.ILibraryRepository {
+func (s *Repository) Library() libraryRepository.ILibraryRepository {
 	return s.libraryRepo
 }
 
-func (s *Repository) LibraryPathRepo() libraryPathRepository.ILibraryPathRepository {
+func (s *Repository) LibraryPath() libraryPathRepository.ILibraryPathRepository {
 	return s.libraryPathRepo
 }
 
-func (s *Repository) VideoRepo() videoRepository.IVideoRepository {
+func (s *Repository) Video() videoRepository.IVideoRepository {
 	return s.videoRepo
 }
 
-func (s *Repository) UserRepo() userRepository.IUserRepository {
+func (s *Repository) User() userRepository.IUserRepository {
 	return dbInstance.userRepo
 }
 

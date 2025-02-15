@@ -1,26 +1,28 @@
 package mservice
 
-import "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+import (
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/mocks"
+	userService "github.com/slugger7/exorcist/internal/service/user"
+)
 
-type MockUserService struct {
-	MockModels map[int][]model.User
-	MockErrors map[int]error
-	MockModel  map[int]*model.User
+type MockUserService mocks.MockFixture[model.User]
+
+func SetupMockUserService() *MockUserService {
+	x := MockUserService(*mocks.SetupMockFixture[model.User]())
+	return &x
 }
 
-func (mus MockUserService) CreateUser(username, password string) (*model.User, error) {
+func (ms MockService) User() userService.IUserService {
+	return ms.user
+}
+
+func (mus MockUserService) Create(username, password string) (*model.User, error) {
 	stack := incStack()
-	return mus.MockModel[stack], mus.MockErrors[stack]
+	return mus.MockModel[stack], mus.MockError[stack]
 }
 
-func (mus MockUserService) ValidateUser(username, password string) (*model.User, error) {
+func (mus MockUserService) Validate(username, password string) (*model.User, error) {
 	stack := incStack()
-	return mus.MockModel[stack], mus.MockErrors[stack]
-}
-
-func SetupMockUserService() MockUserService {
-	mockModels := make(map[int][]model.User)
-	mockErrors := make(map[int]error)
-	mockModel := make(map[int]*model.User)
-	return MockUserService{MockModels: mockModels, MockErrors: mockErrors, MockModel: mockModel}
+	return mus.MockModel[stack], mus.MockError[stack]
 }
