@@ -3,8 +3,8 @@ POST {{host}}:{{port}}/api/libraryPaths
 Content-Type: application/json
 
 {
-  "path": "/some/path",
-  "libraryId": "b47b944c-5a51-4835-8e36-87ccf6057b81"
+  "path": "./",
+  "libraryId": "7755d759-d0f6-4928-b8e7-5a1f13d39d88"
 }
 
 ### Get all library paths

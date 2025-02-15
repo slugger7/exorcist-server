@@ -2,6 +2,7 @@ package libraryService
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -70,6 +71,62 @@ func (i *LibraryService) GetAll() ([]model.Library, error) {
 	return libraries, nil
 }
 
+const (
+	ActionScan = "/scan"
+)
+
+var Actions = []string{ActionScan}
+
+const ErrActionNotFound = "action was not found: %v"
+const ErrFindInRepo = "error finding library in repo with id %v"
+
 func (i *LibraryService) Action(id uuid.UUID, action string) error {
-	panic("not implemented")
+	if !slices.Contains(Actions, action) {
+		return fmt.Errorf(ErrActionNotFound, action)
+	}
+
+	lib, err := i.repo.Library().GetLibraryById(id)
+	if err != nil {
+		return errs.BuildError(err, ErrFindInRepo, id)
+	}
+
+	switch action {
+	case ActionScan:
+		err := i.actionScan(lib)
+		if err != nil {
+			return errs.BuildError(err, "error setting up action scan")
+		}
+		return nil
+	default:
+		panic("Action was not found after being found")
+	}
+}
+
+const ErrActionScanGetLibraryPaths = "could not get library paths in scan action"
+const ErrCreatingJobs = "error creating jobs"
+
+func (i *LibraryService) actionScan(library *model.Library) error {
+	libraryPaths, err := i.repo.LibraryPath().GetByLibraryId(library.ID)
+	if err != nil {
+		return errs.BuildError(err, ErrActionScanGetLibraryPaths)
+	}
+
+	jobs := []model.Job{}
+
+	for _, l := range libraryPaths {
+		data := fmt.Sprintf(`{"libraryId": "%v"}`, l.ID)
+		job := model.Job{
+			JobType: model.JobTypeEnum_ScanPath,
+			Status:  model.JobStatusEnum_NotStarted,
+			Data:    &data,
+		}
+		jobs = append(jobs, job)
+	}
+
+	jobs, err = i.repo.Job().CreateAll(jobs)
+	if err != nil {
+		return errs.BuildError(err, ErrCreatingJobs)
+	}
+
+	return nil
 }

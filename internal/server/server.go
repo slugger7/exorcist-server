@@ -20,7 +20,7 @@ type Server struct {
 
 func NewServer(env *environment.EnvironmentVariables) *http.Server {
 	repo := repository.New(env)
-	NewServer := &Server{
+	newServer := &Server{
 		repo:    repo,
 		env:     env,
 		service: service.New(repo, env),
@@ -29,7 +29,7 @@ func NewServer(env *environment.EnvironmentVariables) *http.Server {
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", env.Port),
-		Handler:      NewServer.RegisterRoutes(),
+		Handler:      newServer.RegisterRoutes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
