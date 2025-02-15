@@ -1,0 +1,2 @@
+### Start job runner manually
+GET {{host}}:{{port}}/api/jobs/start-runner
