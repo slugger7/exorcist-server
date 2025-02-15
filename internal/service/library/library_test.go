@@ -111,7 +111,7 @@ func Test_Action_RepoErrorWhenGettingLibrary(t *testing.T) {
 	ls, mlr := setup()
 
 	id, _ := uuid.NewRandom()
-	mlr.MockLibraryPathRepo.MockError[0] = fmt.Errorf("expected error")
+	mlr.MockLibraryRepo.MockError[0] = fmt.Errorf("expected error")
 
 	err := ls.Action(id, ActionScan)
 	if err == nil {
