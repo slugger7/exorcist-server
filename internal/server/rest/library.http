@@ -8,3 +8,6 @@ Content-Type: application/json
 
 ### Get libraries
 GET {{host}}:{{port}}/api/libraries
+
+### Scan library
+GET {{host}}:{{port}}/api/libraries/anId/anAction

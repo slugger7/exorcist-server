@@ -3,6 +3,7 @@ package libraryService
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -13,6 +14,7 @@ import (
 type ILibraryService interface {
 	Create(newLibrary model.Library) (*model.Library, error)
 	GetAll() ([]model.Library, error)
+	Action(id uuid.UUID, action string) error
 }
 
 type LibraryService struct {
@@ -66,4 +68,8 @@ func (i *LibraryService) GetAll() ([]model.Library, error) {
 	}
 
 	return libraries, nil
+}
+
+func (i *LibraryService) Action(id uuid.UUID, action string) error {
+	panic("not implemented")
 }
