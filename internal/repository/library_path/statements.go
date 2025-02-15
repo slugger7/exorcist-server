@@ -1,6 +1,8 @@
 package libraryPathRepository
 
 import (
+	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/repository/util"
@@ -27,4 +29,14 @@ func (ds *LibraryPathRepository) create(libPath *model.LibraryPath) LibraryPathS
 	util.DebugCheck(ds.Env, insertStatement)
 
 	return LibraryPathStatement{insertStatement, ds.db}
+}
+
+func (lps *LibraryPathRepository) getByLibraryIdStatement(libraryId uuid.UUID) LibraryPathStatement {
+	statement := table.LibraryPath.SELECT(table.LibraryPath.AllColumns).
+		FROM(table.LibraryPath).
+		WHERE(table.LibraryPath.LibraryID.EQ(postgres.UUID(libraryId)))
+
+	util.DebugCheck(lps.Env, statement)
+
+	return LibraryPathStatement{statement, lps.db}
 }

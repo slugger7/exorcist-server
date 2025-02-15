@@ -1,9 +1,5 @@
 package mrepository
 
-import (
-	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
-)
-
 var stackCount = 0
 
 func incStack() int {
@@ -16,6 +12,7 @@ type MockRepository struct {
 	*MockLibraryPathRepo
 	*MockUserRepo
 	*MockVideoRepo
+	*MockJobRepo
 }
 
 func SetupMockRespository() *MockRepository {
@@ -25,6 +22,7 @@ func SetupMockRespository() *MockRepository {
 		MockLibraryPathRepo: SetupMockLibraryPathRepository(),
 		MockUserRepo:        SetupMockUserRepository(),
 		MockVideoRepo:       SetupMockVideoRepository(),
+		MockJobRepo:         SetupMockJobRepo(),
 	}
 }
 
@@ -32,8 +30,5 @@ func (mr MockRepository) Health() map[string]string {
 	panic("not implemented")
 }
 func (mr MockRepository) Close() error {
-	panic("not implemented")
-}
-func (mr MockRepository) Job() jobRepository.IJobRepository {
 	panic("not implemented")
 }

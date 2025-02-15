@@ -22,7 +22,12 @@ func (mlp MockLibraryPathRepo) Create(string, uuid.UUID) (*model.LibraryPath, er
 	stack := incStack()
 	return mlp.MockModel[stack], mlp.MockError[stack]
 }
-func (mlp MockLibraryPathRepo) GetLibraryPaths() ([]model.LibraryPath, error) {
+func (mlp MockLibraryPathRepo) GetAll() ([]model.LibraryPath, error) {
+	stack := incStack()
+	return mlp.MockModels[stack], mlp.MockError[stack]
+}
+
+func (mlp *MockLibraryPathRepo) GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error) {
 	stack := incStack()
 	return mlp.MockModels[stack], mlp.MockError[stack]
 }

@@ -12,7 +12,8 @@ import (
 
 type ILibraryPathRepository interface {
 	Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error)
-	GetLibraryPaths() ([]model.LibraryPath, error)
+	GetAll() ([]model.LibraryPath, error)
+	GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error)
 }
 
 type LibraryPathRepository struct {
@@ -51,7 +52,7 @@ func (lps *LibraryPathRepository) Create(path string, libraryId uuid.UUID) (*mod
 	return &libraryPath.LibraryPath, nil
 }
 
-func (lps *LibraryPathRepository) GetLibraryPaths() ([]model.LibraryPath, error) {
+func (lps *LibraryPathRepository) GetAll() ([]model.LibraryPath, error) {
 	var libraryPaths []struct{ model.LibraryPath }
 	if err := lps.getLibraryPathsSelect().Query(&libraryPaths); err != nil {
 		return nil, errs.BuildError(err, "could not get library paths")
@@ -60,5 +61,19 @@ func (lps *LibraryPathRepository) GetLibraryPaths() ([]model.LibraryPath, error)
 	for _, l := range libraryPaths {
 		libPathModels = append(libPathModels, l.LibraryPath)
 	}
+	return libPathModels, nil
+}
+
+func (lps *LibraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error) {
+	var libraryPaths []struct{ model.LibraryPath }
+	if err := lps.getByLibraryIdStatement(libraryId).Query(&libraryPaths); err != nil {
+		return nil, errs.BuildError(err, "could not get library paths for library %v", libraryId)
+	}
+
+	libPathModels := []model.LibraryPath{}
+	for _, l := range libraryPaths {
+		libPathModels = append(libPathModels, l.LibraryPath)
+	}
+
 	return libPathModels, nil
 }

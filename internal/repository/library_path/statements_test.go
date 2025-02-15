@@ -8,10 +8,11 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 )
 
+var ds = &LibraryPathRepository{
+	Env: &environment.EnvironmentVariables{DebugSql: false},
+}
+
 func Test_GetLibraryPathsSelect(t *testing.T) {
-	ds := &LibraryPathRepository{
-		Env: &environment.EnvironmentVariables{DebugSql: false},
-	}
 	statement := ds.getLibraryPathsSelect()
 	sql, _ := statement.Sql()
 
@@ -22,9 +23,6 @@ func Test_GetLibraryPathsSelect(t *testing.T) {
 }
 
 func Test_Create(t *testing.T) {
-	ds := &LibraryPathRepository{
-		Env: &environment.EnvironmentVariables{DebugSql: false},
-	}
 	expectedPath := "/expected/path"
 	libraryId, _ := uuid.NewRandom()
 	statement := ds.create(&model.LibraryPath{Path: expectedPath, LibraryID: libraryId})
@@ -33,5 +31,16 @@ func Test_Create(t *testing.T) {
 	expectedSql := "\nINSERT INTO public.library_path (library_id, path)\nVALUES ($1, $2)\nRETURNING library_path.id AS \"library_path.id\",\n          library_path.path AS \"library_path.path\";\n"
 	if sql != expectedSql {
 		t.Errorf("Expected %v but got %v", expectedSql, sql)
+	}
+}
+
+func Test_GetByLibraryId(t *testing.T) {
+	id, _ := uuid.NewRandom()
+
+	sql, _ := ds.getByLibraryIdStatement(id).Sql()
+
+	expectedSql := "\nSELECT library_path.id AS \"library_path.id\",\n     library_path.library_id AS \"library_path.library_id\",\n     library_path.path AS \"library_path.path\",\n     library_path.created AS \"library_path.created\",\n     library_path.modified AS \"library_path.modified\"\nFROM public.library_path\nWHERE library_path.library_id = $1;\n"
+	if sql != expectedSql {
+		t.Errorf("Expected sql: %v\nGot sql: %v", expectedSql, sql)
 	}
 }

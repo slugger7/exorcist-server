@@ -46,8 +46,8 @@ func setupEngine() *gin.Engine {
 	return r
 }
 
-func (s *TestServer) withGetEndpoint(f gin.HandlerFunc) *TestServer {
-	s.engine.GET("/", f)
+func (s *TestServer) withGetEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
+	s.engine.GET(fmt.Sprintf("/%v", extraPathParams), f)
 	return s
 }
 
@@ -56,8 +56,8 @@ func (s *TestServer) withPostEndpoint(f gin.HandlerFunc) *TestServer {
 	return s
 }
 
-func (s *TestServer) withGetRequest(body io.Reader) *TestServer {
-	req, _ := http.NewRequest("GET", "/", body)
+func (s *TestServer) withGetRequest(body io.Reader, params string) *TestServer {
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/%v", params), body)
 	s.request = req
 	return s
 }

@@ -4,10 +4,9 @@ import (
 	"database/sql"
 
 	"github.com/go-jet/jet/v2/postgres"
-	"github.com/slugger7/exorcist/internal/db/exorcist/public/enum"
-	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
-	"github.com/slugger7/exorcist/internal/repository/util"
+	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
 type JobStatement struct {
@@ -16,7 +15,7 @@ type JobStatement struct {
 }
 
 type IJobRepository interface {
-	FetchNextJob() JobStatement
+	CreateAll(jobs []model.Job) ([]model.Job, error)
 }
 
 type JobRepository struct {
@@ -37,18 +36,23 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IJobRepository {
 	return jobRepoInstance
 }
 
-func (s *JobRepository) FetchNextJob() JobStatement {
-	statment := table.Job.SELECT(table.Job.AllColumns).
-		FROM(table.Job).
-		WHERE(table.Job.Status.EQ(enum.JobStatusEnum.NotStarted)).
-		ORDER_BY(table.Job.Created.ASC()).
-		LIMIT(1)
-
-	util.DebugCheck(s.Env, statment)
-
-	return JobStatement{statment, s.db}
-}
-
 func (js JobStatement) Query(destination interface{}) error {
 	return js.Statement.Query(js.db, destination)
+}
+
+func (j *JobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
+	if len(jobs) == 0 {
+		return jobs, nil
+	}
+	var newJobs []struct{ model.Job }
+	if err := j.createAllStatement(jobs).Query(&newJobs); err != nil {
+		return nil, errs.BuildError(err, "error when creating jobs")
+	}
+
+	jobModels := []model.Job{}
+	for _, j := range newJobs {
+		jobModels = append(jobModels, j.Job)
+	}
+
+	return jobModels, nil
 }

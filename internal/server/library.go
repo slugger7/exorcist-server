@@ -1,9 +1,11 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
@@ -12,6 +14,7 @@ const libraryRoute = "/libraries"
 func (s *Server) WithLibraryRoutes(r *gin.RouterGroup) *Server {
 	r.POST(libraryRoute, s.CreateLibrary)
 	r.GET(libraryRoute, s.GetLibraries)
+	r.GET(fmt.Sprintf("%v/:id/*action", libraryRoute), s.LibraryAction)
 	return s
 }
 
@@ -53,4 +56,26 @@ func (s *Server) GetLibraries(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, libs)
+}
+
+const ErrIdParse = "Could not parse id in path: %v"
+const ErrLibraryAction = "could not perform %v on %v"
+
+func (s *Server) LibraryAction(c *gin.Context) {
+	id := c.Param("id")
+	action := c.Param("action")
+
+	libraryId, err := uuid.Parse(id)
+	if err != nil {
+		e := fmt.Sprintf(ErrIdParse, id)
+		s.logger.Error(e)
+		c.JSON(http.StatusBadRequest, gin.H{"error": e})
+		return
+	}
+
+	err = s.service.Library().Action(libraryId, action)
+	if err != nil {
+		s.logger.Errorf("Could not perform action %v on %v: %v", action, libraryId, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf(ErrLibraryAction, action, libraryId)})
+	}
 }

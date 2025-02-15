@@ -76,8 +76,8 @@ func Test_GetAllLibraryPaths_WithServiceThrowingError(t *testing.T) {
 	expectedError := "expected error"
 	s.mockService.LibraryPath.MockError[0] = errors.New(expectedError)
 
-	rr := s.withGetEndpoint(s.server.GetAllLibraryPaths).
-		withGetRequest(nil).
+	rr := s.withGetEndpoint(s.server.GetAllLibraryPaths, "").
+		withGetRequest(nil, "").
 		exec()
 
 	expectedStatusCode := http.StatusInternalServerError
@@ -98,8 +98,8 @@ func Test_GetAllLibraryPaths_Success(t *testing.T) {
 	libPaths := []model.LibraryPath{libPath}
 	s.mockService.LibraryPath.MockModels[0] = libPaths
 
-	rr := s.withGetEndpoint(s.server.GetAllLibraryPaths).
-		withGetRequest(nil).
+	rr := s.withGetEndpoint(s.server.GetAllLibraryPaths, "").
+		withGetRequest(nil, "").
 		exec()
 
 	expectedStatusCode := http.StatusOK
