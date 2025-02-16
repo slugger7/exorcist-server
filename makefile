@@ -4,6 +4,9 @@ run:
 get:
 	go get ./cmd/exorcist
 
+update:
+	go get -u ./...
+
 test:
 	@go test ./... -v
 
