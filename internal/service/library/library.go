@@ -114,7 +114,7 @@ func (i *LibraryService) actionScan(library *model.Library) error {
 	jobs := []model.Job{}
 
 	for _, l := range libraryPaths {
-		data := fmt.Sprintf(`{"libraryId": "%v"}`, l.ID)
+		data := fmt.Sprintf(`{"libraryPathId": "%v"}`, l.ID) // TODO: marshal an actual value here instead
 		job := model.Job{
 			JobType: model.JobTypeEnum_ScanPath,
 			Status:  model.JobStatusEnum_NotStarted,

@@ -1,6 +1,7 @@
 package jobRepository
 
 import (
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/repository/util"
@@ -14,4 +15,16 @@ func (jb *JobRepository) createAllStatement(jobs []model.Job) JobStatement {
 	util.DebugCheck(jb.Env, statement)
 
 	return JobStatement{db: jb.db, Statement: statement}
+}
+
+func (jb *JobRepository) getNextJobStatement() JobStatement {
+	statement := table.Job.SELECT(table.Job.AllColumns).
+		FROM(table.Job).
+		WHERE(table.Job.Status.EQ(postgres.String(model.JobStatusEnum_NotStarted.String()))).
+		ORDER_BY(table.Job.Created.ASC()).
+		LIMIT(1)
+
+	util.DebugCheck(jb.Env, statement)
+
+	return JobStatement{statement, jb.db}
 }

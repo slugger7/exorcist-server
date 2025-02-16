@@ -25,6 +25,9 @@ type Server struct {
 func (s *Server) withJobRunner() *Server {
 	ch := job.New(s.env, s.service, s.repo, s.logger, s.wg)
 	s.jobCh = ch
+
+	ch <- true // start if any jobs exist
+
 	return s
 }
 
@@ -32,6 +35,7 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 	repo := repository.New(env)
 	serv := service.New(repo, env)
 	lg := logger.New(env)
+
 	newServer := &Server{
 		repo:    repo,
 		env:     env,
@@ -40,6 +44,8 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 		wg:      wg,
 	}
 
+	newServer.withJobRunner()
+
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", env.Port),
 		Handler:      newServer.RegisterRoutes(),
@@ -47,8 +53,6 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
-
-	newServer.withJobRunner()
 
 	server.RegisterOnShutdown(func() {
 		close(newServer.jobCh)

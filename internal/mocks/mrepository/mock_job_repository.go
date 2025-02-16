@@ -21,3 +21,8 @@ func (m *MockJobRepo) CreateAll(jobs []model.Job) ([]model.Job, error) {
 	stack := incStack()
 	return m.MockModels[stack], m.MockError[stack]
 }
+
+func (m *MockJobRepo) GetNextJob() (*model.Job, error) {
+	stack := incStack()
+	return m.MockModel[stack], m.MockError[stack]
+}

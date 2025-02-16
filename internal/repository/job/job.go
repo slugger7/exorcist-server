@@ -16,6 +16,7 @@ type JobStatement struct {
 
 type IJobRepository interface {
 	CreateAll(jobs []model.Job) ([]model.Job, error)
+	GetNextJob() (*model.Job, error)
 }
 
 type JobRepository struct {
@@ -55,4 +56,13 @@ func (j *JobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
 	}
 
 	return jobModels, nil
+}
+
+func (j *JobRepository) GetNextJob() (*model.Job, error) {
+	var job struct{ model.Job }
+	if err := j.getNextJobStatement().Query(&job); err != nil {
+		return nil, errs.BuildError(err, "could not get next job")
+	}
+
+	return &job.Job, nil
 }

@@ -3,6 +3,7 @@ package job
 import (
 	"sync"
 
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
@@ -46,19 +47,27 @@ func New(
 }
 
 func (jr *JobRunner) loop() {
+	jr.logger.Infof("Running jobs")
 	for {
 		select {
-		case val, ok := <-jr.ch:
+		case _, ok := <-jr.ch:
 			if !ok {
 				// Cleanup methods can be run from here
 				jr.wg.Done()
 				return
 			}
 
-			_ = val
-
-			// run the next job
-			// when starting a job it might be worth pushing to the channel from a goroutine
+			jr.logger.Info("Checking for jobs")
+			job, err := jr.repo.Job().GetNextJob()
+			if err != nil {
+				jr.logger.Errorf("Could not get the next job: %v", err)
+			}
+			switch job.JobType {
+			case model.JobTypeEnum_ScanPath:
+				jr.ScanPath(job)
+			default:
+				jr.logger.Errorf("Job of type %v is not implemented", job.JobType)
+			}
 		}
 	}
 }

@@ -55,7 +55,7 @@ func (ds *VideoRepository) UpdateVideoExistsStatement(video model.Video) *VideoS
 	return &VideoStatement{statement, ds.db}
 }
 
-func (ds *VideoRepository) GetVideosInLibraryPath(libraryPathId uuid.UUID) *VideoStatement {
+func (ds *VideoRepository) getByLibraryPathIdStatement(libraryPathId uuid.UUID) *VideoStatement {
 	statement := table.Video.SELECT(table.Video.RelativePath, table.Video.ID).
 		FROM(table.Video.Table).
 		WHERE(table.Video.LibraryPathID.EQ(postgres.UUID(libraryPathId)).
