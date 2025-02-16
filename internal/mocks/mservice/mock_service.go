@@ -41,6 +41,7 @@ func SetupMockService() (*MockService, *MockServices) {
 		user:        mockServices.User,
 		library:     mockServices.Library,
 		libraryPath: mockServices.LibraryPath,
+		video:       mockServices.Video,
 	}
 	return ms, mockServices
 }

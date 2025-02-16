@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 )
@@ -12,6 +13,7 @@ import (
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
+	GetById(id uuid.UUID) (*model.Video, error)
 	UpdateVideoExists(video model.Video) error
 	Insert(models []model.Video) error
 }
@@ -35,7 +37,24 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IVideoRepository {
 }
 
 func (vr *VideoRepository) GetAll() ([]model.Video, error) {
-	panic("not implemented")
+	statement := table.Video.SELECT(table.Video.AllColumns).
+		FROM(table.Video)
+
+	var vids []struct{ model.Video }
+	if err := statement.Query(vr.db, &vids); err != nil {
+		return nil, errs.BuildError(err, "could not get all videos")
+	}
+
+	if vids == nil {
+		return nil, nil
+	}
+
+	var models []model.Video
+	for _, v := range vids {
+		models = append(models, v.Video)
+	}
+
+	return models, nil
 }
 
 func (ds *VideoRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Video, error) {
@@ -70,4 +89,18 @@ func (ds *VideoRepository) Insert(models []model.Video) error {
 	}
 
 	return nil
+}
+
+func (ds *VideoRepository) GetById(id uuid.UUID) (*model.Video, error) {
+	var vids []struct{ model.Video }
+	if err := ds.getByIdStatement(id).Query(&vids); err != nil {
+		return nil, errs.BuildError(err, "error getting video from db for id %v", id)
+	}
+
+	var video *model.Video
+	if len(vids) == 1 {
+		video = &vids[len(vids)-1].Video
+	}
+
+	return video, nil
 }

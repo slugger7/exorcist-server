@@ -2,6 +2,7 @@ package videoService
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -57,5 +58,50 @@ func Test_GetAll_Success(t *testing.T) {
 	actualId := vids[len(vids)-1].ID
 	if actualId != id {
 		t.Errorf("Expected video with id: %v\nGot video with id: %v", id, actualId)
+	}
+}
+
+func Test_GetById_RepoReturnsError(t *testing.T) {
+	vs, mr := setup()
+
+	id, _ := uuid.NewRandom()
+
+	mr.MockVideoRepo.MockError[0] = fmt.Errorf("err")
+
+	vid, err := vs.GetById(id)
+	if err == nil {
+		t.Error("Expected error but got nil")
+	}
+	var e errs.IError
+	if errors.As(err, &e) {
+		expectedMessage := fmt.Sprintf(ErrVideoById, id)
+		if e.Message() != expectedMessage {
+			t.Errorf("Expected error: %v\nGot error: %v", expectedMessage, e.Message())
+		}
+	} else {
+		t.Errorf("Expected specific error but got %v", err.Error())
+	}
+
+	if vid != nil {
+		t.Errorf("Expected vid to be nil but was %v", vid)
+	}
+}
+
+func Test_GetById_RepoReturnsVideo(t *testing.T) {
+	vs, mr := setup()
+
+	id, _ := uuid.NewRandom()
+	video := model.Video{ID: id}
+	mr.MockVideoRepo.MockModel[0] = &video
+
+	vid, err := vs.GetById(id)
+	if err != nil {
+		t.Errorf("Expected nil but got %v", err.Error())
+	}
+	if vid == nil {
+		t.Error("Expected video but was nil")
+	}
+	if vid.ID != id {
+		t.Errorf("Expected video with id: %v\nGot video with id: %v", id, vid.ID)
 	}
 }
