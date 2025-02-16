@@ -61,7 +61,7 @@ func (jr *JobRunner) loop() {
 			for {
 				job, err := jr.repo.Job().GetNextJob()
 				if err != nil {
-					jr.logger.Errorf("Could not get the next job: %v", err)
+					jr.logger.Errorf("Could not get the next job: %v", err.Error())
 				}
 				if job == nil {
 					jr.logger.Info("No jobs to run. Waiting for next signal")
@@ -70,7 +70,14 @@ func (jr *JobRunner) loop() {
 
 				switch job.JobType {
 				case model.JobTypeEnum_ScanPath:
-					jr.ScanPath(job)
+					if err := jr.ScanPath(job); err != nil {
+						jr.logger.Errorf("Scan path finished with errors", err)
+						job.Status = model.JobStatusEnum_Failed
+						if erro := jr.repo.Job().UpdateJobStatus(job); erro != nil {
+							jr.logger.Errorf("Could not update job status after error. Killing to prevent infinite loop", erro)
+							return
+						}
+					}
 				default:
 					jr.logger.Errorf("Job of type %v is not implemented", job.JobType)
 				}

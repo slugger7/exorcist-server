@@ -42,7 +42,7 @@ func (lps *LibraryPathRepository) getByLibraryIdStatement(libraryId uuid.UUID) L
 }
 
 func (lps *LibraryPathRepository) getByIdStatement(id uuid.UUID) LibraryPathStatement {
-	statement := table.LibraryPath.SELECT(table.Job.AllColumns).
+	statement := table.LibraryPath.SELECT(table.LibraryPath.AllColumns).
 		FROM(table.LibraryPath).
 		WHERE(table.LibraryPath.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)

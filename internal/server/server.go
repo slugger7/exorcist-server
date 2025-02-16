@@ -33,18 +33,17 @@ func (s *Server) withJobRunner() *Server {
 
 func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server {
 	repo := repository.New(env)
-	serv := service.New(repo, env)
 	lg := logger.New(env)
 
 	newServer := &Server{
-		repo:    repo,
-		env:     env,
-		service: serv,
-		logger:  lg,
-		wg:      wg,
+		repo:   repo,
+		env:    env,
+		logger: lg,
+		wg:     wg,
 	}
 
 	newServer.withJobRunner()
+	newServer.service = service.New(repo, env, newServer.jobCh)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", env.Port),

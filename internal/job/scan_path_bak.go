@@ -1,22 +1,5 @@
 package job
 
-// TODO: rewrite.
-// currently broken due to service changes. It was a poc in anyway
-// import (
-// 	"log"
-// 	"slices"
-// 	"strconv"
-// 	"sync"
-
-// 	"github.com/google/uuid"
-// 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-// 	"github.com/slugger7/exorcist/internal/environment"
-// 	errs "github.com/slugger7/exorcist/internal/errors"
-// 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
-// 	"github.com/slugger7/exorcist/internal/media"
-// 	"github.com/slugger7/exorcist/internal/repository"
-// )
-
 // func ScanPath(repo repository.IRepository) {
 // 	env := environment.GetEnvironmentVariables()
 // 	mediaFilesChannel := make(chan []media.File)
@@ -103,17 +86,11 @@ package job
 // func removeVideos(repo repository.IRepository, nonExistentVideos []model.Video) {
 // 	for _, v := range nonExistentVideos {
 // 		v.Exists = false
-// 		_, err := repo.VideoRepo().UpdateVideoExistsStatement(v).Exec()
+// 		_, err := repo.Video().UpdateVideoExistsStatement(v).Exec()
 // 		if err != nil {
 // 			log.Printf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
 // 		}
 // 	}
-// }
-
-// func videoExsists(existingVideos []struct{ model.Video }, relativePath string) bool {
-// 	return slices.ContainsFunc(existingVideos, func(existingVideo struct{ model.Video }) bool {
-// 		return existingVideo.RelativePath == relativePath
-// 	})
 // }
 
 // func getVideosInLibraryPath(repo repository.IRepository, libraryPathId uuid.UUID) []struct{ model.Video } {

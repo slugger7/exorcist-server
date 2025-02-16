@@ -80,10 +80,14 @@ func (lps *LibraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]model.L
 }
 
 func (lps *LibraryPathRepository) GetById(id uuid.UUID) (*model.LibraryPath, error) {
-	var libraryPath struct{ model.LibraryPath }
-	if err := lps.getByIdStatement(id).Query(&libraryPath); err != nil {
+	var libraryPaths []struct{ model.LibraryPath }
+	if err := lps.getByIdStatement(id).Query(&libraryPaths); err != nil {
 		return nil, errs.BuildError(err, "could not get library path by id: %v", id)
 	}
 
-	return &libraryPath.LibraryPath, nil
+	if len(libraryPaths) != 1 {
+		return nil, nil
+	}
+
+	return &libraryPaths[len(libraryPaths)-1].LibraryPath, nil
 }

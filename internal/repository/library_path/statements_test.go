@@ -50,7 +50,7 @@ func Test_GetById(t *testing.T) {
 
 	sql, _ := ds.getByIdStatement(id).Sql()
 
-	expectedSql := "\nSELECT job.id AS \"job.id\",\n     job.job_type AS \"job.job_type\",\n     job.status AS \"job.status\",\n     job.data AS \"job.data\",\n     job.created AS \"job.created\",\n     job.modified AS \"job.modified\"\nFROM public.library_path\nWHERE library_path.id = $1\nLIMIT $2;\n"
+	expectedSql := "\nSELECT library_path.id AS \"library_path.id\",\n     library_path.library_id AS \"library_path.library_id\",\n     library_path.path AS \"library_path.path\",\n     library_path.created AS \"library_path.created\",\n     library_path.modified AS \"library_path.modified\"\nFROM public.library_path\nWHERE library_path.id = $1\nLIMIT $2;\n"
 	if sql != expectedSql {
 		t.Errorf("Expected sql: %v\nGot sql: %v", expectedSql, sql)
 	}

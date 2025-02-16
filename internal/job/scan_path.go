@@ -112,6 +112,11 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 
 	// generate checksum jobs
 
+	job.Status = model.JobStatusEnum_Completed
+	if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
+		return errs.BuildError(err, "could not update job status to %v", job.Status)
+	}
+
 	return nil
 }
 

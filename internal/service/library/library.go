@@ -22,16 +22,18 @@ type LibraryService struct {
 	Env    *environment.EnvironmentVariables
 	repo   repository.IRepository
 	logger logger.ILogger
+	jobCh  chan bool
 }
 
 var libraryServiceInstance *LibraryService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILibraryService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool) ILibraryService {
 	if libraryServiceInstance == nil {
 		libraryServiceInstance = &LibraryService{
 			Env:    env,
 			repo:   repo,
 			logger: logger.New(env),
+			jobCh:  jobCh,
 		}
 
 		libraryServiceInstance.logger.Info("LibraryService instance created")
@@ -128,5 +130,11 @@ func (i *LibraryService) actionScan(library *model.Library) error {
 		return errs.BuildError(err, ErrCreatingJobs)
 	}
 
+	go i.startScanPathJob()
+
 	return nil
+}
+
+func (i *LibraryService) startScanPathJob() {
+	i.jobCh <- true
 }

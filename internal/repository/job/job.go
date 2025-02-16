@@ -2,6 +2,7 @@ package jobRepository
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -17,6 +18,7 @@ type JobStatement struct {
 type IJobRepository interface {
 	CreateAll(jobs []model.Job) ([]model.Job, error)
 	GetNextJob() (*model.Job, error)
+	UpdateJobStatus(model *model.Job) error
 }
 
 type JobRepository struct {
@@ -35,10 +37,6 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IJobRepository {
 		Env: env,
 	}
 	return jobRepoInstance
-}
-
-func (js JobStatement) Query(destination interface{}) error {
-	return js.Statement.Query(js.db, destination)
 }
 
 func (j *JobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
@@ -68,4 +66,13 @@ func (j *JobRepository) GetNextJob() (*model.Job, error) {
 	}
 
 	return nil, nil
+}
+
+func (j *JobRepository) UpdateJobStatus(model *model.Job) error {
+	model.Modified = time.Now()
+	if _, err := j.updateJobStatusStatement(model).Exec(); err != nil {
+		return errs.BuildError(err, "could not update job %v status to %v", model.ID, model.Status)
+	}
+
+	return nil
 }
