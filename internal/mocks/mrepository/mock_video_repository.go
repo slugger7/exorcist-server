@@ -27,3 +27,13 @@ func (m *MockVideoRepo) GetByLibraryPathId(id uuid.UUID) ([]model.Video, error) 
 	stack := incStack()
 	return m.MockModels[stack], m.MockError[stack]
 }
+
+func (m *MockVideoRepo) UpdateVideoExists(video model.Video) error {
+	stack := incStack()
+	return m.MockError[stack]
+}
+
+func (m *MockVideoRepo) Insert(models []model.Video) error {
+	stack := incStack()
+	return m.MockError[stack]
+}

@@ -59,7 +59,7 @@ func Test_MarkVideoAsNotExistingStatement(t *testing.T) {
 		Exists: false,
 	}
 
-	actual, _ := ds.UpdateVideoExistsStatement(video).Sql()
+	actual, _ := ds.updateVideoExistsStatement(video).Sql()
 
 	expected := `
 UPDATE public.video
@@ -91,7 +91,7 @@ WHERE (video.library_path_id = $1) AND video.exists IS TRUE;
 
 func Test_InsertVideosStatement_WithNoVideos_ShouldReturnNil(t *testing.T) {
 	videos := []model.Video{}
-	actual := ds.InsertVideosStatement(videos)
+	actual := ds.insertStatement(videos)
 
 	if actual != nil {
 		t.Errorf("Expected actual to be nil. Acutal: %v", actual)
@@ -114,7 +114,7 @@ func Test_InsertVideosStatement_WithVideos_ShouldReturnStatement(t *testing.T) {
 		Size:          80085,
 	}
 	videos := []model.Video{video}
-	actual, _ := ds.InsertVideosStatement(videos).Sql()
+	actual, _ := ds.insertStatement(videos).Sql()
 
 	expected :=
 		`

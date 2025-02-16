@@ -20,7 +20,7 @@ func (jb *JobRepository) createAllStatement(jobs []model.Job) JobStatement {
 func (jb *JobRepository) getNextJobStatement() JobStatement {
 	statement := table.Job.SELECT(table.Job.AllColumns).
 		FROM(table.Job).
-		WHERE(table.Job.Status.EQ(postgres.String(model.JobStatusEnum_NotStarted.String()))).
+		WHERE(table.Job.Status.EQ(postgres.NewEnumValue(string(model.JobStatusEnum_NotStarted)))).
 		ORDER_BY(table.Job.Created.ASC()).
 		LIMIT(1)
 

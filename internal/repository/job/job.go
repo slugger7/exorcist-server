@@ -59,10 +59,13 @@ func (j *JobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
 }
 
 func (j *JobRepository) GetNextJob() (*model.Job, error) {
-	var job struct{ model.Job }
+	var job []struct{ model.Job }
 	if err := j.getNextJobStatement().Query(&job); err != nil {
 		return nil, errs.BuildError(err, "could not get next job")
 	}
+	if len(job) == 1 {
+		return &job[len(job)-1].Job, nil
+	}
 
-	return &job.Job, nil
+	return nil, nil
 }

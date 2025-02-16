@@ -12,6 +12,8 @@ import (
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
+	UpdateVideoExists(video model.Video) error
+	Insert(models []model.Video) error
 }
 
 type VideoRepository struct {
@@ -48,4 +50,24 @@ func (ds *VideoRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Video, erro
 	}
 
 	return vidModels, nil
+}
+
+func (i *VideoRepository) UpdateVideoExists(v model.Video) error {
+	_, err := i.updateVideoExistsStatement(v).Exec()
+	if err != nil {
+		return errs.BuildError(err, "could not update video exists: %v", v.ID)
+	}
+	return nil
+}
+
+func (ds *VideoRepository) Insert(models []model.Video) error {
+	if len(models) == 0 {
+		return nil
+	}
+
+	if _, err := ds.insertStatement(models).Exec(); err != nil {
+		return errs.BuildError(err, "could not insert video models to database")
+	}
+
+	return nil
 }

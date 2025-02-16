@@ -58,15 +58,22 @@ func (jr *JobRunner) loop() {
 			}
 
 			jr.logger.Info("Checking for jobs")
-			job, err := jr.repo.Job().GetNextJob()
-			if err != nil {
-				jr.logger.Errorf("Could not get the next job: %v", err)
-			}
-			switch job.JobType {
-			case model.JobTypeEnum_ScanPath:
-				jr.ScanPath(job)
-			default:
-				jr.logger.Errorf("Job of type %v is not implemented", job.JobType)
+			for {
+				job, err := jr.repo.Job().GetNextJob()
+				if err != nil {
+					jr.logger.Errorf("Could not get the next job: %v", err)
+				}
+				if job == nil {
+					jr.logger.Info("No jobs to run. Waiting for next signal")
+					break
+				}
+
+				switch job.JobType {
+				case model.JobTypeEnum_ScanPath:
+					jr.ScanPath(job)
+				default:
+					jr.logger.Errorf("Job of type %v is not implemented", job.JobType)
+				}
 			}
 		}
 	}

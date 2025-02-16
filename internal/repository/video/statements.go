@@ -44,7 +44,7 @@ func (ds *VideoRepository) UpdateVideoChecksum(video model.Video) *VideoStatemen
 	return &VideoStatement{statement, ds.db}
 }
 
-func (ds *VideoRepository) UpdateVideoExistsStatement(video model.Video) *VideoStatement {
+func (ds *VideoRepository) updateVideoExistsStatement(video model.Video) *VideoStatement {
 	statement := table.Video.UPDATE().
 		SET(table.Video.Exists.SET(postgres.Bool(video.Exists))).
 		MODEL(video).
@@ -67,7 +67,7 @@ func (ds *VideoRepository) getByLibraryPathIdStatement(libraryPathId uuid.UUID) 
 	return &VideoStatement{statement, ds.db}
 }
 
-func (ds *VideoRepository) InsertVideosStatement(videos []model.Video) *VideoStatement {
+func (ds *VideoRepository) insertStatement(videos []model.Video) *VideoStatement {
 	if len(videos) == 0 {
 		return nil
 	}
