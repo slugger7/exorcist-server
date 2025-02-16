@@ -28,13 +28,13 @@ type Service struct {
 
 var serviceInstance *Service
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) IService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool) IService {
 	if serviceInstance == nil {
 		serviceInstance = &Service{
 			env:         env,
 			logger:      logger.New(env),
 			user:        userService.New(repo, env),
-			library:     libraryService.New(repo, env),
+			library:     libraryService.New(repo, env, jobCh),
 			libraryPath: libraryPathService.New(repo, env),
 			video:       videoService.New(repo, env),
 		}

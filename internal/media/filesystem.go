@@ -79,13 +79,13 @@ func GetFilesByExtensions(root string, extensions []string) (ret []File, reterr 
 	return ret, reterr
 }
 
-func FindNonExistentVideos(existingVideos []struct{ model.Video }, files []File) []model.Video {
+func FindNonExistentVideos(existingVideos []model.Video, files []File) []model.Video {
 	nonExsistentVideos := []model.Video{}
 	for _, v := range existingVideos {
 		if !slices.ContainsFunc(files, func(mediaFile File) bool {
 			return mediaFile.RelativePath == v.RelativePath
 		}) {
-			nonExsistentVideos = append(nonExsistentVideos, v.Video)
+			nonExsistentVideos = append(nonExsistentVideos, v)
 		}
 	}
 	return nonExsistentVideos

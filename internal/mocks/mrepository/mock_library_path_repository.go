@@ -31,3 +31,8 @@ func (mlp *MockLibraryPathRepo) GetByLibraryId(libraryId uuid.UUID) ([]model.Lib
 	stack := incStack()
 	return mlp.MockModels[stack], mlp.MockError[stack]
 }
+
+func (mlp *MockLibraryPathRepo) GetById(id uuid.UUID) (*model.LibraryPath, error) {
+	stack := incStack()
+	return mlp.MockModel[stack], mlp.MockError[stack]
+}

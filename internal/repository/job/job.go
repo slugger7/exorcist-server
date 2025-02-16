@@ -2,6 +2,7 @@ package jobRepository
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -16,6 +17,8 @@ type JobStatement struct {
 
 type IJobRepository interface {
 	CreateAll(jobs []model.Job) ([]model.Job, error)
+	GetNextJob() (*model.Job, error)
+	UpdateJobStatus(model *model.Job) error
 }
 
 type JobRepository struct {
@@ -36,10 +39,6 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IJobRepository {
 	return jobRepoInstance
 }
 
-func (js JobStatement) Query(destination interface{}) error {
-	return js.Statement.Query(js.db, destination)
-}
-
 func (j *JobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
 	if len(jobs) == 0 {
 		return jobs, nil
@@ -55,4 +54,25 @@ func (j *JobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
 	}
 
 	return jobModels, nil
+}
+
+func (j *JobRepository) GetNextJob() (*model.Job, error) {
+	var job []struct{ model.Job }
+	if err := j.getNextJobStatement().Query(&job); err != nil {
+		return nil, errs.BuildError(err, "could not get next job")
+	}
+	if len(job) == 1 {
+		return &job[len(job)-1].Job, nil
+	}
+
+	return nil, nil
+}
+
+func (j *JobRepository) UpdateJobStatus(model *model.Job) error {
+	model.Modified = time.Now()
+	if _, err := j.updateJobStatusStatement(model).Exec(); err != nil {
+		return errs.BuildError(err, "could not update job %v status to %v", model.ID, model.Status)
+	}
+
+	return nil
 }

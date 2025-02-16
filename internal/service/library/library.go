@@ -22,16 +22,18 @@ type LibraryService struct {
 	Env    *environment.EnvironmentVariables
 	repo   repository.IRepository
 	logger logger.ILogger
+	jobCh  chan bool
 }
 
 var libraryServiceInstance *LibraryService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILibraryService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool) ILibraryService {
 	if libraryServiceInstance == nil {
 		libraryServiceInstance = &LibraryService{
 			Env:    env,
 			repo:   repo,
 			logger: logger.New(env),
+			jobCh:  jobCh,
 		}
 
 		libraryServiceInstance.logger.Info("LibraryService instance created")
@@ -114,7 +116,7 @@ func (i *LibraryService) actionScan(library *model.Library) error {
 	jobs := []model.Job{}
 
 	for _, l := range libraryPaths {
-		data := fmt.Sprintf(`{"libraryId": "%v"}`, l.ID)
+		data := fmt.Sprintf(`{"libraryPathId": "%v"}`, l.ID) // TODO: marshal an actual value here instead
 		job := model.Job{
 			JobType: model.JobTypeEnum_ScanPath,
 			Status:  model.JobStatusEnum_NotStarted,
@@ -128,5 +130,11 @@ func (i *LibraryService) actionScan(library *model.Library) error {
 		return errs.BuildError(err, ErrCreatingJobs)
 	}
 
+	go i.startScanPathJob()
+
 	return nil
+}
+
+func (i *LibraryService) startScanPathJob() {
+	i.jobCh <- true
 }

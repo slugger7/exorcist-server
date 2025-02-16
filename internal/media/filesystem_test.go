@@ -85,7 +85,7 @@ func Test_GetRelativePath_WithFileBeingInASubfolder_ShouldReturnPathToSubfolder(
 }
 
 func Test_FindNonExistentVideos_WithTwoEmptySlices_ShouldReturnEmptySlice(t *testing.T) {
-	existingVideos := []struct{ model.Video }{}
+	existingVideos := []model.Video{}
 	files := []File{}
 
 	nonExistentVideos := FindNonExistentVideos(existingVideos, files)
@@ -96,10 +96,10 @@ func Test_FindNonExistentVideos_WithTwoEmptySlices_ShouldReturnEmptySlice(t *tes
 }
 
 func Test_FindNonExistentVideos_WithTwoSlicesThatHaveNoDifference_ShouldReturnEmptySlice(t *testing.T) {
-	existingVideos := []struct{ model.Video }{
-		{model.Video{
+	existingVideos := []model.Video{
+		{
 			RelativePath: "some relative path",
-		}},
+		},
 	}
 	files := []File{
 		{
@@ -115,10 +115,10 @@ func Test_FindNonExistentVideos_WithTwoSlicesThatHaveNoDifference_ShouldReturnEm
 }
 
 func Test_FindNonExistentVideos_WithAllTheFilesExistingAndExtraFiles_ShouldReturnEmptySlice(t *testing.T) {
-	existingVideos := []struct{ model.Video }{
-		{model.Video{
+	existingVideos := []model.Video{
+		{
 			RelativePath: "some relative path",
-		}},
+		},
 	}
 	files := []File{
 		{
@@ -137,10 +137,10 @@ func Test_FindNonExistentVideos_WithAllTheFilesExistingAndExtraFiles_ShouldRetur
 }
 
 func Test_FindNonExistentVideos_WithAVideoThatDoesNotExist_ShouldReturnASliceContainingVideo(t *testing.T) {
-	existingVideos := []struct{ model.Video }{
-		{model.Video{
+	existingVideos := []model.Video{
+		{
 			RelativePath: "some relative path",
-		}},
+		},
 	}
 	files := []File{
 		{

@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
   "path": "./",
-  "libraryId": "7755d759-d0f6-4928-b8e7-5a1f13d39d88"
+  "libraryId": "e5060115-d8d2-4330-8092-549f1a617756"
 }
 
 ### Get all library paths

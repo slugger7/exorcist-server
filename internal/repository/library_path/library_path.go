@@ -13,6 +13,7 @@ import (
 type ILibraryPathRepository interface {
 	Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error)
 	GetAll() ([]model.LibraryPath, error)
+	GetById(id uuid.UUID) (*model.LibraryPath, error)
 	GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error)
 }
 
@@ -76,4 +77,17 @@ func (lps *LibraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]model.L
 	}
 
 	return libPathModels, nil
+}
+
+func (lps *LibraryPathRepository) GetById(id uuid.UUID) (*model.LibraryPath, error) {
+	var libraryPaths []struct{ model.LibraryPath }
+	if err := lps.getByIdStatement(id).Query(&libraryPaths); err != nil {
+		return nil, errs.BuildError(err, "could not get library path by id: %v", id)
+	}
+
+	if len(libraryPaths) != 1 {
+		return nil, nil
+	}
+
+	return &libraryPaths[len(libraryPaths)-1].LibraryPath, nil
 }

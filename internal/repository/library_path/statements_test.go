@@ -44,3 +44,14 @@ func Test_GetByLibraryId(t *testing.T) {
 		t.Errorf("Expected sql: %v\nGot sql: %v", expectedSql, sql)
 	}
 }
+
+func Test_GetById(t *testing.T) {
+	id, _ := uuid.NewRandom()
+
+	sql, _ := ds.getByIdStatement(id).Sql()
+
+	expectedSql := "\nSELECT library_path.id AS \"library_path.id\",\n     library_path.library_id AS \"library_path.library_id\",\n     library_path.path AS \"library_path.path\",\n     library_path.created AS \"library_path.created\",\n     library_path.modified AS \"library_path.modified\"\nFROM public.library_path\nWHERE library_path.id = $1\nLIMIT $2;\n"
+	if sql != expectedSql {
+		t.Errorf("Expected sql: %v\nGot sql: %v", expectedSql, sql)
+	}
+}

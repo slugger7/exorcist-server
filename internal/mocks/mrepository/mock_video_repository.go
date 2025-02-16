@@ -1,6 +1,7 @@
 package mrepository
 
 import (
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/mocks"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
@@ -20,4 +21,19 @@ func (mr *MockRepository) Video() videoRepository.IVideoRepository {
 func (m *MockVideoRepo) GetAll() ([]model.Video, error) {
 	stack := incStack()
 	return m.MockModels[stack], m.MockError[stack]
+}
+
+func (m *MockVideoRepo) GetByLibraryPathId(id uuid.UUID) ([]model.Video, error) {
+	stack := incStack()
+	return m.MockModels[stack], m.MockError[stack]
+}
+
+func (m *MockVideoRepo) UpdateVideoExists(video model.Video) error {
+	stack := incStack()
+	return m.MockError[stack]
+}
+
+func (m *MockVideoRepo) Insert(models []model.Video) error {
+	stack := incStack()
+	return m.MockError[stack]
 }

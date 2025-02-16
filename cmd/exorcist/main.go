@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 	"github.com/slugger7/exorcist/internal/server"
 )
 
-func gracefulShutdown(apiServer *http.Server, done chan bool) {
+func gracefulShutdown(apiServer *http.Server, done chan bool, wg *sync.WaitGroup) {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -29,6 +30,9 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 		log.Printf("Server forced to shutdown with error: %v", err)
 	}
 
+	log.Println("Waiting for job runner to finish")
+	wg.Wait()
+
 	log.Println("Server exiting")
 
 	done <- true
@@ -39,11 +43,12 @@ func main() {
 	errs.PanicError(err)
 	env := environment.GetEnvironmentVariables()
 
-	server := server.NewServer(env)
+	var wg sync.WaitGroup
+	server := server.NewServer(env, &wg)
 
 	done := make(chan bool, 1)
 
-	go gracefulShutdown(server, done)
+	go gracefulShutdown(server, done, &wg)
 
 	err = server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {

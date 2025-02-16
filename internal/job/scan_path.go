@@ -1,190 +1,150 @@
 package job
 
-// TODO: rewrite.
-// currently broken due to service changes. It was a poc in anyway
-// import (
-// 	"log"
-// 	"slices"
-// 	"strconv"
-// 	"sync"
+import (
+	"encoding/json"
+	"slices"
+	"strconv"
 
-// 	"github.com/google/uuid"
-// 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-// 	"github.com/slugger7/exorcist/internal/environment"
-// 	errs "github.com/slugger7/exorcist/internal/errors"
-// 	ff "github.com/slugger7/exorcist/internal/ffmpeg"
-// 	"github.com/slugger7/exorcist/internal/media"
-// 	"github.com/slugger7/exorcist/internal/repository"
-// )
+	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/ffmpeg"
+	"github.com/slugger7/exorcist/internal/media"
+)
 
-// func getFilesByExtensionAsync(path string, extensions []string, ch chan []media.File, wg *sync.WaitGroup) {
-// 	log.Println("Fetching files async")
-// 	defer wg.Done()
+var extensions = [...]string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"}
 
-// 	values, err := media.GetFilesByExtensions(path, extensions)
-// 	errs.PanicError(err)
-// 	ch <- values
-// }
+const batchSize = 100
 
-// func ScanPath(repo repository.IRepository) {
-// 	env := environment.GetEnvironmentVariables()
-// 	mediaFilesChannel := make(chan []media.File)
-// 	var wg sync.WaitGroup
-// 	wg.Add(1)
-// 	go getFilesByExtensionAsync(
-// 		env.MediaPath,
-// 		[]string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"},
-// 		mediaFilesChannel,
-// 		&wg,
-// 	)
+func (jr *JobRunner) getFilesByExtension(path string, extensions []string, ch chan []media.File) {
+	values, err := media.GetFilesByExtensions(path, extensions)
+	if err != nil {
+		jr.logger.Errorf("could not get files by extension: %v", err)
+		ch <- nil
+	}
+	ch <- values
+}
 
-// 	libraryPath := getOrCreateLibraryPath(repo, env.MediaPath)
-// 	log.Printf("Library path id %v\n", libraryPath.ID)
+type ScanPathData struct {
+	LibraryPathId uuid.UUID `json:"libraryPathId"`
+}
 
-// 	existingVideos := getVideosInLibraryPath(repo, libraryPath.ID)
+func (jr *JobRunner) ScanPath(job *model.Job) error {
+	var data ScanPathData
+	if err := json.Unmarshal([]byte(*job.Data), &data); err != nil {
+		return errs.BuildError(err, "could not unmarshal scan path job data: %v", err)
+	}
 
-// 	log.Printf("Existing video count %v\n", len(existingVideos))
+	libPath, err := jr.repo.LibraryPath().GetById(data.LibraryPathId)
+	if err != nil {
+		return errs.BuildError(err, "could not get library by id: %v", data.LibraryPathId)
+	}
 
-// 	values := <-mediaFilesChannel
-// 	wg.Wait()
+	mediaChan := make(chan []media.File)
 
-// 	nonExsistentVideos := media.FindNonExistentVideos(existingVideos, values)
-// 	if len(nonExsistentVideos) > 0 {
-// 		removeVideos(repo, nonExsistentVideos)
-// 	}
+	go jr.getFilesByExtension(libPath.Path, extensions[:], mediaChan)
 
-// 	log.Println("Printing out results")
-// 	videoModels := []model.Video{}
-// 	for i, v := range values {
-// 		printPercentage(i, len(values))
-// 		relativePath := media.GetRelativePath(libraryPath.Path, v.Path)
+	existingVideos, err := jr.repo.Video().GetByLibraryPathId(libPath.ID)
+	if err != nil {
+		return errs.BuildError(err, "could not get existing videos for library path: %v", libPath.ID)
+	}
 
-// 		if videoExsists(existingVideos, relativePath) {
-// 			continue
-// 		}
+	videosOnDisk := <-mediaChan
 
-// 		data, err := ff.UnmarshalledProbe(v.Path)
-// 		if err != nil {
-// 			log.Printf("Unmarshaling failed for %v\nThe error was %v", v.Path, err.Error())
-// 			continue
-// 		}
+	nonExistentVideos := media.FindNonExistentVideos(existingVideos, videosOnDisk)
+	if len(nonExistentVideos) > 0 {
+		jr.removeVideos(nonExistentVideos)
+	}
 
-// 		width, height, err := ff.GetDimensions(data.Streams)
-// 		if err != nil {
-// 			log.Printf("Colud not extract dimensions. Setting to 0 %v\n", err.Error())
-// 		}
+	accErrs := []error{}
+	videoModels := []model.Video{}
+	for i, v := range videosOnDisk {
+		relativePath := media.GetRelativePath(libPath.Path, v.Path)
 
-// 		runtime, err := strconv.ParseFloat(data.Format.Duration, 32)
-// 		if err != nil {
-// 			log.Printf("Could not convert duration from string (%v) to float for video %v. Setting runtime to 0\n", data.Format.Duration, v)
-// 			runtime = 0
-// 		}
-// 		size, err := strconv.Atoi(data.Format.Size)
-// 		if err != nil {
-// 			log.Printf("Could not convert size from string (%v) to int for video %v. Setting size to 0\n", data.Format.Size, v)
-// 			size = 0
-// 		}
+		if videoExsists(existingVideos, relativePath) {
+			continue
+		}
 
-// 		videoModels = append(videoModels, model.Video{
-// 			LibraryPathID: libraryPath.ID,
-// 			RelativePath:  relativePath,
-// 			Title:         v.Name,
-// 			FileName:      v.FileName,
-// 			Height:        int32(height),
-// 			Width:         int32(width),
-// 			Runtime:       int64(runtime), // FIXME: this value is off by a factor and needs fixing
-// 			Size:          int64(size),
-// 			Checksum:      nil,
-// 		})
+		data, err := ffmpeg.UnmarshalledProbe(v.Path)
+		if err != nil {
+			accErrs = append(accErrs, errs.BuildError(err, "could not get unmarshalled probe data: %v", v.Path))
+			continue
+		}
 
-// 		if i%5 == 0 {
-// 			writeModelsTodbBatch(repo, videoModels)
+		width, height, err := ffmpeg.GetDimensions(data.Streams)
+		if err != nil {
+			jr.logger.Warningf("could not extract dimensions for %v. Setting to 0. Reason: %v", v.Path, err)
+		}
 
-// 			videoModels = []model.Video{}
-// 		}
-// 	}
+		runtime, err := strconv.ParseFloat(data.Format.Duration, 32)
+		if err != nil {
+			jr.logger.Warningf("could not convert duration from string (%v) to float for video %v. Setting runtime to 0. Reason: %v", data.Format.Duration, v.Path, err)
+		}
 
-// 	writeModelsTodbBatch(repo, videoModels)
+		size, err := strconv.Atoi(data.Format.Size)
+		if err != nil {
+			jr.logger.Warningf("could not convert size from string (%v) to int for video %v. Setting to 0. Reason: %v", data.Format.Size, v.Path, err)
+		}
 
-// 	GenerateChecksums(repo)
-// }
+		videoModels = append(videoModels, model.Video{
+			LibraryPathID: libPath.ID,
+			RelativePath:  relativePath,
+			Title:         v.Name,
+			FileName:      v.FileName,
+			Height:        int32(height),
+			Width:         int32(width),
+			Runtime:       int64(runtime), // FIXME: this value is off by a factor and needs fixing
+			Size:          int64(size),
+		})
 
-// func removeVideos(repo repository.IRepository, nonExistentVideos []model.Video) {
-// 	for _, v := range nonExistentVideos {
-// 		v.Exists = false
-// 		_, err := repo.VideoRepo().UpdateVideoExistsStatement(v).Exec()
-// 		if err != nil {
-// 			log.Printf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
-// 		}
-// 	}
-// }
+		if i%batchSize == 0 {
+			if err := jr.writeNewVideoBatch(videoModels); err != nil {
+				jr.logger.Errorf("Error wirting batch %v to database: %v", int(i/batchSize), err)
+			}
 
-// func videoExsists(existingVideos []struct{ model.Video }, relativePath string) bool {
-// 	return slices.ContainsFunc(existingVideos, func(existingVideo struct{ model.Video }) bool {
-// 		return existingVideo.RelativePath == relativePath
-// 	})
-// }
+			videoModels = []model.Video{}
+		}
+	}
 
-// func getVideosInLibraryPath(repo repository.IRepository, libraryPathId uuid.UUID) []struct{ model.Video } {
-// 	var videos []struct {
-// 		model.Video
-// 	}
-// 	err := repo.VideoRepo().
-// 		GetVideosInLibraryPath(libraryPathId).
-// 		Query(&videos)
-// 	errs.PanicError(err)
+	if err := jr.writeNewVideoBatch(videoModels); err != nil {
+		jr.logger.Errorf("Error writing last batch of videos to database: %v", err)
+	}
 
-// 	return videos
-// }
+	// generate checksum jobs
 
-// func writeModelsTodbBatch(repo repository.IRepository, models []model.Video) {
-// 	if len(models) == 0 {
-// 		return
-// 	}
-// 	log.Println("Writing batch")
+	job.Status = model.JobStatusEnum_Completed
+	if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
+		return errs.BuildError(err, "could not update job status to %v", job.Status)
+	}
 
-// 	_, err := repo.VideoRepo().InsertVideosStatement(models).Exec()
-// 	if err != nil {
-// 		log.Printf("Error inserting new videos: %v", err)
-// 	}
-// }
+	return nil
+}
 
-// func printPercentage(index, total int) {
-// 	log.Printf("Index: %v Total: %v Progress: %v%%\n", index, total, int(float64(index)/float64(total)*100.0))
-// }
+func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
+	if len(models) == 0 {
+		return nil
+	}
 
-// func getOrCreateLibraryPath(repo repository.IRepository, path string) (libraryPath model.LibraryPath) {
-// 	var libraryPaths []struct {
-// 		model.LibraryPath
-// 	}
-// 	err := repo.LibraryPathRepo().GetLibraryPathsSelect().
-// 		Query(&libraryPaths)
-// 	if err == nil && libraryPaths != nil && len(libraryPaths) > 0 {
-// 		libraryPath = libraryPaths[len(libraryPaths)-1].LibraryPath
-// 	} else {
-// 		if err != nil {
-// 			log.Printf("An error occurred while looking for a library path %v", err.Error())
-// 		}
-// 		log.Println("Could not find a library path. Creating one")
-// 		libraryPath = createLibWithPath(repo, path)
-// 	}
+	jr.logger.Debug("Writing batch")
 
-// 	return libraryPath
-// }
+	if err := jr.repo.Video().Insert(models); err != nil {
+		return errs.BuildError(err, "error writing batch of models to db")
+	}
+	return nil
+}
 
-// func createLibWithPath(repo repository.IRepository, path string) model.LibraryPath {
+func (jr *JobRunner) removeVideos(nonExistentVideos []model.Video) {
+	for _, v := range nonExistentVideos {
+		v.Exists = false
+		err := jr.repo.Video().UpdateVideoExists(v)
+		if err != nil {
+			jr.logger.Errorf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
+		}
+	}
+}
 
-// 	library, err := repo.LibraryRepo().
-// 		CreateLibrary("New Lib")
-// 	errs.PanicError(err)
-
-// 	var libraryPaths []struct {
-// 		model.LibraryPath
-// 	}
-// 	err = repo.LibraryPathRepo().
-// 		CreateLibraryPath(library.ID, path).
-// 		Query(&libraryPaths)
-// 	errs.PanicError(err)
-
-// 	return libraryPaths[len(libraryPaths)-1].LibraryPath
-// }
+func videoExsists(existingVideos []model.Video, relativePath string) bool {
+	return slices.ContainsFunc(existingVideos, func(existingVideo model.Video) bool {
+		return existingVideo.RelativePath == relativePath
+	})
+}
