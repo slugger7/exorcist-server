@@ -10,4 +10,4 @@ Content-Type: application/json
 GET {{host}}:{{port}}/api/libraries
 
 ### Scan library
-GET {{host}}:{{port}}/api/libraries/e5060115-d8d2-4330-8092-549f1a617756/scan
+GET {{host}}:{{port}}/api/libraries/4267107e-15b1-4e0f-8bd7-6ba62c67a77c/scan

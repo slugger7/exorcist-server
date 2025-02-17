@@ -110,7 +110,7 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		jr.logger.Errorf("Error writing last batch of videos to database: %v", err)
 	}
 
-	// generate checksum jobs
+	// TODO: generate checksum jobs
 
 	job.Status = model.JobStatusEnum_Completed
 	if err := jr.repo.Job().UpdateJobStatus(job); err != nil {

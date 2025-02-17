@@ -37,3 +37,8 @@ func (m *MockVideoRepo) Insert(models []model.Video) error {
 	stack := incStack()
 	return m.MockError[stack]
 }
+
+func (m *MockVideoRepo) GetById(id uuid.UUID) (*model.Video, error) {
+	stack := incStack()
+	return m.MockModel[stack], m.MockError[stack]
+}

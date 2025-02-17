@@ -1,6 +1,7 @@
 package videoService
 
 import (
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -10,6 +11,7 @@ import (
 
 type IVideoService interface {
 	GetAll() ([]model.Video, error)
+	GetById(id uuid.UUID) (*model.Video, error)
 }
 
 type VideoService struct {
@@ -20,7 +22,7 @@ type VideoService struct {
 
 var videoServiceInstance *VideoService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) *VideoService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables) IVideoService {
 	if videoServiceInstance == nil {
 		videoServiceInstance = &VideoService{
 			Env:    env,
@@ -42,4 +44,15 @@ func (vs *VideoService) GetAll() ([]model.Video, error) {
 	}
 
 	return vids, nil
+}
+
+const ErrVideoById = "error getting video by id %v"
+
+func (vs *VideoService) GetById(id uuid.UUID) (*model.Video, error) {
+	video, err := vs.repo.Video().GetById(id)
+	if err != nil {
+		return nil, errs.BuildError(err, ErrVideoById, id)
+	}
+
+	return video, nil
 }
