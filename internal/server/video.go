@@ -66,5 +66,5 @@ func (s *Server) GetVideo(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, video)
+	c.File("./" + video.RelativePath)
 }

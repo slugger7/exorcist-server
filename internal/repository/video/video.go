@@ -13,7 +13,7 @@ import (
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
-	GetById(id uuid.UUID) (*model.Video, error)
+	GetById(id uuid.UUID) (*model.Video, error) // TODO: get with library path
 	UpdateVideoExists(video model.Video) error
 	Insert(models []model.Video) error
 }
