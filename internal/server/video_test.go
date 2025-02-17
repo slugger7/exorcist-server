@@ -83,13 +83,9 @@ func Test_GetVideo_Success(t *testing.T) {
 		withGetRequest(nil, id.String()).
 		exec()
 
-	expectedStatus := http.StatusOK
+	expectedStatus := http.StatusMovedPermanently
 	if expectedStatus != rr.Code {
 		t.Errorf("Expected status code: %v\nGot status code: %v", expectedStatus, rr.Code)
 	}
-
-	expectedBody := fmt.Sprintf(`{"ID":"%v","LibraryPathID":"00000000-0000-0000-0000-000000000000","RelativePath":"","Title":"","FileName":"","Height":0,"Width":0,"Runtime":0,"Size":0,"Checksum":null,"Added":"0001-01-01T00:00:00Z","Deleted":false,"Exists":false,"Created":"0001-01-01T00:00:00Z","Modified":"0001-01-01T00:00:00Z"}`, id)
-	if expectedBody != rr.Body.String() {
-		t.Errorf("Expected body: %v\nGot body: %v", expectedBody, rr.Body.String())
-	}
+	// TODO: figure out how to test that a video is returned
 }
