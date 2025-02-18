@@ -23,16 +23,6 @@ func (vs *VideoStatement) Exec() (sql.Result, error) {
 	return vs.Statement.Exec(vs.db)
 }
 
-func (ds *VideoRepository) GetVideoWithoutChecksumStatement() *VideoStatement {
-	selectStatement := table.Video.SELECT(table.Video.ID, table.Video.Checksum, table.Video.RelativePath, table.LibraryPath.Path).
-		FROM(table.Video.INNER_JOIN(table.LibraryPath, table.LibraryPath.ID.EQ(table.Video.LibraryPathID))).
-		WHERE(table.Video.Checksum.IS_NULL())
-
-	util.DebugCheck(ds.Env, selectStatement)
-
-	return &VideoStatement{selectStatement, ds.db}
-}
-
 func (ds *VideoRepository) UpdateVideoChecksum(video model.Video) *VideoStatement {
 	statement := table.Video.UPDATE().
 		SET(table.Video.Checksum.SET(postgres.String(*video.Checksum))).
@@ -81,7 +71,8 @@ func (ds *VideoRepository) insertStatement(videos []model.Video) *VideoStatement
 		table.Video.Runtime,
 		table.Video.Size,
 	).
-		MODELS(videos)
+		MODELS(videos).
+		RETURNING(table.Video.ID)
 
 	util.DebugCheck(ds.Env, statement)
 

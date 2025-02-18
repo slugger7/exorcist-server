@@ -14,15 +14,6 @@ var ds = &VideoRepository{
 	Env: &environment.EnvironmentVariables{DebugSql: false},
 }
 
-func Test_GetVideoWithoutChecksumStatement(t *testing.T) {
-	actual, _ := ds.GetVideoWithoutChecksumStatement().Sql()
-
-	expected := "\nSELECT video.id AS \"video.id\",\n     video.checksum AS \"video.checksum\",\n     video.relative_path AS \"video.relative_path\",\n     library_path.path AS \"library_path.path\"\nFROM public.video\n     INNER JOIN public.library_path ON (library_path.id = video.library_path_id)\nWHERE video.checksum IS NULL;\n"
-	if actual != expected {
-		t.Errorf("Expected %v but got %v", expected, actual)
-	}
-}
-
 func Test_UpdateVideoChecksum(t *testing.T) {
 	newUuid, err := uuid.NewRandom()
 	if err != nil {
@@ -119,7 +110,8 @@ func Test_InsertVideosStatement_WithVideos_ShouldReturnStatement(t *testing.T) {
 	expected :=
 		`
 INSERT INTO public.video (library_path_id, relative_path, title, file_name, height, width, runtime, size)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING video.id AS "video.id";
 `
 	if actual != expected {
 		t.Errorf("Expected \n%v got \n%v", expected, actual)
