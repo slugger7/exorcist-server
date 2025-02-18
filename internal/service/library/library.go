@@ -1,6 +1,8 @@
 package libraryService
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
@@ -114,15 +117,26 @@ func (i *LibraryService) actionScan(library *model.Library) error {
 	}
 
 	jobs := []model.Job{}
-
+	erro := []error{}
 	for _, l := range libraryPaths {
-		data := fmt.Sprintf(`{"libraryPathId": "%v"}`, l.ID) // TODO: marshal an actual value here instead
+		data, err := json.Marshal(models.ScanPathData{
+			LibraryPathId: l.ID,
+		})
+		if err != nil {
+			erro = append(erro, errs.BuildError(err, "could not marshal data for scan job"))
+			continue
+		}
+		strData := string(data)
 		job := model.Job{
 			JobType: model.JobTypeEnum_ScanPath,
 			Status:  model.JobStatusEnum_NotStarted,
-			Data:    &data,
+			Data:    &strData,
 		}
 		jobs = append(jobs, job)
+	}
+
+	if len(erro) != 0 {
+		i.logger.Warningf("encountered some errors while creating scan path jobs: %v", errors.Join(erro...).Error())
 	}
 
 	jobs, err = i.repo.Job().CreateAll(jobs)
@@ -135,6 +149,7 @@ func (i *LibraryService) actionScan(library *model.Library) error {
 	return nil
 }
 
+// We do this at the moment to stack a signal to the job runner if it is already running
 func (i *LibraryService) startScanPathJob() {
 	i.jobCh <- true
 }

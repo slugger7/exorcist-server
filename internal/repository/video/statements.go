@@ -23,9 +23,12 @@ func (vs *VideoStatement) Exec() (sql.Result, error) {
 	return vs.Statement.Exec(vs.db)
 }
 
-func (ds *VideoRepository) UpdateVideoChecksum(video model.Video) *VideoStatement {
+func (ds *VideoRepository) updateChecksumStatement(video model.Video) *VideoStatement {
 	statement := table.Video.UPDATE().
-		SET(table.Video.Checksum.SET(postgres.String(*video.Checksum))).
+		SET(
+			table.Video.Checksum.SET(postgres.String(*video.Checksum)),
+			table.Video.Modified.SET(postgres.TimestampT(video.Modified)),
+		).
 		MODEL(video).
 		WHERE(table.Video.ID.EQ(postgres.UUID(video.ID)))
 
@@ -36,7 +39,10 @@ func (ds *VideoRepository) UpdateVideoChecksum(video model.Video) *VideoStatemen
 
 func (ds *VideoRepository) updateVideoExistsStatement(video model.Video) *VideoStatement {
 	statement := table.Video.UPDATE().
-		SET(table.Video.Exists.SET(postgres.Bool(video.Exists))).
+		SET(
+			table.Video.Exists.SET(postgres.Bool(video.Exists)),
+			table.Video.Modified.SET(postgres.TimestampT(video.Modified)),
+		).
 		MODEL(video).
 		WHERE(table.Video.ID.EQ(postgres.UUID(video.ID)))
 
@@ -84,6 +90,18 @@ func (ds *VideoRepository) getByIdStatement(id uuid.UUID) *VideoStatement {
 		FROM(table.Video).
 		WHERE(table.Video.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
+
+	util.DebugCheck(ds.Env, statement)
+
+	return &VideoStatement{statement, ds.db}
+}
+
+func (ds *VideoRepository) getByIdWithLibraryPathStatement(id uuid.UUID) *VideoStatement {
+	statement := table.Video.SELECT(table.Video.AllColumns, table.LibraryPath.AllColumns).
+		FROM(table.Video.INNER_JOIN(table.LibraryPath, table.Video.LibraryPathID.EQ(table.LibraryPath.ID))).
+		WHERE(table.Video.ID.EQ(postgres.UUID(id)).
+			AND(table.Video.Deleted.IS_FALSE()).
+			AND(table.Video.Exists.IS_TRUE()))
 
 	util.DebugCheck(ds.Env, statement)
 
