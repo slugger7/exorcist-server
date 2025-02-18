@@ -1,32 +1,14 @@
 package job
 
-// func GenerateChecksums(repo repository.IRepository) {
-// 	var data []struct {
-// 		model.LibraryPath
-// 		model.Video
-// 	}
-// 	err := repo.Video().
-// 		GetVideoWithoutChecksumStatement().
-// 		Query(&data)
-// 	if err != nil {
-// 		log.Printf("Error while fetching a video without a checksum %v", err.Error())
-// 	}
+import (
+	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+)
 
-// 	for _, v := range data {
-// 		absolutePath := filepath.Join(v.LibraryPath.Path, v.Video.RelativePath)
-// 		log.Printf("Calculating checksum for %v", v.Video.RelativePath)
-// 		checksum, err := media.CalculateMD5(absolutePath)
-// 		if err != nil {
-// 			log.Printf("Could not calculate checksum for %v. Video ID %v", absolutePath, v.Video.ID)
-// 		}
+type GenerateChecksumData struct {
+	VideoId uuid.UUID `json:"videoId"`
+}
 
-// 		v.Video.Checksum = &checksum
-
-// 		_, err = repo.Video().UpdateVideoChecksum(v.Video).
-// 			Exec()
-// 		if err != nil {
-// 			log.Printf("Could not update the checksum of video (%v): %v", v.Video.ID, err)
-// 		}
-// 	}
-// 	log.Println("Completed checksum generation")
-// }
+func (jr *JobRunner) GenerateChecksum(job *model.Job) error {
+	panic("not implemented")
+}
