@@ -2,6 +2,7 @@ package job
 
 import (
 	"encoding/json"
+	"fmt"
 	"slices"
 	"strconv"
 
@@ -110,8 +111,6 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		jr.logger.Errorf("Error writing last batch of videos to database: %v", err)
 	}
 
-	// TODO: generate checksum jobs
-
 	job.Status = model.JobStatusEnum_Completed
 	if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 		return errs.BuildError(err, "could not update job status to %v", job.Status)
@@ -126,9 +125,24 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 	}
 
 	jr.logger.Debug("Writing batch")
-
-	if err := jr.repo.Video().Insert(models); err != nil {
+	vids, err := jr.repo.Video().Insert(models)
+	if err != nil {
 		return errs.BuildError(err, "error writing batch of models to db")
+	}
+
+	jobs := []model.Job{}
+	for _, v := range vids {
+		data := fmt.Sprintf(`{"videoId": "%v"}`, v.ID)
+		job := model.Job{
+			JobType: model.JobTypeEnum_GenerateChecksum,
+			Status:  model.JobStatusEnum_NotStarted,
+			Data:    &data,
+		}
+		jobs = append(jobs, job)
+	}
+
+	if _, err = jr.repo.Job().CreateAll(jobs); err != nil {
+		return errs.BuildError(err, "error creating checksum jobs")
 	}
 	return nil
 }
