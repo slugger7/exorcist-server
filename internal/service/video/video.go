@@ -7,11 +7,13 @@ import (
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
+	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
 type IVideoService interface {
 	GetAll() ([]model.Video, error)
 	GetById(id uuid.UUID) (*model.Video, error)
+	GetByIdWithLibraryPath(id uuid.UUID) (*videoRepository.VideoLibraryPathModel, error)
 }
 
 type VideoService struct {
@@ -55,4 +57,8 @@ func (vs *VideoService) GetById(id uuid.UUID) (*model.Video, error) {
 	}
 
 	return video, nil
+}
+
+func (vs *VideoService) GetByIdWithLibraryPath(id uuid.UUID) (*videoRepository.VideoLibraryPathModel, error) {
+	return vs.repo.Video().GetByIdWithLibraryPath(id)
 }
