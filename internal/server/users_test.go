@@ -8,11 +8,13 @@ import (
 	"testing"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	mock_userService "github.com/slugger7/exorcist/internal/mock/service/user"
+	userService "github.com/slugger7/exorcist/internal/service/user"
 )
 
 func Test_Create_InvalidBody(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	r.POST("/", s.server.CreateUser)
 
@@ -36,7 +38,7 @@ func Test_Create_InvalidBody(t *testing.T) {
 
 func Test_Create_ServiceReturnsError(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	expectedErrorMessage := "expected error"
 	s.mockService.User.MockError[0] = errors.New(expectedErrorMessage)
@@ -62,7 +64,7 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 
 func Test_Create_Success(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	expectedModel := &model.User{
 		Username: "expecedUsername",
@@ -88,4 +90,25 @@ func Test_Create_Success(t *testing.T) {
 	if body := rr.Body.String(); body != expectedBody {
 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
 	}
+}
+
+func (s *TestServer) withUserService() *TestServer {
+	us := mock_userService.NewMockIUserService(s.ctrl)
+
+	s.mockService.EXPECT().
+		User().
+		DoAndReturn(func() userService.IUserService {
+			return us
+		}).
+		AnyTimes()
+
+	s.mockUserService = us
+
+	return s
+}
+
+func Test_UpdatePassword_InvalidBody(t *testing.T) {
+	s := setupServer(t).
+		withUserService()
+
 }

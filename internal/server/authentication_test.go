@@ -13,7 +13,7 @@ import (
 
 func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	r.Use(s.server.AuthRequired)
 	r.GET("/", func(ctx *gin.Context) {
@@ -35,7 +35,7 @@ func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
 
 func Test_AuthRequiredMiddleware_Succeeds(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	r.Use(s.server.AuthRequired)
 	expectedStatusCode := http.StatusOK
@@ -62,7 +62,7 @@ func Test_AuthRequiredMiddleware_Succeeds(t *testing.T) {
 
 func Test_Login_InvalidBody(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	r.POST("/", s.server.Login)
 
@@ -86,7 +86,7 @@ func Test_Login_InvalidBody(t *testing.T) {
 
 func Test_Login_InvalidParametersInBody(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	r.POST("/", s.server.Login)
 
@@ -110,7 +110,7 @@ func Test_Login_InvalidParametersInBody(t *testing.T) {
 
 func Test_Login_NoUserFromValidateUser(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	r.POST("/", s.server.Login)
 
@@ -134,7 +134,7 @@ func Test_Login_NoUserFromValidateUser(t *testing.T) {
 
 func Test_Login_Success(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	id, err := uuid.NewRandom()
 	if err != nil {
@@ -173,7 +173,7 @@ func Test_Login_Success(t *testing.T) {
 
 func Test_Logout_InvalidSessionToken(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	r.GET("/", s.server.Logout)
 
@@ -197,7 +197,7 @@ func Test_Logout_InvalidSessionToken(t *testing.T) {
 
 func Test_Logout_Success(t *testing.T) {
 	r := setupEngine()
-	s := setupServer()
+	s := setupOldServer()
 
 	r.GET("/", s.server.Logout)
 

@@ -7,23 +7,36 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"testing"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/logger"
+	mock_service "github.com/slugger7/exorcist/internal/mock/service"
+	mock_userService "github.com/slugger7/exorcist/internal/mock/service/user"
 	"github.com/slugger7/exorcist/internal/mocks/mservice"
+	"go.uber.org/mock/gomock"
 )
 
 const SET_COOKIE_URL = "/set"
 const OK = "ok"
 
-type TestServer struct {
+type OldTestServer struct {
 	server      *Server
 	mockService *mservice.MockServices
 	engine      *gin.Engine
 	request     *http.Request
+}
+
+type TestServer struct {
+	server          *Server
+	mockService     *mock_service.MockIService
+	mockUserService *mock_userService.MockIUserService
+	ctrl            *gomock.Controller
+	engine          *gin.Engine
+	request         *http.Request
 }
 
 func setupEngine() *gin.Engine {
@@ -46,39 +59,49 @@ func setupEngine() *gin.Engine {
 	return r
 }
 
-func (s *TestServer) withGetEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
+func (s *OldTestServer) withGetEndpoint(f gin.HandlerFunc, extraPathParams string) *OldTestServer {
 	s.engine.GET(fmt.Sprintf("/%v", extraPathParams), f)
 	return s
 }
 
-func (s *TestServer) withPostEndpoint(f gin.HandlerFunc) *TestServer {
+func (s *OldTestServer) withPostEndpoint(f gin.HandlerFunc) *OldTestServer {
 	s.engine.POST("/", f)
 	return s
 }
 
-func (s *TestServer) withGetRequest(body io.Reader, params string) *TestServer {
+func (s *OldTestServer) withGetRequest(body io.Reader, params string) *OldTestServer {
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/%v", params), body)
 	s.request = req
 	return s
 }
 
-func (s *TestServer) withPostRequest(body io.Reader) *TestServer {
+func (s *OldTestServer) withPostRequest(body io.Reader) *OldTestServer {
 	req, _ := http.NewRequest("POST", "/", body)
 	s.request = req
 	return s
 }
 
-func (s *TestServer) exec() *httptest.ResponseRecorder {
+func (s *OldTestServer) exec() *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
 	s.engine.ServeHTTP(rr, s.request)
 	return rr
 }
 
-func setupServer() *TestServer {
+// Deprecated: this is using the old mock service and should be using the newer mockgen mocks
+func setupOldServer() *OldTestServer {
 	svc, mSvc := mservice.SetupMockService()
 	server := &Server{logger: logger.New(&environment.EnvironmentVariables{LogLevel: "none"}), service: svc}
 	engine := setupEngine()
-	return &TestServer{server: server, mockService: mSvc, engine: engine}
+	return &OldTestServer{server: server, mockService: mSvc, engine: engine}
+}
+
+func setupServer(t *testing.T) *TestServer {
+	ctrl := gomock.NewController(t)
+	svc := mock_service.NewMockIService(ctrl)
+	env := environment.EnvironmentVariables{LogLevel: "none"}
+	server := &Server{logger: logger.New(&env), service: svc}
+	engine := setupEngine()
+	return &TestServer{server: server, mockService: svc, engine: engine, ctrl: ctrl}
 }
 
 func setupCookies(req *http.Request, r *gin.Engine) {

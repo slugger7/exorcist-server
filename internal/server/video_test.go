@@ -10,7 +10,7 @@ import (
 )
 
 func Test_GetVideo_InvalidId(t *testing.T) {
-	s := setupServer()
+	s := setupOldServer()
 
 	invalidId := "someinvalidid"
 
@@ -29,7 +29,7 @@ func Test_GetVideo_InvalidId(t *testing.T) {
 }
 
 func Test_GetVideo_ServiceReturnsError(t *testing.T) {
-	s := setupServer()
+	s := setupOldServer()
 
 	id, _ := uuid.NewRandom()
 
@@ -51,7 +51,7 @@ func Test_GetVideo_ServiceReturnsError(t *testing.T) {
 }
 
 func Test_GetVideo_VideoServiceNil(t *testing.T) {
-	s := setupServer()
+	s := setupOldServer()
 
 	id, _ := uuid.NewRandom()
 
@@ -73,7 +73,7 @@ func Test_GetVideo_VideoServiceNil(t *testing.T) {
 }
 
 func Test_GetVideo_Success(t *testing.T) {
-	s := setupServer()
+	s := setupOldServer()
 
 	id, _ := uuid.NewRandom()
 	video := &model.Video{ID: id}
