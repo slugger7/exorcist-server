@@ -14,15 +14,6 @@ var ds = &VideoRepository{
 	Env: &environment.EnvironmentVariables{DebugSql: false},
 }
 
-func Test_GetVideoWithoutChecksumStatement(t *testing.T) {
-	actual, _ := ds.GetVideoWithoutChecksumStatement().Sql()
-
-	expected := "\nSELECT video.id AS \"video.id\",\n     video.checksum AS \"video.checksum\",\n     video.relative_path AS \"video.relative_path\",\n     library_path.path AS \"library_path.path\"\nFROM public.video\n     INNER JOIN public.library_path ON (library_path.id = video.library_path_id)\nWHERE video.checksum IS NULL;\n"
-	if actual != expected {
-		t.Errorf("Expected %v but got %v", expected, actual)
-	}
-}
-
 func Test_UpdateVideoChecksum(t *testing.T) {
 	newUuid, err := uuid.NewRandom()
 	if err != nil {
@@ -36,13 +27,9 @@ func Test_UpdateVideoChecksum(t *testing.T) {
 		Checksum: &checksum,
 	}
 
-	actual, _ := ds.UpdateVideoChecksum(video).Sql()
+	actual, _ := ds.updateChecksumStatement(video).Sql()
 
-	expected := `
-UPDATE public.video
-SET checksum = $1::text
-WHERE video.id = $2;
-`
+	expected := "\nUPDATE public.video\nSET checksum = $1::text,\n    modified = $2::timestamp without time zone\nWHERE video.id = $3;\n"
 	if actual != expected {
 		t.Errorf("Expected %v got %v", expected, actual)
 	}
@@ -61,11 +48,7 @@ func Test_MarkVideoAsNotExistingStatement(t *testing.T) {
 
 	actual, _ := ds.updateVideoExistsStatement(video).Sql()
 
-	expected := `
-UPDATE public.video
-SET exists = $1::boolean
-WHERE video.id = $2;
-`
+	expected := "\nUPDATE public.video\nSET exists = $1::boolean,\n    modified = $2::timestamp without time zone\nWHERE video.id = $3;\n"
 	if actual != expected {
 		t.Errorf("Expected %v got %v", expected, actual)
 	}
@@ -119,7 +102,8 @@ func Test_InsertVideosStatement_WithVideos_ShouldReturnStatement(t *testing.T) {
 	expected :=
 		`
 INSERT INTO public.video (library_path_id, relative_path, title, file_name, height, width, runtime, size)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING video.id AS "video.id";
 `
 	if actual != expected {
 		t.Errorf("Expected \n%v got \n%v", expected, actual)
@@ -132,6 +116,17 @@ func Test_GetByIdStatement(t *testing.T) {
 	sql, _ := ds.getByIdStatement(id).Sql()
 
 	expectedSql := "\nSELECT video.id AS \"video.id\",\n     video.library_path_id AS \"video.library_path_id\",\n     video.relative_path AS \"video.relative_path\",\n     video.title AS \"video.title\",\n     video.file_name AS \"video.file_name\",\n     video.height AS \"video.height\",\n     video.width AS \"video.width\",\n     video.runtime AS \"video.runtime\",\n     video.size AS \"video.size\",\n     video.checksum AS \"video.checksum\",\n     video.added AS \"video.added\",\n     video.deleted AS \"video.deleted\",\n     video.exists AS \"video.exists\",\n     video.created AS \"video.created\",\n     video.modified AS \"video.modified\"\nFROM public.video\nWHERE video.id = $1\nLIMIT $2;\n"
+	if expectedSql != sql {
+		t.Errorf("Expected sql: %v\nGot sql: %v", expectedSql, sql)
+	}
+}
+
+func Test_GetByIdWithLibraryPath(t *testing.T) {
+	id, _ := uuid.NewRandom()
+
+	sql, _ := ds.getByIdWithLibraryPathStatement(id).Sql()
+
+	expectedSql := "\nSELECT video.id AS \"video.id\",\n     video.library_path_id AS \"video.library_path_id\",\n     video.relative_path AS \"video.relative_path\",\n     video.title AS \"video.title\",\n     video.file_name AS \"video.file_name\",\n     video.height AS \"video.height\",\n     video.width AS \"video.width\",\n     video.runtime AS \"video.runtime\",\n     video.size AS \"video.size\",\n     video.checksum AS \"video.checksum\",\n     video.added AS \"video.added\",\n     video.deleted AS \"video.deleted\",\n     video.exists AS \"video.exists\",\n     video.created AS \"video.created\",\n     video.modified AS \"video.modified\",\n     library_path.id AS \"library_path.id\",\n     library_path.library_id AS \"library_path.library_id\",\n     library_path.path AS \"library_path.path\",\n     library_path.created AS \"library_path.created\",\n     library_path.modified AS \"library_path.modified\"\nFROM public.video\n     INNER JOIN public.library_path ON (video.library_path_id = library_path.id)\nWHERE ((video.id = $1) AND video.deleted IS FALSE) AND video.exists IS TRUE;\n"
 	if expectedSql != sql {
 		t.Errorf("Expected sql: %v\nGot sql: %v", expectedSql, sql)
 	}

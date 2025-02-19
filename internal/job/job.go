@@ -74,12 +74,28 @@ func (jr *JobRunner) loop() {
 						jr.logger.Errorf("Scan path finished with errors", err)
 						job.Status = model.JobStatusEnum_Failed
 						if erro := jr.repo.Job().UpdateJobStatus(job); erro != nil {
-							jr.logger.Errorf("Could not update job status after error. Killing to prevent infinite loop", erro)
+							jr.logger.Errorf("Could not update job status after error. Killing to prevent infinite loop: %v", erro)
 							return
 						}
 					}
+				case model.JobTypeEnum_GenerateChecksum:
+					if err := jr.GenerateChecksum(job); err != nil {
+						panic("not implemented")
+					}
 				default:
 					jr.logger.Errorf("Job of type %v is not implemented", job.JobType)
+					job.Status = model.JobStatusEnum_Failed
+					errorMessage := `{"error":"can't run job due to no job runner implemented"}`
+					job.Data = &errorMessage
+					if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
+						jr.logger.Errorf("Could not update not implemented job %v. Killing to prevent infinite loop: %v", job.JobType, err.Error())
+						return
+					}
+				}
+
+				job.Status = model.JobStatusEnum_Completed
+				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
+					jr.logger.Errorf("Could not update job status after success. Killing to prevent infinite loop: %v", err)
 				}
 			}
 		}

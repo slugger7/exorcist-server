@@ -2,14 +2,15 @@ package job
 
 import (
 	"encoding/json"
+	"fmt"
 	"slices"
 	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 var extensions = [...]string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"}
@@ -25,12 +26,8 @@ func (jr *JobRunner) getFilesByExtension(path string, extensions []string, ch ch
 	ch <- values
 }
 
-type ScanPathData struct {
-	LibraryPathId uuid.UUID `json:"libraryPathId"`
-}
-
 func (jr *JobRunner) ScanPath(job *model.Job) error {
-	var data ScanPathData
+	var data models.ScanPathData
 	if err := json.Unmarshal([]byte(*job.Data), &data); err != nil {
 		return errs.BuildError(err, "could not unmarshal scan path job data: %v", err)
 	}
@@ -110,13 +107,6 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		jr.logger.Errorf("Error writing last batch of videos to database: %v", err)
 	}
 
-	// TODO: generate checksum jobs
-
-	job.Status = model.JobStatusEnum_Completed
-	if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
-		return errs.BuildError(err, "could not update job status to %v", job.Status)
-	}
-
 	return nil
 }
 
@@ -126,9 +116,24 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 	}
 
 	jr.logger.Debug("Writing batch")
-
-	if err := jr.repo.Video().Insert(models); err != nil {
+	vids, err := jr.repo.Video().Insert(models)
+	if err != nil {
 		return errs.BuildError(err, "error writing batch of models to db")
+	}
+
+	jobs := []model.Job{}
+	for _, v := range vids {
+		data := fmt.Sprintf(`{"videoId": "%v"}`, v.ID)
+		job := model.Job{
+			JobType: model.JobTypeEnum_GenerateChecksum,
+			Status:  model.JobStatusEnum_NotStarted,
+			Data:    &data,
+		}
+		jobs = append(jobs, job)
+	}
+
+	if _, err = jr.repo.Job().CreateAll(jobs); err != nil {
+		return errs.BuildError(err, "error creating checksum jobs")
 	}
 	return nil
 }
@@ -136,7 +141,7 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 func (jr *JobRunner) removeVideos(nonExistentVideos []model.Video) {
 	for _, v := range nonExistentVideos {
 		v.Exists = false
-		err := jr.repo.Video().UpdateVideoExists(v)
+		err := jr.repo.Video().UpdateExists(&v)
 		if err != nil {
 			jr.logger.Errorf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
 		}

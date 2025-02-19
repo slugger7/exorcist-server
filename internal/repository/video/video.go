@@ -2,6 +2,7 @@ package videoRepository
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -13,9 +14,11 @@ import (
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
-	GetById(id uuid.UUID) (*model.Video, error) // TODO: get with library path
-	UpdateVideoExists(video model.Video) error
-	Insert(models []model.Video) error
+	GetById(id uuid.UUID) (*model.Video, error)
+	UpdateExists(video *model.Video) error
+	UpdateChecksum(video *model.Video) error
+	Insert(models []model.Video) ([]model.Video, error)
+	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
 }
 
 type VideoRepository struct {
@@ -71,24 +74,32 @@ func (ds *VideoRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Video, erro
 	return vidModels, nil
 }
 
-func (i *VideoRepository) UpdateVideoExists(v model.Video) error {
-	_, err := i.updateVideoExistsStatement(v).Exec()
+func (i *VideoRepository) UpdateExists(v *model.Video) error {
+	v.Modified = time.Now()
+	_, err := i.updateVideoExistsStatement(*v).Exec()
 	if err != nil {
 		return errs.BuildError(err, "could not update video exists: %v", v.ID)
 	}
 	return nil
 }
 
-func (ds *VideoRepository) Insert(models []model.Video) error {
+func (ds *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	if len(models) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	if _, err := ds.insertStatement(models).Exec(); err != nil {
-		return errs.BuildError(err, "could not insert video models to database")
+	var vids []struct{ model.Video }
+
+	if err := ds.insertStatement(models).Query(&vids); err != nil {
+		return nil, errs.BuildError(err, "could not insert video models to database")
 	}
 
-	return nil
+	var vidModels = []model.Video{}
+	for _, v := range vids {
+		vidModels = append(vidModels, v.Video)
+	}
+
+	return vidModels, nil
 }
 
 func (ds *VideoRepository) GetById(id uuid.UUID) (*model.Video, error) {
@@ -103,4 +114,32 @@ func (ds *VideoRepository) GetById(id uuid.UUID) (*model.Video, error) {
 	}
 
 	return video, nil
+}
+
+type VideoLibraryPathModel struct {
+	model.Video
+	model.LibraryPath
+}
+
+func (ds *VideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error) {
+	var results []VideoLibraryPathModel
+	if err := ds.getByIdWithLibraryPathStatement(id).Query(&results); err != nil {
+		return nil, errs.BuildError(err, "error getting video by id (%v) with library path", id.String())
+	}
+
+	var result VideoLibraryPathModel
+	if results != nil {
+		result = results[len(results)-1]
+	}
+
+	return &result, nil
+}
+
+func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
+	video.Modified = time.Now()
+	if _, err := ds.updateChecksumStatement(*video).Exec(); err != nil {
+		return errs.BuildError(err, "error updating video (%v) checksum %v", video.ID, video.Checksum)
+	}
+
+	return nil
 }
