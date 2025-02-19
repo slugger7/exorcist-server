@@ -4,6 +4,16 @@ POST {{host}}:{{port}}/api/users
 Content-Type: application/json
 
 {
-  "username": "another",
+  "username": "admin",
   "password": "admin"
+}
+
+### Update password
+PUT {{host}}:{{port}}/api/user
+Content-Type: application/json
+
+{
+  "oldPassword": "older password",
+  "newPassword": "newer password",
+  "repeatPassword": "newer password"
 }
