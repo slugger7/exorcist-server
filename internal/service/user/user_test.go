@@ -248,6 +248,98 @@ func Test_UpdatePassword_GetUserReturnsError(t *testing.T) {
 
 	err := s.svc.UpdatePassword(id, models.ResetPasswordModel{})
 
-	assert.ErrorNil(t, err)
+	assert.ErrorNotNil(t, err)
 	assert.ErrorMessage(t, err, fmt.Sprintf(ErrGetById, id))
+}
+
+func Test_UpdatePassword_GetUserReturnsNilUser(t *testing.T) {
+	s := setup(t)
+
+	id, _ := uuid.NewRandom()
+
+	s.userRepo.EXPECT().
+		GetById(gomock.Eq(id)).
+		DoAndReturn(func(uuid.UUID) (*model.User, error) {
+			return nil, nil
+		}).
+		Times(1)
+
+	err := s.svc.UpdatePassword(id, models.ResetPasswordModel{})
+
+	assert.ErrorNotNil(t, err)
+	assert.Error(t, err, fmt.Errorf(ErrUserNil, id))
+}
+
+func Test_UpdatePassword_PasswordsDoNotMatch(t *testing.T) {
+	s := setup(t)
+
+	id, _ := uuid.NewRandom()
+
+	m := models.ResetPasswordModel{OldPassword: "someOldPassword"}
+	u := model.User{Password: "thisPasswordWillNotMatch"}
+
+	s.userRepo.EXPECT().
+		GetById(gomock.Eq(id)).
+		DoAndReturn(func(uuid.UUID) (*model.User, error) {
+			return &u, nil
+		}).
+		Times(1)
+
+	err := s.svc.UpdatePassword(id, m)
+
+	assert.ErrorNotNil(t, err)
+	assert.Error(t, err, fmt.Errorf(ErrNonMatchingPasswords, id))
+}
+
+func Test_UpdatePassword_RepoUpdateReturnsErr(t *testing.T) {
+	s := setup(t)
+
+	id, _ := uuid.NewRandom()
+
+	m := models.ResetPasswordModel{OldPassword: "someOldPassword", NewPassword: "someNewPassword"}
+	u := model.User{Password: hashPassword(m.OldPassword)}
+
+	s.userRepo.EXPECT().
+		GetById(gomock.Eq(id)).
+		DoAndReturn(func(uuid.UUID) (*model.User, error) {
+			return &u, nil
+		}).
+		Times(1)
+
+	s.userRepo.EXPECT().
+		UpdatePassword(gomock.Any()).
+		DoAndReturn(func(*model.User) error {
+			return fmt.Errorf("some error")
+		})
+
+	err := s.svc.UpdatePassword(id, m)
+
+	assert.ErrorNotNil(t, err)
+	assert.ErrorMessage(t, err, fmt.Sprintf(ErrUpdatingPassword, id))
+}
+
+func Test_UpdatePassword_Success(t *testing.T) {
+	s := setup(t)
+
+	id, _ := uuid.NewRandom()
+
+	m := models.ResetPasswordModel{OldPassword: "someOldPassword", NewPassword: "someNewPassword"}
+	u := model.User{Password: hashPassword(m.OldPassword)}
+
+	s.userRepo.EXPECT().
+		GetById(gomock.Eq(id)).
+		DoAndReturn(func(uuid.UUID) (*model.User, error) {
+			return &u, nil
+		}).
+		Times(1)
+
+	s.userRepo.EXPECT().
+		UpdatePassword(gomock.Any()).
+		DoAndReturn(func(*model.User) error {
+			return nil
+		})
+
+	err := s.svc.UpdatePassword(id, m)
+
+	assert.ErrorNil(t, err)
 }

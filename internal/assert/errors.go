@@ -8,6 +8,12 @@ import (
 )
 
 func ErrorNil(t *testing.T, err error) {
+	if err != nil {
+		t.Errorf("Expected nil error but was: %v", err.Error())
+	}
+}
+
+func ErrorNotNil(t *testing.T, err error) {
 	if err == nil {
 		t.Error("Expected an error but it was nil")
 	}
@@ -21,5 +27,11 @@ func ErrorMessage(t *testing.T, err error, message string) {
 		}
 	} else {
 		t.Errorf("Expected specific error but got: %v", err.Error())
+	}
+}
+
+func Error(t *testing.T, err, expectedErr error) {
+	if err.Error() != expectedErr.Error() {
+		t.Errorf("Expected error: %v\nGot error: %v", expectedErr.Error(), err.Error())
 	}
 }

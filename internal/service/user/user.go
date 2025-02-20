@@ -98,7 +98,12 @@ func (us *UserService) Validate(username, password string) (*model.User, error) 
 	return user, nil
 }
 
-const ErrGetById string = "could not get user by id %v"
+const (
+	ErrGetById              string = "could not get user by id %v"
+	ErrUserNil              string = "user with id %v does not exist"
+	ErrNonMatchingPasswords string = "old password for user %v did not match"
+	ErrUpdatingPassword     string = "could not update password for user %v"
+)
 
 func (us *UserService) UpdatePassword(id uuid.UUID, m models.ResetPasswordModel) error {
 	user, err := us.repo.User().GetById(id)
@@ -107,16 +112,16 @@ func (us *UserService) UpdatePassword(id uuid.UUID, m models.ResetPasswordModel)
 	}
 
 	if user == nil {
-		return fmt.Errorf("user with id %v does not exist", id)
+		return fmt.Errorf(ErrUserNil, id)
 	}
 
 	if !compareHashedPassword(user.Password, m.OldPassword) {
-		return fmt.Errorf("old password for user %v did not match", id)
+		return fmt.Errorf(ErrNonMatchingPasswords, id)
 	}
 
 	user.Password = hashPassword(m.NewPassword)
 	if err := us.repo.User().UpdatePassword(user); err != nil {
-		return errs.BuildError(err, "could not update password for user %v", id)
+		return errs.BuildError(err, ErrUpdatingPassword, id)
 	}
 
 	return nil
