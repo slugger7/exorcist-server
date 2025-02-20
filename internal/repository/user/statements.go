@@ -1,6 +1,8 @@
 package userRepository
 
 import (
+	"time"
+
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -46,6 +48,17 @@ func (ur *UserRepository) getByIdStatement(id uuid.UUID) *UserStatement {
 		FROM(table.User).
 		WHERE(table.User.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
+
+	util.DebugCheck(ur.Env, statement)
+
+	return &UserStatement{statement, ur.db}
+}
+
+func (ur *UserRepository) updatePasswordStatement(user *model.User) *UserStatement {
+	statement := table.User.UPDATE(table.User.Password, table.User.Modified).
+		SET(table.User.Password.SET(postgres.String(user.Password)), table.User.Modified.SET(postgres.TimestampT(time.Now()))).
+		MODEL(user).
+		WHERE(table.User.ID.EQ(postgres.UUID(user.ID)))
 
 	util.DebugCheck(ur.Env, statement)
 

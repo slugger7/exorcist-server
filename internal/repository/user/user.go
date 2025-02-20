@@ -30,11 +30,6 @@ type UserRepository struct {
 	Env *environment.EnvironmentVariables
 }
 
-// UpdatePassword implements IUserRepository.
-func (ur *UserRepository) UpdatePassword(user *model.User) error {
-	panic("unimplemented")
-}
-
 var userRepositoryInstance *UserRepository
 
 func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
@@ -50,6 +45,10 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
 
 func (us *UserStatement) Query(destination interface{}) error {
 	return us.Statement.Query(us.db, destination)
+}
+
+func (us *UserStatement) Exec() (sql.Result, error) {
+	return us.Statement.Exec(us.db)
 }
 
 func (ur *UserRepository) CreateUser(user model.User) (*model.User, error) {
@@ -97,4 +96,12 @@ func (ur *UserRepository) GetById(id uuid.UUID) (*model.User, error) {
 	}
 
 	return &users[len(users)-1].User, nil
+}
+
+func (ur *UserRepository) UpdatePassword(user *model.User) error {
+	if _, err := ur.updatePasswordStatement(user).Exec(); err != nil {
+		return errs.BuildError(err, "could not update user password: %v", user.ID)
+	}
+
+	return nil
 }
