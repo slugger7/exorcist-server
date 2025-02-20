@@ -9,7 +9,7 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-const userRoute = "/user"
+const userRoute = "/users"
 
 func (s *Server) WithUserRoutes(r *gin.RouterGroup) *Server {
 	r.POST(userRoute, s.CreateUser)

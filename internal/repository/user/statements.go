@@ -44,7 +44,7 @@ func (ur *UserRepository) createStatement(user model.User) *UserStatement {
 }
 
 func (ur *UserRepository) getByIdStatement(id uuid.UUID) *UserStatement {
-	statement := table.User.SELECT(table.User.ID, table.User.Username, table.User.Created, table.User.Modified).
+	statement := table.User.SELECT(table.User.AllColumns).
 		FROM(table.User).
 		WHERE(table.User.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
@@ -55,8 +55,8 @@ func (ur *UserRepository) getByIdStatement(id uuid.UUID) *UserStatement {
 }
 
 func (ur *UserRepository) updatePasswordStatement(user *model.User) *UserStatement {
+	user.Modified = time.Now()
 	statement := table.User.UPDATE(table.User.Password, table.User.Modified).
-		SET(table.User.Password.SET(postgres.String(user.Password)), table.User.Modified.SET(postgres.TimestampT(time.Now()))).
 		MODEL(user).
 		WHERE(table.User.ID.EQ(postgres.UUID(user.ID)))
 
