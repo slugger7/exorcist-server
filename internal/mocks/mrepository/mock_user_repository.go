@@ -2,6 +2,7 @@ package mrepository
 
 import (
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/mocks"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
@@ -9,6 +10,16 @@ import (
 
 // Deprecated: moved to mockgen in mock folder
 type MockUserRepo mocks.MockFixture[model.User]
+
+// Deprecated: moved to mockgen in mock folder
+func (mur *MockUserRepo) UpdatePassword(user *model.User) error {
+	panic("unimplemented")
+}
+
+// Deprecated: moved to mockgen in mock folder
+func (mur *MockUserRepo) GetById(id uuid.UUID) (*model.User, error) {
+	panic("unimplemented")
+}
 
 // Deprecated: moved to mockgen in mock folder
 func SetupMockUserRepository() *MockUserRepo {

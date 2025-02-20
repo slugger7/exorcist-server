@@ -12,7 +12,6 @@ import (
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type IUserService interface {
@@ -25,11 +24,6 @@ type UserService struct {
 	Env    *environment.EnvironmentVariables
 	repo   repository.IRepository
 	logger logger.ILogger
-}
-
-// UpdatePassword implements IUserService.
-func (us *UserService) UpdatePassword(id uuid.UUID, model models.ResetPasswordModel) error {
-	panic("unimplemented")
 }
 
 var userServiceInstance *UserService
@@ -104,13 +98,26 @@ func (us *UserService) Validate(username, password string) (*model.User, error) 
 	return user, nil
 }
 
-func hashPassword(password string) string {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	errs.PanicError(err)
+const ErrGetById string = "could not get user by id %v"
 
-	return string(hashedPassword)
-}
+func (us *UserService) UpdatePassword(id uuid.UUID, m models.ResetPasswordModel) error {
+	user, err := us.repo.User().GetById(id)
+	if err != nil {
+		return errs.BuildError(err, ErrGetById, id)
+	}
 
-func compareHashedPassword(hashedPassword, password string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) == nil
+	if user == nil {
+		return fmt.Errorf("user with id %v does not exist", id)
+	}
+
+	if !compareHashedPassword(user.Password, m.OldPassword) {
+		return fmt.Errorf("old password for user %v did not match", id)
+	}
+
+	user.Password = hashPassword(m.NewPassword)
+	if err := us.repo.User().UpdatePassword(user); err != nil {
+		return errs.BuildError(err, "could not update password for user %v", id)
+	}
+
+	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -19,11 +20,23 @@ type IUserRepository interface {
 	GetUserByUsernameAndPassword(username, password string) (*model.User, error)
 	GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error)
 	CreateUser(user model.User) (*model.User, error)
+	GetById(id uuid.UUID) (*model.User, error)
+	UpdatePassword(user *model.User) error
 }
 
 type UserRepository struct {
 	db  *sql.DB
 	Env *environment.EnvironmentVariables
+}
+
+// UpdatePassword implements IUserRepository.
+func (ur *UserRepository) UpdatePassword(user *model.User) error {
+	panic("unimplemented")
+}
+
+// GetById implements IUserRepository.
+func (ur *UserRepository) GetById(id uuid.UUID) (*model.User, error) {
+	panic("unimplemented")
 }
 
 var userRepositoryInstance *UserRepository

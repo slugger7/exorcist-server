@@ -1,3 +1,4 @@
+// Deprecated: use mocks in mock folder instead
 package mservice
 
 import (
