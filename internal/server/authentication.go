@@ -20,12 +20,14 @@ func (s *Server) RegisterAuthenticationRoutes(r *gin.Engine) *gin.Engine {
 	return r
 }
 
+const ErrUnauthorized = "unauthorized"
+
 func (s *Server) AuthRequired(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userKey)
 
 	if user == nil || user == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": ErrUnauthorized})
 		return
 	}
 

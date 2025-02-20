@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,25 +14,18 @@ import (
 )
 
 func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t).
+		withAuth()
 
-	r.Use(s.server.AuthRequired)
-	r.GET("/", func(ctx *gin.Context) {
-		t.Errorf("Should not have run this function")
-	})
+	rr := s.withAuthGetEndpoint(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{"message": "success"})
+	}, "").
+		withAuthGetRequest("").
+		exec()
 
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.StatusCode(t, http.StatusUnauthorized, rr.Code)
+	assert.Body(t, fmt.Sprintf(`{"error":"%v"}`, ErrUnauthorized), rr.Body.String())
 
-	rr := httptest.NewRecorder()
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusUnauthorized
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
 }
 
 func Test_AuthRequiredMiddleware_Success(t *testing.T) {
