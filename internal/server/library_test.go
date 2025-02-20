@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
@@ -141,6 +143,32 @@ func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
 	if body := rr.Body.String(); body != expectedBody {
 		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
 	}
+}
+
+func Test_GetLibraries_Succeeds(t *testing.T) {
+	s := setupServer(t).
+		withLibraryService()
+
+	lib := model.Library{Name: "lib"}
+	libs := []model.Library{lib}
+
+	s.mockLibraryService.EXPECT().
+		GetAll().
+		DoAndReturn(func() ([]model.Library, error) {
+			return libs, nil
+		}).
+		Times(1)
+
+	rr := s.withGetEndpoint(s.server.GetLibraries, "").
+		withGetRequest("").
+		exec()
+
+	bm := []LibraryModel{{Name: lib.Name}}
+
+	body, _ := json.Marshal(bm)
+
+	assert.StatusCode(t, http.StatusOK, rr.Code)
+	assert.Body(t, string(body), rr.Body.String())
 }
 
 func Test_LibraryAction_WithInvalidId(t *testing.T) {

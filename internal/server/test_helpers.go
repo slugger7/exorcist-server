@@ -17,8 +17,10 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/logger"
 	mock_service "github.com/slugger7/exorcist/internal/mock/service"
+	mock_libraryService "github.com/slugger7/exorcist/internal/mock/service/library"
 	mock_userService "github.com/slugger7/exorcist/internal/mock/service/user"
 	"github.com/slugger7/exorcist/internal/mocks/mservice"
+	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 	"go.uber.org/mock/gomock"
 )
@@ -39,13 +41,72 @@ type OldTestServer struct {
 }
 
 type TestServer struct {
-	server          *Server
-	mockService     *mock_service.MockIService
-	mockUserService *mock_userService.MockIUserService
-	ctrl            *gomock.Controller
-	engine          *gin.Engine
-	authGroup       *gin.RouterGroup
-	request         *http.Request
+	server             *Server
+	mockService        *mock_service.MockIService
+	mockUserService    *mock_userService.MockIUserService
+	mockLibraryService *mock_libraryService.MockILibraryService
+	ctrl               *gomock.Controller
+	engine             *gin.Engine
+	authGroup          *gin.RouterGroup
+	request            *http.Request
+}
+
+func setupServer(t *testing.T) *TestServer {
+	ctrl := gomock.NewController(t)
+	svc := mock_service.NewMockIService(ctrl)
+	env := environment.EnvironmentVariables{LogLevel: "none"}
+	server := &Server{logger: logger.New(&env), service: svc}
+	engine := setupEngine()
+	return &TestServer{server: server, mockService: svc, engine: engine, ctrl: ctrl}
+}
+
+func (s *TestServer) withUserService() *TestServer {
+	us := mock_userService.NewMockIUserService(s.ctrl)
+
+	s.mockService.EXPECT().
+		User().
+		DoAndReturn(func() userService.IUserService {
+			return us
+		}).
+		AnyTimes()
+
+	s.mockUserService = us
+
+	return s
+}
+
+func (s *TestServer) withLibraryService() *TestServer {
+	ls := mock_libraryService.NewMockILibraryService(s.ctrl)
+
+	s.mockService.EXPECT().
+		Library().
+		DoAndReturn(func() libraryService.ILibraryService {
+			return ls
+		}).
+		AnyTimes()
+
+	s.mockLibraryService = ls
+
+	return s
+}
+
+func (s *TestServer) withCookie(cookie TestCookie) *TestServer {
+	rr := httptest.NewRecorder()
+	cookieReq, _ := http.NewRequest("GET", SET_COOKIE_URL, bodyM(cookie))
+	s.engine.ServeHTTP(rr, cookieReq)
+
+	setCookie := rr.Header().Values("Set-Cookie")
+
+	s.request.Header.Set("Cookie", strings.Join(setCookie, "; "))
+
+	return s
+}
+
+func (s *TestServer) withAuth() *TestServer {
+	s.authGroup = s.engine.Group(AUTH_ROUTE)
+	s.authGroup.Use(s.server.AuthRequired)
+
+	return s
 }
 
 func setupEngine() *gin.Engine {
@@ -78,8 +139,8 @@ func (s *TestServer) withPostEndpoint(f gin.HandlerFunc) *TestServer {
 	return s
 }
 
-func (s *TestServer) withGetRequest(body io.Reader, params string) *TestServer {
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/%v", params), body)
+func (s *TestServer) withGetRequest(params string) *TestServer {
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/%v", params), nil)
 	s.request = req
 	return s
 }
@@ -117,49 +178,6 @@ func (s *TestServer) exec() *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
 	s.engine.ServeHTTP(rr, s.request)
 	return rr
-}
-
-func setupServer(t *testing.T) *TestServer {
-	ctrl := gomock.NewController(t)
-	svc := mock_service.NewMockIService(ctrl)
-	env := environment.EnvironmentVariables{LogLevel: "none"}
-	server := &Server{logger: logger.New(&env), service: svc}
-	engine := setupEngine()
-	return &TestServer{server: server, mockService: svc, engine: engine, ctrl: ctrl}
-}
-
-func (s *TestServer) withUserService() *TestServer {
-	us := mock_userService.NewMockIUserService(s.ctrl)
-
-	s.mockService.EXPECT().
-		User().
-		DoAndReturn(func() userService.IUserService {
-			return us
-		}).
-		AnyTimes()
-
-	s.mockUserService = us
-
-	return s
-}
-
-func (s *TestServer) withCookie(cookie TestCookie) *TestServer {
-	rr := httptest.NewRecorder()
-	cookieReq, _ := http.NewRequest("GET", SET_COOKIE_URL, bodyM(cookie))
-	s.engine.ServeHTTP(rr, cookieReq)
-
-	setCookie := rr.Header().Values("Set-Cookie")
-
-	s.request.Header.Set("Cookie", strings.Join(setCookie, "; "))
-
-	return s
-}
-
-func (s *TestServer) withAuth() *TestServer {
-	s.authGroup = s.engine.Group(AUTH_ROUTE)
-	s.authGroup.Use(s.server.AuthRequired)
-
-	return s
 }
 
 func body(body string, args ...any) *bytes.Reader {
