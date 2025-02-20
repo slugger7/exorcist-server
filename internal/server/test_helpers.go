@@ -78,11 +78,6 @@ func (s *TestServer) withPostEndpoint(f gin.HandlerFunc) *TestServer {
 	return s
 }
 
-func (s *TestServer) withAuthPutEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
-	s.authGroup.PUT(fmt.Sprintf("/%v", extraPathParams), f)
-	return s
-}
-
 func (s *TestServer) withGetRequest(body io.Reader, params string) *TestServer {
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/%v", params), body)
 	s.request = req
@@ -95,8 +90,25 @@ func (s *TestServer) withPostRequest(body io.Reader) *TestServer {
 	return s
 }
 
+func (s *TestServer) withAuthGetEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
+	s.authGroup.GET(fmt.Sprintf("/%v", extraPathParams), f)
+	return s
+}
+
+func (s *TestServer) withAuthGetRequest(params string) *TestServer {
+	req, _ := http.NewRequest("GET", fmt.Sprintf("%v/%v", AUTH_ROUTE, params), nil)
+	s.request = req
+	return s
+}
+
+func (s *TestServer) withAuthPutEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
+	s.authGroup.PUT(fmt.Sprintf("/%v", extraPathParams), f)
+	return s
+}
+
 func (s *TestServer) withAuthPutRequest(body io.Reader, params string) *TestServer {
-	req, _ := http.NewRequest("PUT", fmt.Sprintf("%v/%v", AUTH_ROUTE, params), body)
+	route := fmt.Sprintf("%v/%v", AUTH_ROUTE, params)
+	req, _ := http.NewRequest("PUT", route, body)
 	s.request = req
 	return s
 }
@@ -131,10 +143,9 @@ func (s *TestServer) withUserService() *TestServer {
 	return s
 }
 
-func (s *TestServer) withCookie(id uuid.UUID) *TestServer {
+func (s *TestServer) withCookie(cookie TestCookie) *TestServer {
 	rr := httptest.NewRecorder()
-	cook := TestCookie{Value: id}
-	cookieReq, _ := http.NewRequest("GET", SET_COOKIE_URL, bodyM(cook))
+	cookieReq, _ := http.NewRequest("GET", SET_COOKIE_URL, bodyM(cookie))
 	s.engine.ServeHTTP(rr, cookieReq)
 
 	setCookie := rr.Header().Values("Set-Cookie")

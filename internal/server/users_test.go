@@ -95,10 +95,12 @@ func Test_Create_Success(t *testing.T) {
 }
 
 func Test_UpdatePassword_InvalidBody(t *testing.T) {
-	s := setupServer(t)
+	s := setupServer(t).
+		withAuth()
 
 	rr := s.withAuthPutEndpoint(s.server.UpdatePassword, "").
 		withAuthPutRequest(body("{invalid json body}"), "").
+		withCookie(TestCookie{}).
 		exec()
 
 	expectedStatus := http.StatusUnprocessableEntity
@@ -128,7 +130,7 @@ func Test_UpdatePassword_ServiceReturnsError(t *testing.T) {
 
 	rr := s.withAuthPutEndpoint(s.server.UpdatePassword, "").
 		withAuthPutRequest(bodyM(rpm), "").
-		withCookie(id).
+		withCookie(TestCookie{Value: id}).
 		exec()
 
 	assert.StatusCode(t, http.StatusInternalServerError, rr.Code)
@@ -157,7 +159,7 @@ func Test_UpdatePasswrod_ServiceSucceeds(t *testing.T) {
 
 	rr := s.withAuthPutEndpoint(s.server.UpdatePassword, "").
 		withAuthPutRequest(bodyM(rpm), "").
-		withCookie(id).
+		withCookie(TestCookie{Value: id}).
 		exec()
 
 	assert.StatusCode(t, http.StatusOK, rr.Code)

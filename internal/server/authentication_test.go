@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
@@ -33,31 +34,22 @@ func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
 	}
 }
 
-func Test_AuthRequiredMiddleware_Succeeds(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+func Test_AuthRequiredMiddleware_Success(t *testing.T) {
+	s := setupServer(t).
+		withAuth()
 
-	r.Use(s.server.AuthRequired)
 	expectedStatusCode := http.StatusOK
-	r.GET("/", func(ctx *gin.Context) {
+	id, _ := uuid.NewRandom()
+
+	rr := s.withAuthGetEndpoint(func(ctx *gin.Context) {
 		ctx.JSON(expectedStatusCode, gin.H{"message": "success"})
-	})
+	}, "").
+		withAuthGetRequest("").
+		withCookie(TestCookie{Value: id}).
+		exec()
 
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	setupCookies(req, r)
-	r.ServeHTTP(rr, req)
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"message":"success"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	assert.StatusCode(t, expectedStatusCode, rr.Code)
+	assert.Body(t, `{"message":"success"}`, rr.Body.String())
 }
 
 func Test_Login_InvalidBody(t *testing.T) {
@@ -196,23 +188,16 @@ func Test_Logout_InvalidSessionToken(t *testing.T) {
 }
 
 func Test_Logout_Success(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t).
+		withAuth()
 
-	r.GET("/", s.server.Logout)
+	id, _ := uuid.NewRandom()
 
-	rr := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/", nil)
+	rr := s.withAuthGetEndpoint(s.server.Logout, "").
+		withAuthGetRequest("").
+		withCookie(TestCookie{Value: id}).
+		exec()
 
-	setupCookies(req, r)
-
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusOK
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"message":"successfully logged out"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	assert.StatusCode(t, http.StatusOK, rr.Code)
+	assert.Body(t, `{"message":"successfully logged out"}`, rr.Body.String())
 }
