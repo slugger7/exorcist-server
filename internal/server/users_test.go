@@ -2,12 +2,11 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -16,60 +15,46 @@ import (
 )
 
 func Test_Create_InvalidBody(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t)
 
-	r.POST("/", s.server.CreateUser)
-
-	req, err := http.NewRequest("POST", "/", body(`{invalid json}`))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusBadRequest
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"could not read body of request"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	rr := s.withPostEndpoint(s.server.CreateUser).
+		withPostRequest(body("{invalid body}")).
+		exec()
+	assert.StatusCode(t, http.StatusUnprocessableEntity, rr.Code)
+	expectedBody := `{"error":"invalid character 'i' looking for beginning of object key string"}`
+	assert.Body(t, expectedBody, rr.Body.String())
 }
 
 func Test_Create_ServiceReturnsError(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t).
+		withUserService()
 
-	expectedErrorMessage := "expected error"
-	s.mockService.User.MockError[0] = errors.New(expectedErrorMessage)
-	r.POST("/", s.server.CreateUser)
-
-	req, err := http.NewRequest("POST", "/", body(`{"username":"someUsername","password":"somePassword"}`))
-	if err != nil {
-		t.Fatal(err)
+	u := models.CreateUserModel{
+		Username: "someUsername",
+		Password: "somePassword",
 	}
+	s.mockUserService.EXPECT().
+		Create(gomock.Eq(u.Username), gomock.Eq(u.Password)).
+		DoAndReturn(func(string, string) (*model.User, error) {
+			return nil, fmt.Errorf("some error")
+		}).
+		Times(1)
 
-	rr := httptest.NewRecorder()
+	rr := s.withPostEndpoint(s.server.CreateUser).
+		withPostRequest(bodyM(u)).
+		exec()
 
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusBadRequest
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := fmt.Sprintf(`{"error":"%s"}`, expectedErrorMessage)
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	assert.StatusCode(t, http.StatusBadRequest, rr.Code)
+
+	body, _ := json.Marshal(gin.H{"error": ErrCreateUser})
+	assert.Body(t, string(body), rr.Body.String())
 }
 
 func Test_Create_Success(t *testing.T) {
 	s := setupServer(t).
 		withUserService()
 
-	nu := &CreateUserModel{
+	nu := &models.CreateUserModel{
 		Username: "expectedUsername",
 		Password: "somePassword",
 	}

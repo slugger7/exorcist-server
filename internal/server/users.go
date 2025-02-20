@@ -17,19 +17,14 @@ func (s *Server) WithUserRoutes(r *gin.RouterGroup) *Server {
 	return s
 }
 
-type CreateUserModel struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 const ErrCreateUser string = "could not create new user"
 
 func (s *Server) CreateUser(c *gin.Context) {
-	var newUser CreateUserModel
+	var newUser models.CreateUserModel
 
 	if err := c.ShouldBindBodyWithJSON(&newUser); err != nil {
 		s.logger.Info("Colud not read body")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
