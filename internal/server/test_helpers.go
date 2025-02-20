@@ -177,15 +177,6 @@ func bodyM(model any) *bytes.Reader {
 	return bytes.NewReader(b)
 }
 
-// Deprecated: use withCookie instead
-func setupCookies(req *http.Request, r *gin.Engine) {
-	res := httptest.NewRecorder()
-	cookieReq, _ := http.NewRequest("GET", SET_COOKIE_URL, body(`{"value": "val"}`))
-	r.ServeHTTP(res, cookieReq)
-
-	req.Header.Set("Cookie", strings.Join(res.Header().Values("Set-Cookie"), "; "))
-}
-
 // Deprecated
 func (s *OldTestServer) withGetEndpoint(f gin.HandlerFunc, extraPathParams string) *OldTestServer {
 	s.engine.GET(fmt.Sprintf("/%v", extraPathParams), f)
