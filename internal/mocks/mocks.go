@@ -1,3 +1,5 @@
+// Deprecated: this entire package has been deprecated as we have moved over to
+// mockgen in order to provide us mocks.
 package mocks
 
 // Deprecated: moved to mockgen in mock folder
