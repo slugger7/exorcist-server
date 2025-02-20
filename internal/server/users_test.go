@@ -7,9 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	mock_userService "github.com/slugger7/exorcist/internal/mock/service/user"
-	userService "github.com/slugger7/exorcist/internal/service/user"
+	"github.com/slugger7/exorcist/internal/models"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_Create_InvalidBody(t *testing.T) {
@@ -92,23 +93,51 @@ func Test_Create_Success(t *testing.T) {
 	}
 }
 
-func (s *TestServer) withUserService() *TestServer {
-	us := mock_userService.NewMockIUserService(s.ctrl)
+func Test_UpdatePassword_InvalidBody(t *testing.T) {
+	s := setupServer(t)
 
-	s.mockService.EXPECT().
-		User().
-		DoAndReturn(func() userService.IUserService {
-			return us
-		}).
-		AnyTimes()
+	rr := s.withAuthPutEndpoint(s.server.UpdatePassword, "").
+		withAuthPutRequest(body("{invalid json body}"), "").
+		exec()
 
-	s.mockUserService = us
-
-	return s
+	expectedStatus := http.StatusUnprocessableEntity
+	if rr.Code != expectedStatus {
+		t.Errorf("Expected status: %v\nGot status: %v", expectedStatus, rr.Code)
+	}
 }
 
-func Test_UpdatePassword_InvalidBody(t *testing.T) {
+func Test_UpdatePassword_ServiceReturnsError(t *testing.T) {
 	s := setupServer(t).
-		withUserService()
+		withUserService().
+		withAuth()
 
+	rpm := models.ResetPasswordModel{
+		OldPassword:    "good old boy",
+		NewPassword:    "sparkly new",
+		RepeatPassword: "sparkly new",
+	}
+
+	s.mockUserService.EXPECT().
+		UpdatePassword(gomock.Any(), gomock.Eq(rpm)).
+		DoAndReturn(func(uuid.UUID, models.ResetPasswordModel) error {
+			return fmt.Errorf("some error")
+		}).
+		Times(1)
+
+	id, _ := uuid.NewRandom()
+
+	rr := s.withAuthPutEndpoint(s.server.UpdatePassword, "").
+		withAuthPutRequest(bodyM(rpm), "").
+		withCookie(id).
+		exec()
+
+	expectedStatusCode := http.StatusInternalServerError
+	if expectedStatusCode != rr.Code {
+		t.Errorf("Expected status: %v\nGot status: %v", expectedStatusCode, rr.Code)
+	}
+
+	expectedBody := fmt.Sprintf(`{"error": "%v"}`, ErrUpdatePassword)
+	if rr.Body.String() != expectedBody {
+		t.Errorf("Expected body: %v\nGot body: %v", expectedBody, rr.Body.String())
+	}
 }

@@ -3,7 +3,10 @@ package server
 import (
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 const userRoute = "/user"
@@ -35,17 +38,29 @@ func (s *Server) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, user)
 }
 
-type ResetPasswordModel struct {
-	OldPassword    string `json:"oldPassword" binding:"required"`
-	NewPassword    string `json:"newPassword" binding:"required"`
-	RepeatPassword string `json:"repeatPassword" binding:"required,eqfield=NewPassword"`
-}
+const ErrUpdatePassword string = "could not update password"
 
 func (s *Server) UpdatePassword(c *gin.Context) {
-	var model ResetPasswordModel
+	var model models.ResetPasswordModel
 	if err := c.ShouldBindBodyWithJSON(&model); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
+
+	session := sessions.Default(c)
+	user := session.Get(userKey).(string)
+	id, err := uuid.Parse(user)
+	if err != nil {
+		s.logger.Errorf("could not parse user id (%v): %v", user, err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session"})
+		return
+	}
+
+	if err := s.service.User().UpdatePassword(id, model); err != nil {
+		s.logger.Errorf("error updating password for %v: %v", id.String(), err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrUpdatePassword})
+		return
+	}
+
 	c.JSON(http.StatusOK, model)
 }

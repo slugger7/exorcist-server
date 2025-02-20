@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,16 +13,23 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/logger"
 	mock_service "github.com/slugger7/exorcist/internal/mock/service"
 	mock_userService "github.com/slugger7/exorcist/internal/mock/service/user"
 	"github.com/slugger7/exorcist/internal/mocks/mservice"
+	userService "github.com/slugger7/exorcist/internal/service/user"
 	"go.uber.org/mock/gomock"
 )
 
-const SET_COOKIE_URL = "/set"
-const OK = "ok"
+const SET_COOKIE_URL string = "/set"
+const AUTH_ROUTE string = "/authenticated"
+const OK string = "ok"
+
+type TestCookie struct {
+	Value uuid.UUID `json:"value"`
+}
 
 type OldTestServer struct {
 	server      *Server
@@ -36,6 +44,7 @@ type TestServer struct {
 	mockUserService *mock_userService.MockIUserService
 	ctrl            *gomock.Controller
 	engine          *gin.Engine
+	authGroup       *gin.RouterGroup
 	request         *http.Request
 }
 
@@ -46,41 +55,153 @@ func setupEngine() *gin.Engine {
 	r.GET(SET_COOKIE_URL, func(c *gin.Context) {
 		session := sessions.Default(c)
 
-		var cookieBody struct {
-			value string
+		var cookieBody TestCookie
+
+		if err := c.BindJSON(&cookieBody); err != nil {
+			panic(err)
 		}
 
-		_ = c.BindJSON(&cookieBody)
-
-		session.Set(userKey, cookieBody.value)
+		session.Set(userKey, cookieBody.Value.String())
 		_ = session.Save()
 		c.String(http.StatusOK, OK)
 	})
 	return r
 }
 
+func (s *TestServer) withGetEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
+	s.engine.GET(fmt.Sprintf("/%v", extraPathParams), f)
+	return s
+}
+
+func (s *TestServer) withPostEndpoint(f gin.HandlerFunc) *TestServer {
+	s.engine.POST("/", f)
+	return s
+}
+
+func (s *TestServer) withAuthPutEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
+	s.authGroup.PUT(fmt.Sprintf("/%v", extraPathParams), f)
+	return s
+}
+
+func (s *TestServer) withGetRequest(body io.Reader, params string) *TestServer {
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/%v", params), body)
+	s.request = req
+	return s
+}
+
+func (s *TestServer) withPostRequest(body io.Reader) *TestServer {
+	req, _ := http.NewRequest("POST", "/", body)
+	s.request = req
+	return s
+}
+
+func (s *TestServer) withAuthPutRequest(body io.Reader, params string) *TestServer {
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("%v/%v", AUTH_ROUTE, params), body)
+	s.request = req
+	return s
+}
+
+func (s *TestServer) exec() *httptest.ResponseRecorder {
+	rr := httptest.NewRecorder()
+	s.engine.ServeHTTP(rr, s.request)
+	return rr
+}
+
+func setupServer(t *testing.T) *TestServer {
+	ctrl := gomock.NewController(t)
+	svc := mock_service.NewMockIService(ctrl)
+	env := environment.EnvironmentVariables{LogLevel: "none"}
+	server := &Server{logger: logger.New(&env), service: svc}
+	engine := setupEngine()
+	return &TestServer{server: server, mockService: svc, engine: engine, ctrl: ctrl}
+}
+
+func (s *TestServer) withUserService() *TestServer {
+	us := mock_userService.NewMockIUserService(s.ctrl)
+
+	s.mockService.EXPECT().
+		User().
+		DoAndReturn(func() userService.IUserService {
+			return us
+		}).
+		AnyTimes()
+
+	s.mockUserService = us
+
+	return s
+}
+
+func (s *TestServer) withCookie(id uuid.UUID) *TestServer {
+	rr := httptest.NewRecorder()
+	cook := TestCookie{Value: id}
+	cookieReq, _ := http.NewRequest("GET", SET_COOKIE_URL, bodyM(cook))
+	s.engine.ServeHTTP(rr, cookieReq)
+
+	setCookie := rr.Header().Values("Set-Cookie")
+
+	s.request.Header.Set("Cookie", strings.Join(setCookie, "; "))
+
+	return s
+}
+
+func (s *TestServer) withAuth() *TestServer {
+	s.authGroup = s.engine.Group(AUTH_ROUTE)
+	s.authGroup.Use(s.server.AuthRequired)
+
+	return s
+}
+
+func body(body string, args ...any) *bytes.Reader {
+	message := body
+	if args != nil {
+		message = fmt.Sprintf(body, args...)
+	}
+	return bytes.NewReader([]byte(message))
+}
+
+// Marshals the model to json and creates the reader
+func bodyM(model any) *bytes.Reader {
+	b, _ := json.Marshal(model)
+
+	return bytes.NewReader(b)
+}
+
+// Deprecated: use withCookie instead
+func setupCookies(req *http.Request, r *gin.Engine) {
+	res := httptest.NewRecorder()
+	cookieReq, _ := http.NewRequest("GET", SET_COOKIE_URL, body(`{"value": "val"}`))
+	r.ServeHTTP(res, cookieReq)
+
+	req.Header.Set("Cookie", strings.Join(res.Header().Values("Set-Cookie"), "; "))
+}
+
+// Deprecated
 func (s *OldTestServer) withGetEndpoint(f gin.HandlerFunc, extraPathParams string) *OldTestServer {
 	s.engine.GET(fmt.Sprintf("/%v", extraPathParams), f)
 	return s
 }
 
+// Deprecated
 func (s *OldTestServer) withPostEndpoint(f gin.HandlerFunc) *OldTestServer {
 	s.engine.POST("/", f)
 	return s
 }
 
+// Deprecated
 func (s *OldTestServer) withGetRequest(body io.Reader, params string) *OldTestServer {
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/%v", params), body)
 	s.request = req
 	return s
 }
 
+// Deprecated
 func (s *OldTestServer) withPostRequest(body io.Reader) *OldTestServer {
 	req, _ := http.NewRequest("POST", "/", body)
 	s.request = req
 	return s
 }
 
+// Deprecated
 func (s *OldTestServer) exec() *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
 	s.engine.ServeHTTP(rr, s.request)
@@ -93,29 +214,4 @@ func setupOldServer() *OldTestServer {
 	server := &Server{logger: logger.New(&environment.EnvironmentVariables{LogLevel: "none"}), service: svc}
 	engine := setupEngine()
 	return &OldTestServer{server: server, mockService: mSvc, engine: engine}
-}
-
-func setupServer(t *testing.T) *TestServer {
-	ctrl := gomock.NewController(t)
-	svc := mock_service.NewMockIService(ctrl)
-	env := environment.EnvironmentVariables{LogLevel: "none"}
-	server := &Server{logger: logger.New(&env), service: svc}
-	engine := setupEngine()
-	return &TestServer{server: server, mockService: svc, engine: engine, ctrl: ctrl}
-}
-
-func setupCookies(req *http.Request, r *gin.Engine) {
-	res := httptest.NewRecorder()
-	cookieReq, _ := http.NewRequest("GET", SET_COOKIE_URL, body(`{"value": "val"}`))
-	r.ServeHTTP(res, cookieReq)
-
-	req.Header.Set("Cookie", strings.Join(res.Header().Values("Set-Cookie"), "; "))
-}
-
-func body(body string, args ...any) *bytes.Reader {
-	message := body
-	if args != nil {
-		message = fmt.Sprintf(body, args...)
-	}
-	return bytes.NewReader([]byte(message))
 }

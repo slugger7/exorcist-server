@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const userKey = "userId"
+const userKey string = "userId"
 
 func (s *Server) RegisterAuthenticationRoutes(r *gin.Engine) *gin.Engine {
 	r.Use(sessions.Sessions("exorcist", cookie.NewStore([]byte(s.env.Secret))))
@@ -24,7 +24,7 @@ func (s *Server) AuthRequired(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userKey)
 
-	if user == nil {
+	if user == nil || user == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}

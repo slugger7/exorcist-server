@@ -1,8 +1,10 @@
 package mservice
 
 import (
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/mocks"
+	"github.com/slugger7/exorcist/internal/models"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 )
 
@@ -30,4 +32,9 @@ func (mus MockUserService) Create(username, password string) (*model.User, error
 func (mus MockUserService) Validate(username, password string) (*model.User, error) {
 	stack := incStack()
 	return mus.MockModel[stack], mus.MockError[stack]
+}
+
+// Deprecated: moved to mockgen in mock folder
+func (us MockUserService) UpdatePassword(id uuid.UUID, model models.ResetPasswordModel) error {
+	panic("unimplemented")
 }

@@ -12,7 +12,9 @@ package mock_userService
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -53,6 +55,20 @@ func (m *MockIUserService) Create(username, password string) (*model.User, error
 func (mr *MockIUserServiceMockRecorder) Create(username, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIUserService)(nil).Create), username, password)
+}
+
+// UpdatePassword mocks base method.
+func (m *MockIUserService) UpdatePassword(id uuid.UUID, model models.ResetPasswordModel) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePassword", id, model)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePassword indicates an expected call of UpdatePassword.
+func (mr *MockIUserServiceMockRecorder) UpdatePassword(id, model any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockIUserService)(nil).UpdatePassword), id, model)
 }
 
 // Validate mocks base method.
