@@ -39,6 +39,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 }
 
 const ErrUpdatePassword string = "could not update password"
+const OkPasswordUpdate string = "password updated"
 
 func (s *Server) UpdatePassword(c *gin.Context) {
 	var model models.ResetPasswordModel
@@ -62,5 +63,5 @@ func (s *Server) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, model)
+	c.JSON(http.StatusOK, gin.H{"message": OkPasswordUpdate})
 }

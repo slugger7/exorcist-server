@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/models"
 	"go.uber.org/mock/gomock"
@@ -116,28 +117,49 @@ func Test_UpdatePassword_ServiceReturnsError(t *testing.T) {
 		NewPassword:    "sparkly new",
 		RepeatPassword: "sparkly new",
 	}
+	id, _ := uuid.NewRandom()
 
 	s.mockUserService.EXPECT().
-		UpdatePassword(gomock.Any(), gomock.Eq(rpm)).
+		UpdatePassword(gomock.Eq(id), gomock.Eq(rpm)).
 		DoAndReturn(func(uuid.UUID, models.ResetPasswordModel) error {
 			return fmt.Errorf("some error")
 		}).
 		Times(1)
-
-	id, _ := uuid.NewRandom()
 
 	rr := s.withAuthPutEndpoint(s.server.UpdatePassword, "").
 		withAuthPutRequest(bodyM(rpm), "").
 		withCookie(id).
 		exec()
 
-	expectedStatusCode := http.StatusInternalServerError
-	if expectedStatusCode != rr.Code {
-		t.Errorf("Expected status: %v\nGot status: %v", expectedStatusCode, rr.Code)
+	assert.StatusCode(t, http.StatusInternalServerError, rr.Code)
+	assert.Body(t, fmt.Sprintf(`{"error":"%v"}`, ErrUpdatePassword), rr.Body.String())
+}
+
+func Test_UpdatePasswrod_ServiceSucceeds(t *testing.T) {
+	s := setupServer(t).
+		withUserService().
+		withAuth()
+
+	rpm := models.ResetPasswordModel{
+		OldPassword:    "good old boy",
+		NewPassword:    "sparkly new",
+		RepeatPassword: "sparkly new",
 	}
 
-	expectedBody := fmt.Sprintf(`{"error": "%v"}`, ErrUpdatePassword)
-	if rr.Body.String() != expectedBody {
-		t.Errorf("Expected body: %v\nGot body: %v", expectedBody, rr.Body.String())
-	}
+	id, _ := uuid.NewRandom()
+
+	s.mockUserService.EXPECT().
+		UpdatePassword(gomock.Eq(id), gomock.Eq(rpm)).
+		DoAndReturn(func(uuid.UUID, models.ResetPasswordModel) error {
+			return nil
+		}).
+		Times(1)
+
+	rr := s.withAuthPutEndpoint(s.server.UpdatePassword, "").
+		withAuthPutRequest(bodyM(rpm), "").
+		withCookie(id).
+		exec()
+
+	assert.StatusCode(t, http.StatusOK, rr.Code)
+	assert.Body(t, fmt.Sprintf(`{"message":"%v"}`, OkPasswordUpdate), rr.Body.String())
 }
