@@ -17,21 +17,26 @@ func (s *Server) WithUserRoutes(r *gin.RouterGroup) *Server {
 	return s
 }
 
-func (s *Server) CreateUser(c *gin.Context) {
-	var newUser struct {
-		Username string
-		Password string
-	}
+type CreateUserModel struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
 
-	if err := c.BindJSON(&newUser); err != nil {
+const ErrCreateUser string = "could not create new user"
+
+func (s *Server) CreateUser(c *gin.Context) {
+	var newUser CreateUserModel
+
+	if err := c.ShouldBindBodyWithJSON(&newUser); err != nil {
 		s.logger.Info("Colud not read body")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "could not read body of request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	user, err := s.service.User().Create(newUser.Username, newUser.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		s.logger.Errorf("could not create new user: %v", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": ErrCreateUser})
 		return
 	}
 

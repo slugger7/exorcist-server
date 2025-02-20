@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -65,33 +66,32 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 }
 
 func Test_Create_Success(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t).
+		withUserService()
 
-	expectedModel := &model.User{
-		Username: "expecedUsername",
-		Password: "",
-	}
-	s.mockService.User.MockModel[0] = expectedModel
-
-	r.POST("/", s.server.CreateUser)
-
-	req, err := http.NewRequest("POST", "/", body(`{"username":"%s","password":"somePassword"}`, expectedModel.Username))
-	if err != nil {
-		t.Fatal(err)
+	nu := &CreateUserModel{
+		Username: "expectedUsername",
+		Password: "somePassword",
 	}
 
-	rr := httptest.NewRecorder()
+	m := &model.User{
+		Username: nu.Username,
+		Password: nu.Password,
+	}
 
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusCreated
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := fmt.Sprintf(`{"ID":"00000000-0000-0000-0000-000000000000","Username":"%s","Password":"","Active":false,"Created":"0001-01-01T00:00:00Z","Modified":"0001-01-01T00:00:00Z"}`, expectedModel.Username)
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	s.mockUserService.EXPECT().
+		Create(gomock.Eq(nu.Username), gomock.Eq(nu.Password)).
+		DoAndReturn(func(string, string) (*model.User, error) {
+			return m, nil
+		}).
+		Times(1)
+
+	rr := s.withPostEndpoint(s.server.CreateUser).
+		withPostRequest(bodyM(nu)).
+		exec()
+	body, _ := json.Marshal(m)
+	assert.StatusCode(t, http.StatusCreated, rr.Code)
+	assert.Body(t, string(body), rr.Body.String())
 }
 
 func Test_UpdatePassword_InvalidBody(t *testing.T) {
