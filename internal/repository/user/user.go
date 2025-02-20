@@ -2,6 +2,7 @@ package userRepository
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -34,11 +35,6 @@ func (ur *UserRepository) UpdatePassword(user *model.User) error {
 	panic("unimplemented")
 }
 
-// GetById implements IUserRepository.
-func (ur *UserRepository) GetById(id uuid.UUID) (*model.User, error) {
-	panic("unimplemented")
-}
-
 var userRepositoryInstance *UserRepository
 
 func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
@@ -58,7 +54,7 @@ func (us *UserStatement) Query(destination interface{}) error {
 
 func (ur *UserRepository) CreateUser(user model.User) (*model.User, error) {
 	var newUser struct{ model.User }
-	if err := ur.createUserStatement(user).Query(&newUser); err != nil {
+	if err := ur.createStatement(user).Query(&newUser); err != nil {
 		return nil, errs.BuildError(err, "could not create user %v", user)
 	}
 	return &newUser.User, nil
@@ -88,4 +84,17 @@ func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string
 		user = &users[len(users)-1].User
 	}
 	return user, nil
+}
+
+func (ur *UserRepository) GetById(id uuid.UUID) (*model.User, error) {
+	var users []struct{ model.User }
+	if err := ur.getByIdStatement(id).Query(&users); err != nil {
+		return nil, errs.BuildError(err, "could not get user by id: %v", id)
+	}
+
+	if len(users) == 0 {
+		return nil, fmt.Errorf("no user found by id: %v", id)
+	}
+
+	return &users[len(users)-1].User, nil
 }

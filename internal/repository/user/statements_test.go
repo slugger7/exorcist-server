@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 )
@@ -34,15 +36,24 @@ WHERE ("user".username = $1::text) AND "user".active IS TRUE;
 	}
 }
 
-func Test_CreateUser(t *testing.T) {
+func Test_Create(t *testing.T) {
 	user := model.User{
 		Username: "someUsername",
 		Password: "somePassword",
 	}
-	actual, _ := s.createUserStatement(user).Sql()
+	actual, _ := s.createStatement(user).Sql()
 
 	exected := "\nINSERT INTO public.\"user\" (username, password)\nVALUES ($1, $2)\nRETURNING \"user\".id AS \"user.id\",\n          \"user\".username AS \"user.username\",\n          \"user\".active AS \"user.active\",\n          \"user\".created AS \"user.created\",\n          \"user\".modified AS \"user.modified\";\n"
 	if exected != actual {
 		t.Errorf("Expected %v but got %v", exected, actual)
 	}
+}
+
+func Test_GetById(t *testing.T) {
+	id, _ := uuid.NewRandom()
+
+	actual, _ := s.getByIdStatement(id).Sql()
+
+	expected := "\nSELECT \"user\".id AS \"user.id\",\n     \"user\".username AS \"user.username\",\n     \"user\".created AS \"user.created\",\n     \"user\".modified AS \"user.modified\"\nFROM public.\"user\"\nWHERE \"user\".id = $1\nLIMIT $2;\n"
+	assert.Eq(t, expected, actual)
 }
