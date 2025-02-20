@@ -33,6 +33,7 @@ type TestCookie struct {
 	Value uuid.UUID `json:"value"`
 }
 
+// Deprecated: use test server and methods instead
 type OldTestServer struct {
 	server      *Server
 	mockService *mservice.MockServices
