@@ -9,13 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const videoRoute = "/videos"
-
-func (s *Server) WithVideoRoutes(r *gin.RouterGroup) *Server {
-	return s.withVideoGet(r, videoRoute).
-		withVideoGetById(r, videoRoute)
-}
-
 func (s *Server) withVideoGet(r *gin.RouterGroup, route string) *Server {
 	r.GET(route, s.GetVideos)
 	return s

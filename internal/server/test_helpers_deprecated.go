@@ -62,25 +62,7 @@ func setupOldServer() *OldTestServer {
 }
 
 // Deprecated: create a method to do this on the controller (library controller as example)
-func (s *TestServer) withGetEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
-	s.engine.GET(fmt.Sprintf("/%v", extraPathParams), f)
-	return s
-}
-
-// Deprecated: create a method to do this on the controller (library controller as example)
-func (s *TestServer) withPostEndpoint(f gin.HandlerFunc) *TestServer {
-	s.engine.POST("/", f)
-	return s
-}
-
-// Deprecated: create a method to do this on the controller (library controller as example)
 func (s *TestServer) withAuthGetEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
 	s.authGroup.GET(fmt.Sprintf("/%v", extraPathParams), f)
-	return s
-}
-
-// Deprecated: create a method to do this on the controller (library controller as example)
-func (s *TestServer) withAuthPutEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
-	s.authGroup.PUT(fmt.Sprintf("/%v", extraPathParams), f)
 	return s
 }
