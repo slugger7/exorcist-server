@@ -20,7 +20,6 @@ import (
 	mock_libraryService "github.com/slugger7/exorcist/internal/mock/service/library"
 	mock_userService "github.com/slugger7/exorcist/internal/mock/service/user"
 	mock_videoService "github.com/slugger7/exorcist/internal/mock/service/video"
-	"github.com/slugger7/exorcist/internal/mocks/mservice"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 	videoService "github.com/slugger7/exorcist/internal/service/video"
@@ -33,14 +32,6 @@ const OK string = "ok"
 
 type TestCookie struct {
 	Value uuid.UUID `json:"value"`
-}
-
-// Deprecated: use test server and methods instead
-type OldTestServer struct {
-	server      *Server
-	mockService *mservice.MockServices
-	engine      *gin.Engine
-	request     *http.Request
 }
 
 type TestServer struct {
@@ -209,45 +200,4 @@ func bodyM(model any) *bytes.Reader {
 	b, _ := json.Marshal(model)
 
 	return bytes.NewReader(b)
-}
-
-// Deprecated
-func (s *OldTestServer) withGetEndpoint(f gin.HandlerFunc, extraPathParams string) *OldTestServer {
-	s.engine.GET(fmt.Sprintf("/%v", extraPathParams), f)
-	return s
-}
-
-// Deprecated
-func (s *OldTestServer) withPostEndpoint(f gin.HandlerFunc) *OldTestServer {
-	s.engine.POST("/", f)
-	return s
-}
-
-// Deprecated
-func (s *OldTestServer) withGetRequest(body io.Reader, params string) *OldTestServer {
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/%v", params), body)
-	s.request = req
-	return s
-}
-
-// Deprecated
-func (s *OldTestServer) withPostRequest(body io.Reader) *OldTestServer {
-	req, _ := http.NewRequest("POST", "/", body)
-	s.request = req
-	return s
-}
-
-// Deprecated
-func (s *OldTestServer) exec() *httptest.ResponseRecorder {
-	rr := httptest.NewRecorder()
-	s.engine.ServeHTTP(rr, s.request)
-	return rr
-}
-
-// Deprecated: this is using the old mock service and should be using the newer mockgen mocks
-func setupOldServer() *OldTestServer {
-	svc, mSvc := mservice.SetupMockService()
-	server := &Server{logger: logger.New(&environment.EnvironmentVariables{LogLevel: "none"}), service: svc}
-	engine := setupEngine()
-	return &OldTestServer{server: server, mockService: mSvc, engine: engine}
 }
