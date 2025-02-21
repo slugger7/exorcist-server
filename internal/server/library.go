@@ -10,15 +10,6 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-const libraryRoute = "/libraries"
-
-func (s *Server) WithLibraryRoutes(r *gin.RouterGroup) *Server {
-	return s.withLibraryGet(r, libraryRoute).
-		withLibraryGetAction(r, libraryRoute).
-		withLibraryPost(r, libraryRoute)
-
-}
-
 func (s *Server) withLibraryGetAction(r *gin.RouterGroup, route string) *Server {
 	r.GET(fmt.Sprintf("%v/:id/*action", route), s.LibraryAction)
 	return s

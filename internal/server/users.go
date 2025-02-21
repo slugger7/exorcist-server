@@ -9,15 +9,17 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-const userRoute = "/users"
-
-func (s *Server) WithUserRoutes(r *gin.RouterGroup) *Server {
-	r.POST(userRoute, s.CreateUser)
-	r.PUT(userRoute, s.UpdatePassword)
+func (s *Server) withUserCreate(r *gin.RouterGroup, route string) *Server {
+	r.POST(route, s.CreateUser)
 	return s
 }
 
-const ErrCreateUser string = "could not create new user"
+func (s *Server) withUserUpdatePassword(r *gin.RouterGroup, route string) *Server {
+	r.PUT(route, s.UpdatePassword)
+	return s
+}
+
+const ErrCreateUser ApiError = "could not create new user"
 
 func (s *Server) CreateUser(c *gin.Context) {
 	var newUser models.CreateUserModel

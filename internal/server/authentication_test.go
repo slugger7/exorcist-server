@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,14 +16,15 @@ func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
 	s := setupServer(t).
 		withAuth()
 
-	rr := s.withAuthGetEndpoint(func(ctx *gin.Context) {
+	s.authGroup.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"message": "success"})
-	}, "").
-		withAuthGetRequest("").
+	})
+
+	rr := s.withAuthGetRequest("").
 		exec()
 
 	assert.StatusCode(t, http.StatusUnauthorized, rr.Code)
-	assert.Body(t, fmt.Sprintf(`{"error":"%v"}`, ErrUnauthorized), rr.Body.String())
+	assert.Body(t, errBody(ErrUnauthorized), rr.Body.String())
 
 }
 
@@ -35,10 +35,11 @@ func Test_AuthRequiredMiddleware_Success(t *testing.T) {
 	expectedStatusCode := http.StatusOK
 	id, _ := uuid.NewRandom()
 
-	rr := s.withAuthGetEndpoint(func(ctx *gin.Context) {
+	s.authGroup.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(expectedStatusCode, gin.H{"message": "success"})
-	}, "").
-		withAuthGetRequest("").
+	})
+
+	rr := s.withAuthGetRequest("").
 		withCookie(TestCookie{Value: id}).
 		exec()
 
@@ -187,8 +188,8 @@ func Test_Logout_Success(t *testing.T) {
 
 	id, _ := uuid.NewRandom()
 
-	rr := s.withAuthGetEndpoint(s.server.Logout, "").
-		withAuthGetRequest("").
+	s.server.withAuthLogout(&s.engine.RouterGroup, AUTH_ROUTE+"/logout")
+	rr := s.withAuthGetRequest("logout").
 		withCookie(TestCookie{Value: id}).
 		exec()
 
