@@ -62,6 +62,6 @@ func Test_UpdatePassword(t *testing.T) {
 	u := model.User{}
 	actual, _ := s.updatePasswordStatement(&u).Sql()
 
-	expected := "\nUPDATE public.\"user\"\nSET (password, modified) = ($1, $2)\nSET password = $3::text,\n    modified = $4::timestamp without time zone\nWHERE \"user\".id = $5;\n"
+	expected := "\nUPDATE public.\"user\"\nSET (password, modified) = ($1, $2)\nWHERE \"user\".id = $3;\n"
 	assert.Eq(t, expected, actual)
 }
