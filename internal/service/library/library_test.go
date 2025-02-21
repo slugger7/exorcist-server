@@ -24,7 +24,7 @@ func Test_CreateLibrary_ProduceErrorWhileFetchingExistingLibraries(t *testing.T)
 	lib := model.Library{Name: "expected library"}
 
 	expectedErrMsg := fmt.Sprintf(ErrLibraryByName, lib.Name)
-	newLib, err := ls.Create(lib)
+	newLib, err := ls.Create(&lib)
 	if err != nil {
 		var e errs.IError
 		if errors.As(err, &e) {
@@ -48,7 +48,7 @@ func Test_CreateLibrary_WithExistingLibrary_ShouldThrowError(t *testing.T) {
 	mlr.MockLibraryRepo.MockModel[1] = &model.Library{ID: expectedId}
 
 	lib := model.Library{}
-	library, err := ls.Create(lib)
+	library, err := ls.Create(&lib)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -16,7 +16,7 @@ import (
 )
 
 type ILibraryService interface {
-	Create(newLibrary model.Library) (*model.Library, error)
+	Create(newLibrary *model.Library) (*model.Library, error)
 	GetAll() ([]model.Library, error)
 	Action(id uuid.UUID, action string) error
 }
@@ -46,7 +46,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 
 const ErrLibraryByName = "Could not fetch library by name %v"
 
-func (i *LibraryService) Create(newLibrary model.Library) (*model.Library, error) {
+func (i *LibraryService) Create(newLibrary *model.Library) (*model.Library, error) {
 	library, err := i.repo.Library().
 		GetLibraryByName(newLibrary.Name)
 	if err != nil {
@@ -139,7 +139,7 @@ func (i *LibraryService) actionScan(library *model.Library) error {
 		i.logger.Warningf("encountered some errors while creating scan path jobs: %v", errors.Join(erro...).Error())
 	}
 
-	jobs, err = i.repo.Job().CreateAll(jobs)
+	_, err = i.repo.Job().CreateAll(jobs)
 	if err != nil {
 		return errs.BuildError(err, ErrCreatingJobs)
 	}
