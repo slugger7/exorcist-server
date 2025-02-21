@@ -201,3 +201,7 @@ func bodyM(model any) *bytes.Reader {
 
 	return bytes.NewReader(b)
 }
+
+func errBody(e ApiError) string {
+	return fmt.Sprintf(`{"error":"%v"}`, e)
+}

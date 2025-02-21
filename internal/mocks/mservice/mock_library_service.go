@@ -22,7 +22,7 @@ func (ms MockService) Library() libraryService.ILibraryService {
 }
 
 // Deprecated: moved to mockgen in mock folder
-func (ls MockLibraryService) Create(actual model.Library) (*model.Library, error) {
+func (ls MockLibraryService) Create(actual *model.Library) (*model.Library, error) {
 	stack := incStack()
 	return ls.MockModel[stack], ls.MockError[stack]
 }

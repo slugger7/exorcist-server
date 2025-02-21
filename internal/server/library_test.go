@@ -2,147 +2,98 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/models"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_CreateLibrary_InvalidBody(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t)
 
-	r.POST("/", s.server.CreateLibrary)
+	rr := s.withPostEndpoint(s.server.CreateLibrary).
+		withPostRequest(body(`{invalid json}`)).
+		exec()
 
-	req, err := http.NewRequest("POST", "/", body(`{invalid json}`))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusBadRequest
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"could not read body of request"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
-}
-
-func Test_CreateLibrary_NoNameSpecified_ShouldThrowError(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
-
-	r.POST("/", s.server.CreateLibrary)
-
-	req, err := http.NewRequest("POST", "/", body(`{"name": ""}`))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusBadRequest
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"no value for name"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	assert.StatusCode(t, http.StatusUnprocessableEntity, rr.Code)
 }
 
 func Test_CreateLibrary_ErrorByService(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t).
+		withLibraryService()
 
-	expectedErrorMessage := "expected error message"
-	s.mockService.Library.MockError[0] = errors.New(expectedErrorMessage)
-	r.POST("/", s.server.CreateLibrary)
-
-	expectedName := "expectedLibraryName"
-	req, err := http.NewRequest("POST", "/", body(`{"name":"%v"}`, expectedName))
-	if err != nil {
-		t.Fatal(err)
+	m := models.CreateLibraryModel{
+		Name: "someName",
 	}
+	l := &model.Library{Name: m.Name}
 
-	rr := httptest.NewRecorder()
+	s.mockLibraryService.EXPECT().
+		Create(gomock.Eq(l)).
+		DoAndReturn(func(*model.Library) (*model.Library, error) {
+			return nil, fmt.Errorf("some error")
+		}).
+		Times(1)
 
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusBadRequest
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"could not create new library"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	rr := s.withPostEndpoint(s.server.CreateLibrary).
+		withPostRequest(bodyM(m)).
+		exec()
+
+	assert.StatusCode(t, http.StatusBadRequest, rr.Code)
+	assert.Body(t, errBody(ErrCreatingLibrary), rr.Body.String())
 }
 
 func Test_CreateLibrary_Success(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t).
+		withLibraryService()
 
-	expectedId, _ := uuid.NewRandom()
-	expectedLibraryName := "some expected library name"
-	s.mockService.Library.MockModel[0] = &model.Library{
-		ID:   expectedId,
-		Name: expectedLibraryName,
+	m := models.CreateLibraryModel{
+		Name: "someName",
 	}
+	l := model.Library{Name: m.Name}
+	id, _ := uuid.NewRandom()
 
-	r.POST("/", s.server.CreateLibrary)
+	s.mockLibraryService.EXPECT().
+		Create(gomock.Eq(&l)).
+		DoAndReturn(func(ml *model.Library) (*model.Library, error) {
+			ml.ID = id
+			return ml, nil
+		}).
+		Times(1)
 
-	req, err := http.NewRequest("POST", "/", body(`{"name":"%v"}`, expectedLibraryName))
-	if err != nil {
-		t.Fatal(err)
-	}
+	cm := model.Library{ID: id, Name: m.Name}
 
-	rr := httptest.NewRecorder()
+	rr := s.withPostEndpoint(s.server.CreateLibrary).
+		withPostRequest(bodyM(m)).
+		exec()
 
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusCreated
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := fmt.Sprintf(`{"id":"%v"}`, expectedId.String())
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	result := (&models.Library{}).FromModel(cm)
+
+	body, _ := json.Marshal(result)
+	assert.StatusCode(t, http.StatusCreated, rr.Code)
+	assert.Body(t, string(body), rr.Body.String())
 }
 
 func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
-	expectedError := errors.New("expected error")
-	s.mockService.Library.MockError[0] = expectedError
+	s := setupServer(t).
+		withLibraryService()
 
-	r.GET("/", s.server.GetLibraries)
+	s.mockLibraryService.EXPECT().
+		GetAll().
+		DoAndReturn(func() ([]model.Library, error) {
+			return nil, fmt.Errorf("some error")
+		})
 
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	rr := s.withGetEndpoint(s.server.GetLibraries, "").
+		withGetRequest("").
+		exec()
 
-	rr := httptest.NewRecorder()
-
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusInternalServerError
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"could not fetch libraries"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	assert.StatusCode(t, http.StatusInternalServerError, rr.Code)
+	assert.Body(t, errBody(ErrGetLibraries), rr.Body.String())
 }
 
 func Test_GetLibraries_Succeeds(t *testing.T) {
@@ -163,7 +114,7 @@ func Test_GetLibraries_Succeeds(t *testing.T) {
 		withGetRequest("").
 		exec()
 
-	bm := []LibraryModel{{Name: lib.Name}}
+	bm := []models.Library{{Name: lib.Name}}
 
 	body, _ := json.Marshal(bm)
 

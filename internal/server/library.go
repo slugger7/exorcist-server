@@ -3,11 +3,11 @@ package server
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 const libraryRoute = "/libraries"
@@ -19,68 +19,53 @@ func (s *Server) WithLibraryRoutes(r *gin.RouterGroup) *Server {
 	return s
 }
 
+const ErrCreatingLibrary ApiError = "could not create new library"
+
 func (s *Server) CreateLibrary(c *gin.Context) {
-	var body struct {
-		Name string
-	}
-
-	if err := c.BindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "could not read body of request"})
-		return
-	}
-
-	if body.Name == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no value for name"})
+	var cm models.CreateLibraryModel
+	if err := c.ShouldBindBodyWithJSON(&cm); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err})
 		return
 	}
 
 	newLibrary := model.Library{
-		Name: body.Name,
+		Name: cm.Name,
 	}
 
-	lib, err := s.service.Library().Create(newLibrary)
+	lib, err := s.service.Library().Create(&newLibrary)
 	if err != nil {
 		s.logger.Errorf("could not create library: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "could not create new library"})
+		c.JSON(http.StatusBadRequest, createError(ErrCreatingLibrary))
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"id": lib.ID})
+	l := models.Library{}
+
+	c.JSON(http.StatusCreated, l.FromModel(*lib))
 }
 
-type LibraryModel struct {
-	Id       uuid.UUID `json:"id,omitempty"`
-	Name     string    `json:"name,omitempty"`
-	Created  time.Time `json:"created,omitempty"`
-	Modified time.Time `json:"modified,omitempty"`
-}
-
-func (lm *LibraryModel) From(m model.Library) *LibraryModel {
-	lm.Id = m.ID
-	lm.Name = m.Name
-	lm.Created = m.Created
-	lm.Modified = m.Modified
-	return lm
-}
+const ErrGetLibraries ApiError = "could not fetch libraries"
 
 func (s *Server) GetLibraries(c *gin.Context) {
 	libs, err := s.service.Library().GetAll()
 	if err != nil {
 		s.logger.Errorf("could not get libraries: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch libraries"})
+		c.JSON(http.StatusInternalServerError, createError(ErrGetLibraries))
 		return
 	}
 
-	ms := []LibraryModel{}
+	ms := []models.Library{}
 	for _, l := range libs {
-		ms = append(ms, *(&LibraryModel{}).From(l))
+		ms = append(ms, *(&models.Library{}).FromModel(l))
 	}
 
 	c.JSON(http.StatusOK, ms)
 }
 
-const ErrIdParse = "Could not parse id in path: %v"
-const ErrLibraryAction = "could not perform %v on %v"
+const (
+	ErrIdParse       ApiError = "Could not parse id in path: %v"
+	ErrLibraryAction ApiError = "could not perform %v on %v"
+)
 
 func (s *Server) LibraryAction(c *gin.Context) {
 	id := c.Param("id")
@@ -90,7 +75,7 @@ func (s *Server) LibraryAction(c *gin.Context) {
 	if err != nil {
 		e := fmt.Sprintf(ErrIdParse, id)
 		s.logger.Error(e)
-		c.JSON(http.StatusBadRequest, gin.H{"error": e})
+		c.JSON(http.StatusBadRequest, createError(e))
 		return
 	}
 

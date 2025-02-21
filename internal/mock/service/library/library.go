@@ -56,7 +56,7 @@ func (mr *MockILibraryServiceMockRecorder) Action(id, action any) *gomock.Call {
 }
 
 // Create mocks base method.
-func (m *MockILibraryService) Create(newLibrary model.Library) (*model.Library, error) {
+func (m *MockILibraryService) Create(newLibrary *model.Library) (*model.Library, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", newLibrary)
 	ret0, _ := ret[0].(*model.Library)
