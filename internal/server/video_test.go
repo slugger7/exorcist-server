@@ -16,12 +16,12 @@ func Test_GetVideo_InvalidId(t *testing.T) {
 
 	id := "some invalid uuid"
 
-	rr := s.withGetEndpoint(s.server.GetVideo, ":id").
-		withGetRequest(id).
+	s.server.withVideoGetById(&s.engine.RouterGroup, "/")
+	rr := s.withGetRequest(id).
 		exec()
 
 	assert.StatusCode(t, http.StatusBadRequest, rr.Code)
-	assert.Body(t, fmt.Sprintf(`{"error":"%v"}`, ErrInvalidIdFormat), rr.Body.String())
+	assert.Body(t, errBody(ErrInvalidIdFormat), rr.Body.String())
 }
 
 func Test_GetVideo_ServiceReturnsError(t *testing.T) {
@@ -37,12 +37,12 @@ func Test_GetVideo_ServiceReturnsError(t *testing.T) {
 		}).
 		Times(1)
 
-	rr := s.withGetEndpoint(s.server.GetVideo, ":id").
-		withGetRequest(id.String()).
+	s.server.withVideoGetById(&s.engine.RouterGroup, "/")
+	rr := s.withGetRequest(id.String()).
 		exec()
 
 	assert.StatusCode(t, http.StatusInternalServerError, rr.Code)
-	assert.Body(t, fmt.Sprintf(`{"error":"%v"}`, ErrGetVideoService), rr.Body.String())
+	assert.Body(t, errBody(ErrGetVideoService), rr.Body.String())
 }
 
 func Test_GetVideo_VideoServiceNil(t *testing.T) {
@@ -58,12 +58,12 @@ func Test_GetVideo_VideoServiceNil(t *testing.T) {
 		}).
 		Times(1)
 
-	rr := s.withGetEndpoint(s.server.GetVideo, ":id").
-		withGetRequest(id.String()).
+	s.server.withVideoGetById(&s.engine.RouterGroup, "/")
+	rr := s.withGetRequest(id.String()).
 		exec()
 
 	assert.StatusCode(t, http.StatusNotFound, rr.Code)
-	assert.Body(t, fmt.Sprintf(`{"error":"%v"}`, ErrVideoNotFound), rr.Body.String())
+	assert.Body(t, errBody(ErrVideoNotFound), rr.Body.String())
 }
 
 func Test_GetVideo_Success(t *testing.T) {
@@ -80,8 +80,8 @@ func Test_GetVideo_Success(t *testing.T) {
 		}).
 		Times(1)
 
-	rr := s.withGetEndpoint(s.server.GetVideo, ":id").
-		withGetRequest(id.String()).
+	s.server.withVideoGetById(&s.engine.RouterGroup, "/")
+	rr := s.withGetRequest(id.String()).
 		exec()
 
 	assert.StatusCode(t, http.StatusMovedPermanently, rr.Code)

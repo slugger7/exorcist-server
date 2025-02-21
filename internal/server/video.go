@@ -12,8 +12,17 @@ import (
 const videoRoute = "/videos"
 
 func (s *Server) WithVideoRoutes(r *gin.RouterGroup) *Server {
-	r.GET(videoRoute, s.GetVideos)
-	r.GET(fmt.Sprintf("%s/:id", videoRoute), s.GetVideo)
+	return s.withVideoGet(r, videoRoute).
+		withVideoGetById(r, videoRoute)
+}
+
+func (s *Server) withVideoGet(r *gin.RouterGroup, route string) *Server {
+	r.GET(route, s.GetVideos)
+	return s
+}
+
+func (s *Server) withVideoGetById(r *gin.RouterGroup, route string) *Server {
+	r.GET(fmt.Sprintf("%s/:id", route), s.GetVideo)
 	return s
 }
 
