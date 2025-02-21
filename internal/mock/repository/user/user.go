@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	postgres "github.com/go-jet/jet/v2/postgres"
+	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -56,6 +57,21 @@ func (mr *MockIUserRepositoryMockRecorder) CreateUser(user any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockIUserRepository)(nil).CreateUser), user)
 }
 
+// GetById mocks base method.
+func (m *MockIUserRepository) GetById(id uuid.UUID) (*model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetById", id)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetById indicates an expected call of GetById.
+func (mr *MockIUserRepositoryMockRecorder) GetById(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockIUserRepository)(nil).GetById), id)
+}
+
 // GetUserByUsername mocks base method.
 func (m *MockIUserRepository) GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error) {
 	m.ctrl.T.Helper()
@@ -89,4 +105,18 @@ func (m *MockIUserRepository) GetUserByUsernameAndPassword(username, password st
 func (mr *MockIUserRepositoryMockRecorder) GetUserByUsernameAndPassword(username, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsernameAndPassword", reflect.TypeOf((*MockIUserRepository)(nil).GetUserByUsernameAndPassword), username, password)
+}
+
+// UpdatePassword mocks base method.
+func (m *MockIUserRepository) UpdatePassword(user *model.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePassword", user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePassword indicates an expected call of UpdatePassword.
+func (mr *MockIUserRepositoryMockRecorder) UpdatePassword(user any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockIUserRepository)(nil).UpdatePassword), user)
 }

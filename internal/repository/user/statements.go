@@ -1,7 +1,10 @@
 package userRepository
 
 import (
+	"time"
+
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/repository/util"
@@ -31,11 +34,33 @@ func (ur *UserRepository) getUserByUsernameStatement(username string, columns ..
 	return &UserStatement{statement, ur.db}
 }
 
-func (ur *UserRepository) createUserStatement(user model.User) *UserStatement {
+func (ur *UserRepository) createStatement(user model.User) *UserStatement {
 	statement := table.User.INSERT(table.User.Username, table.User.Password).
 		MODEL(user).
 		RETURNING(table.User.ID, table.User.Username, table.User.Active, table.User.Created, table.User.Modified)
 
 	util.DebugCheck(ur.Env, statement)
+	return &UserStatement{statement, ur.db}
+}
+
+func (ur *UserRepository) getByIdStatement(id uuid.UUID) *UserStatement {
+	statement := table.User.SELECT(table.User.AllColumns).
+		FROM(table.User).
+		WHERE(table.User.ID.EQ(postgres.UUID(id))).
+		LIMIT(1)
+
+	util.DebugCheck(ur.Env, statement)
+
+	return &UserStatement{statement, ur.db}
+}
+
+func (ur *UserRepository) updatePasswordStatement(user *model.User) *UserStatement {
+	user.Modified = time.Now()
+	statement := table.User.UPDATE(table.User.Password, table.User.Modified).
+		MODEL(user).
+		WHERE(table.User.ID.EQ(postgres.UUID(user.ID)))
+
+	util.DebugCheck(ur.Env, statement)
+
 	return &UserStatement{statement, ur.db}
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func Test_CreateLibraryPath_InvalidBody(t *testing.T) {
-	s := setupServer()
+	s := setupOldServer()
 
 	rr := s.withPostEndpoint(s.server.CreateLibraryPath).
 		withPostRequest(body(`{invalid json}`)).
@@ -28,7 +28,7 @@ func Test_CreateLibraryPath_InvalidBody(t *testing.T) {
 }
 
 func Test_CreateLibraryPath_NoPathSpecified_ShouldThrowError(t *testing.T) {
-	s := setupServer()
+	s := setupOldServer()
 
 	rr := s.withPostEndpoint(s.server.CreateLibraryPath).
 		withPostRequest(body(`{"path": ""}`)).
@@ -45,7 +45,7 @@ func Test_CreateLibraryPath_NoPathSpecified_ShouldThrowError(t *testing.T) {
 }
 
 func Test_CreateLibraryPath_Success(t *testing.T) {
-	s := setupServer()
+	s := setupOldServer()
 
 	expectedId, _ := uuid.NewRandom()
 	expectedLibraryId, _ := uuid.NewRandom()
@@ -71,7 +71,7 @@ func Test_CreateLibraryPath_Success(t *testing.T) {
 }
 
 func Test_GetAllLibraryPaths_WithServiceThrowingError(t *testing.T) {
-	s := setupServer()
+	s := setupOldServer()
 
 	expectedError := "expected error"
 	s.mockService.LibraryPath.MockError[0] = errors.New(expectedError)
@@ -91,7 +91,7 @@ func Test_GetAllLibraryPaths_WithServiceThrowingError(t *testing.T) {
 }
 
 func Test_GetAllLibraryPaths_Success(t *testing.T) {
-	s := setupServer()
+	s := setupOldServer()
 
 	id, _ := uuid.NewRandom()
 	libPath := model.LibraryPath{ID: id}

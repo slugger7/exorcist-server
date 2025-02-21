@@ -1,3 +1,4 @@
+// Deprecated: use mocks in mock folder instead
 package mservice
 
 import (
@@ -14,6 +15,7 @@ func incStack() int {
 	return stackCount - 1
 }
 
+// Deprecated: moved to mockgen in mock folder
 type MockService struct {
 	user        userService.IUserService
 	library     libraryService.ILibraryService
@@ -21,6 +23,7 @@ type MockService struct {
 	video       videoService.IVideoService
 }
 
+// Deprecated: moved to mockgen in mock folder
 type MockServices struct {
 	Library     *MockLibraryService
 	User        *MockUserService
@@ -28,6 +31,7 @@ type MockServices struct {
 	Video       *MockVideoService
 }
 
+// Deprecated: moved to mockgen in mock folder
 func SetupMockService() (*MockService, *MockServices) {
 	stackCount = 0
 

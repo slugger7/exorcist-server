@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -47,6 +48,21 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"id": lib.ID})
 }
 
+type LibraryModel struct {
+	Id       uuid.UUID `json:"id,omitempty"`
+	Name     string    `json:"name,omitempty"`
+	Created  time.Time `json:"created,omitempty"`
+	Modified time.Time `json:"modified,omitempty"`
+}
+
+func (lm *LibraryModel) From(m model.Library) *LibraryModel {
+	lm.Id = m.ID
+	lm.Name = m.Name
+	lm.Created = m.Created
+	lm.Modified = m.Modified
+	return lm
+}
+
 func (s *Server) GetLibraries(c *gin.Context) {
 	libs, err := s.service.Library().GetAll()
 	if err != nil {
@@ -55,7 +71,12 @@ func (s *Server) GetLibraries(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, libs)
+	ms := []LibraryModel{}
+	for _, l := range libs {
+		ms = append(ms, *(&LibraryModel{}).From(l))
+	}
+
+	c.JSON(http.StatusOK, ms)
 }
 
 const ErrIdParse = "Could not parse id in path: %v"

@@ -5,18 +5,50 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	mock_repository "github.com/slugger7/exorcist/internal/mock/repository"
+	mock_userRepository "github.com/slugger7/exorcist/internal/mock/repository/user"
 	"github.com/slugger7/exorcist/internal/mocks/mrepository"
+	"github.com/slugger7/exorcist/internal/models"
+	userRepository "github.com/slugger7/exorcist/internal/repository/user"
+	"go.uber.org/mock/gomock"
 )
 
-func setup() (*UserService, *mrepository.MockRepository) {
+// Deprecated: use mockgen mocks instead
+func setupOld() (*UserService, *mrepository.MockRepository) {
 	mockRepo := mrepository.SetupMockRespository()
 	us := &UserService{repo: mockRepo}
 	return us, mockRepo
 }
+
+type testService struct {
+	svc      *UserService
+	repo     *mock_repository.MockIRepository
+	userRepo *mock_userRepository.MockIUserRepository
+}
+
+func setup(t *testing.T) *testService {
+	ctrl := gomock.NewController(t)
+
+	mockRepo := mock_repository.NewMockIRepository(ctrl)
+	mockUserRepo := mock_userRepository.NewMockIUserRepository(ctrl)
+
+	mockRepo.EXPECT().
+		User().
+		DoAndReturn(func() userRepository.IUserRepository {
+			return mockUserRepo
+		}).
+		AnyTimes()
+
+	us := &UserService{repo: mockRepo}
+	return &testService{us, mockRepo, mockUserRepo}
+}
+
 func Test_UserExists_ErrorFromRepo(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 	expectedErr := errors.New("expected error")
 	mr.MockUserRepo.MockError[0] = expectedErr
 
@@ -26,7 +58,7 @@ func Test_UserExists_ErrorFromRepo(t *testing.T) {
 }
 
 func Test_UserExists_UserIsNil_ShouldReturnFalse(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 
 	mr.MockUserRepo.MockModel[0] = nil
 	mr.MockUserRepo.MockError[0] = nil
@@ -42,7 +74,7 @@ func Test_UserExists_UserIsNil_ShouldReturnFalse(t *testing.T) {
 }
 
 func Test_UserExists_UserIsDefined_ShouldReturnTrue(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 	mr.MockUserRepo.MockModel[0] = &model.User{}
 
 	actual, err := us.UserExists("")
@@ -56,7 +88,7 @@ func Test_UserExists_UserIsDefined_ShouldReturnTrue(t *testing.T) {
 }
 
 func Test_CreateUser_UserExistsRaisesError_ShouldReturnError(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 
 	mr.MockUserRepo.MockError[0] = errors.New("error")
 	username := "someUsername"
@@ -81,7 +113,7 @@ func Test_CreateUser_UserExistsRaisesError_ShouldReturnError(t *testing.T) {
 }
 
 func Test_CreateUser_UserExistsTrue_ShouldReturnError(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 
 	mr.MockUserRepo.MockModel[0] = &model.User{}
 
@@ -101,7 +133,7 @@ func Test_CreateUser_UserExistsTrue_ShouldReturnError(t *testing.T) {
 }
 
 func Test_CreateUser_UserExistsFalse_RepoCreateReturnsError_ShouldReturnError(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 
 	mr.MockUserRepo.MockError[1] = fmt.Errorf("error")
 	username := "someUsername"
@@ -125,7 +157,7 @@ func Test_CreateUser_UserExistsFalse_RepoCreateReturnsError_ShouldReturnError(t 
 }
 
 func Test_CreateUser_UserExistsFalse_RepoCreatesUser_ShouldReturnUser(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 	username := "someUser"
 	password := "somePassword"
 	mr.MockUserRepo.MockModel[1] = &model.User{Username: username, Password: password}
@@ -147,7 +179,7 @@ func Test_CreateUser_UserExistsFalse_RepoCreatesUser_ShouldReturnUser(t *testing
 }
 
 func Test_ValidateUser_RepoReturnsError_ShouldReturnError(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 
 	expecedError := errors.New("expected error")
 	mr.MockUserRepo.MockError[0] = expecedError
@@ -158,7 +190,7 @@ func Test_ValidateUser_RepoReturnsError_ShouldReturnError(t *testing.T) {
 }
 
 func Test_ValidateUser_RepoReturnsNilUser_ShouldReturnError(t *testing.T) {
-	us, _ := setup()
+	us, _ := setupOld()
 
 	username := "someUsername"
 	expectedError := fmt.Errorf("user with username %v does not exist", username)
@@ -169,7 +201,7 @@ func Test_ValidateUser_RepoReturnsNilUser_ShouldReturnError(t *testing.T) {
 }
 
 func Test_ValidateUser_PasswordsDoNotMatch(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 	mr.MockUserRepo.MockModel[0] = &model.User{Password: ""}
 	username := "someUsername"
 	expectedError := fmt.Errorf("password for user %v did not match", username)
@@ -180,7 +212,7 @@ func Test_ValidateUser_PasswordsDoNotMatch(t *testing.T) {
 }
 
 func Test_ValidateUser_PasswordsMatch_ShouldReturnUser(t *testing.T) {
-	us, mr := setup()
+	us, mr := setupOld()
 
 	password := "somePassword"
 	username := "someUsername"
@@ -200,4 +232,114 @@ func Test_ValidateUser_PasswordsMatch_ShouldReturnUser(t *testing.T) {
 	if user.Password != "" {
 		t.Errorf("Password was not cleared before returning")
 	}
+}
+
+func Test_UpdatePassword_GetUserReturnsError(t *testing.T) {
+	s := setup(t)
+
+	id, _ := uuid.NewRandom()
+
+	s.userRepo.EXPECT().
+		GetById(gomock.Eq(id)).
+		DoAndReturn(func(uuid.UUID) (*model.User, error) {
+			return nil, fmt.Errorf("some error")
+		}).
+		Times(1)
+
+	err := s.svc.UpdatePassword(id, models.ResetPasswordModel{})
+
+	assert.ErrorNotNil(t, err)
+	assert.ErrorMessage(t, err, fmt.Sprintf(ErrGetById, id))
+}
+
+func Test_UpdatePassword_GetUserReturnsNilUser(t *testing.T) {
+	s := setup(t)
+
+	id, _ := uuid.NewRandom()
+
+	s.userRepo.EXPECT().
+		GetById(gomock.Eq(id)).
+		DoAndReturn(func(uuid.UUID) (*model.User, error) {
+			return nil, nil
+		}).
+		Times(1)
+
+	err := s.svc.UpdatePassword(id, models.ResetPasswordModel{})
+
+	assert.ErrorNotNil(t, err)
+	assert.Error(t, err, fmt.Errorf(ErrUserNil, id))
+}
+
+func Test_UpdatePassword_PasswordsDoNotMatch(t *testing.T) {
+	s := setup(t)
+
+	id, _ := uuid.NewRandom()
+
+	m := models.ResetPasswordModel{OldPassword: "someOldPassword"}
+	u := model.User{Password: "thisPasswordWillNotMatch"}
+
+	s.userRepo.EXPECT().
+		GetById(gomock.Eq(id)).
+		DoAndReturn(func(uuid.UUID) (*model.User, error) {
+			return &u, nil
+		}).
+		Times(1)
+
+	err := s.svc.UpdatePassword(id, m)
+
+	assert.ErrorNotNil(t, err)
+	assert.Error(t, err, fmt.Errorf(ErrNonMatchingPasswords, id))
+}
+
+func Test_UpdatePassword_RepoUpdateReturnsErr(t *testing.T) {
+	s := setup(t)
+
+	id, _ := uuid.NewRandom()
+
+	m := models.ResetPasswordModel{OldPassword: "someOldPassword", NewPassword: "someNewPassword"}
+	u := model.User{Password: hashPassword(m.OldPassword)}
+
+	s.userRepo.EXPECT().
+		GetById(gomock.Eq(id)).
+		DoAndReturn(func(uuid.UUID) (*model.User, error) {
+			return &u, nil
+		}).
+		Times(1)
+
+	s.userRepo.EXPECT().
+		UpdatePassword(gomock.Any()).
+		DoAndReturn(func(*model.User) error {
+			return fmt.Errorf("some error")
+		})
+
+	err := s.svc.UpdatePassword(id, m)
+
+	assert.ErrorNotNil(t, err)
+	assert.ErrorMessage(t, err, fmt.Sprintf(ErrUpdatingPassword, id))
+}
+
+func Test_UpdatePassword_Success(t *testing.T) {
+	s := setup(t)
+
+	id, _ := uuid.NewRandom()
+
+	m := models.ResetPasswordModel{OldPassword: "someOldPassword", NewPassword: "someNewPassword"}
+	u := model.User{Password: hashPassword(m.OldPassword)}
+
+	s.userRepo.EXPECT().
+		GetById(gomock.Eq(id)).
+		DoAndReturn(func(uuid.UUID) (*model.User, error) {
+			return &u, nil
+		}).
+		Times(1)
+
+	s.userRepo.EXPECT().
+		UpdatePassword(gomock.Any()).
+		DoAndReturn(func(*model.User) error {
+			return nil
+		})
+
+	err := s.svc.UpdatePassword(id, m)
+
+	assert.ErrorNil(t, err)
 }

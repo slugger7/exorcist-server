@@ -16,6 +16,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// Deprecated: this method will have to be rewritten to use mockgen instead
 func setup() (*VideoService, *mrepository.MockRepository) {
 	mockRepo := mrepository.SetupMockRespository()
 	vs := &VideoService{repo: mockRepo}

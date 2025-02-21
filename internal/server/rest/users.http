@@ -1,9 +1,18 @@
 ### Create User
-
 POST {{host}}:{{port}}/api/users
 Content-Type: application/json
 
 {
-  "username": "another",
+  "username": "otherUser",
   "password": "admin"
+}
+
+### Update password
+PUT {{host}}:{{port}}/api/users
+Content-Type: application/json
+
+{
+  "oldPassword": "admin",
+  "newPassword": "admin1",
+  "repeatPassword": "admin1"
 }

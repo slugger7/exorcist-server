@@ -4,18 +4,20 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type IUserService interface {
 	Create(username, password string) (*model.User, error)
 	Validate(username, password string) (*model.User, error)
+	UpdatePassword(id uuid.UUID, model models.ResetPasswordModel) error
 }
 
 type UserService struct {
@@ -26,7 +28,7 @@ type UserService struct {
 
 var userServiceInstance *UserService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) *UserService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables) IUserService {
 	if userServiceInstance == nil {
 		userServiceInstance = &UserService{
 			Env:    env,
@@ -96,13 +98,31 @@ func (us *UserService) Validate(username, password string) (*model.User, error) 
 	return user, nil
 }
 
-func hashPassword(password string) string {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	errs.PanicError(err)
+const (
+	ErrGetById              string = "could not get user by id %v"
+	ErrUserNil              string = "user with id %v does not exist"
+	ErrNonMatchingPasswords string = "old password for user %v did not match"
+	ErrUpdatingPassword     string = "could not update password for user %v"
+)
 
-	return string(hashedPassword)
-}
+func (us *UserService) UpdatePassword(id uuid.UUID, m models.ResetPasswordModel) error {
+	user, err := us.repo.User().GetById(id)
+	if err != nil {
+		return errs.BuildError(err, ErrGetById, id)
+	}
 
-func compareHashedPassword(hashedPassword, password string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) == nil
+	if user == nil {
+		return fmt.Errorf(ErrUserNil, id)
+	}
+
+	if !compareHashedPassword(user.Password, m.OldPassword) {
+		return fmt.Errorf(ErrNonMatchingPasswords, id)
+	}
+
+	user.Password = hashPassword(m.NewPassword)
+	if err := us.repo.User().UpdatePassword(user); err != nil {
+		return errs.BuildError(err, ErrUpdatingPassword, id)
+	}
+
+	return nil
 }
