@@ -17,12 +17,12 @@ func (s *Server) withCookieStore(r *gin.Engine) *Server {
 }
 
 func (s *Server) withAuthLogin(r *gin.RouterGroup, route string) *Server {
-	r.POST("/login", s.Login)
+	r.POST(route, s.Login)
 	return s
 }
 
 func (s *Server) withAuthLogout(r *gin.RouterGroup, route string) *Server {
-	r.GET("/logout", s.Logout)
+	r.GET(route, s.Logout)
 	return s
 }
 

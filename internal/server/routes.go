@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-contrib/cors"
@@ -30,9 +31,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		AllowCredentials: true, // Enable cookies/auth
 	}))
 
+	s.withCookieStore(r)
+
 	// Register authentication routes
-	s.withAuthLogin(&r.RouterGroup, root).
-		withAuthLogout(&r.RouterGroup, root)
+	s.withAuthLogin(&r.RouterGroup, fmt.Sprintf("%v/login", root)).
+		withAuthLogout(&r.RouterGroup, fmt.Sprintf("%v/logout", root))
 
 	authenticated := r.Group("/api")
 	authenticated.Use(s.AuthRequired)

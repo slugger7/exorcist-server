@@ -60,9 +60,3 @@ func setupOldServer() *OldTestServer {
 	engine := setupEngine()
 	return &OldTestServer{server: server, mockService: mSvc, engine: engine}
 }
-
-// Deprecated: create a method to do this on the controller (library controller as example)
-func (s *TestServer) withAuthGetEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
-	s.authGroup.GET(fmt.Sprintf("/%v", extraPathParams), f)
-	return s
-}

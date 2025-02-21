@@ -188,8 +188,8 @@ func Test_Logout_Success(t *testing.T) {
 
 	id, _ := uuid.NewRandom()
 
-	rr := s.withAuthGetEndpoint(s.server.Logout, "").
-		withAuthGetRequest("").
+	s.server.withAuthLogout(&s.engine.RouterGroup, AUTH_ROUTE+"/logout")
+	rr := s.withAuthGetRequest("logout").
 		withCookie(TestCookie{Value: id}).
 		exec()
 
