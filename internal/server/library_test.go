@@ -16,8 +16,8 @@ import (
 func Test_CreateLibrary_InvalidBody(t *testing.T) {
 	s := setupServer(t)
 
-	rr := s.withPostEndpoint(s.server.CreateLibrary).
-		withPostRequest(body(`{invalid json}`)).
+	s.server.withLibraryPost(&s.engine.RouterGroup, "/")
+	rr := s.withPostRequest(body(`{invalid json}`)).
 		exec()
 
 	assert.StatusCode(t, http.StatusUnprocessableEntity, rr.Code)
@@ -39,8 +39,8 @@ func Test_CreateLibrary_ErrorByService(t *testing.T) {
 		}).
 		Times(1)
 
-	rr := s.withPostEndpoint(s.server.CreateLibrary).
-		withPostRequest(bodyM(m)).
+	s.server.withLibraryPost(&s.engine.RouterGroup, "/")
+	rr := s.withPostRequest(bodyM(m)).
 		exec()
 
 	assert.StatusCode(t, http.StatusBadRequest, rr.Code)
@@ -67,8 +67,8 @@ func Test_CreateLibrary_Success(t *testing.T) {
 
 	cm := model.Library{ID: id, Name: m.Name}
 
-	rr := s.withPostEndpoint(s.server.CreateLibrary).
-		withPostRequest(bodyM(m)).
+	s.server.withLibraryPost(&s.engine.RouterGroup, "/")
+	rr := s.withPostRequest(bodyM(m)).
 		exec()
 
 	result := (&models.Library{}).FromModel(cm)
@@ -88,8 +88,8 @@ func Test_GetLibraries_ServiceReturnsError(t *testing.T) {
 			return nil, fmt.Errorf("some error")
 		})
 
-	rr := s.withGetEndpoint(s.server.GetLibraries, "").
-		withGetRequest("").
+	s.server.withLibraryGet(&s.engine.RouterGroup, "/")
+	rr := s.withGetRequest("").
 		exec()
 
 	assert.StatusCode(t, http.StatusInternalServerError, rr.Code)
@@ -110,8 +110,8 @@ func Test_GetLibraries_Succeeds(t *testing.T) {
 		}).
 		Times(1)
 
-	rr := s.withGetEndpoint(s.server.GetLibraries, "").
-		withGetRequest("").
+	s.server.withLibraryGet(&s.engine.RouterGroup, "/")
+	rr := s.withGetRequest("").
 		exec()
 
 	bm := []models.Library{{Name: lib.Name}}
@@ -123,41 +123,57 @@ func Test_GetLibraries_Succeeds(t *testing.T) {
 }
 
 func Test_LibraryAction_WithInvalidId(t *testing.T) {
-	s := setupOldServer()
+	s := setupServer(t)
 
-	invalidId := "not-a-uuid"
-	rr := s.withGetEndpoint(s.server.LibraryAction, ":id/*action").
-		withGetRequest(nil, fmt.Sprintf("%v/action", invalidId)).
+	id := "invalid id"
+	action := "someAction"
+
+	s.server.withLibraryGetAction(&s.engine.RouterGroup, "")
+	rr := s.withGetRequest(fmt.Sprintf("%v/%v", id, action)).
 		exec()
 
-	expectedStatus := http.StatusBadRequest
-	if rr.Code != expectedStatus {
-		t.Errorf("Exected status code: %v\nGot status code: %v", expectedStatus, rr.Code)
-	}
-	expectedBody := fmt.Sprintf(`{"error":"%v"}`, fmt.Sprintf(ErrIdParse, invalidId))
-	if rr.Body.String() != expectedBody {
-		t.Errorf("Expected body: %v\nGot body: %v", expectedBody, rr.Body.String())
-	}
+	assert.StatusCode(t, http.StatusBadRequest, rr.Code)
+	assert.Body(t, errBody(ErrIdParse, id), rr.Body.String())
 }
 
 func Test_LibraryAction_WithServiceReturningError(t *testing.T) {
-	s := setupOldServer()
-
-	s.mockService.Library.MockError[0] = fmt.Errorf("error")
+	s := setupServer(t).
+		withLibraryService()
 
 	id, _ := uuid.NewRandom()
-	action := "action"
+	action := "some-action"
 
-	rr := s.withGetEndpoint(s.server.LibraryAction, ":id/*action").
-		withGetRequest(nil, fmt.Sprintf("%v/%v", id, action)).
-		exec()
+	s.mockLibraryService.EXPECT().
+		Action(gomock.Eq(id), gomock.Eq("/"+action)).
+		DoAndReturn(func(uuid.UUID, string) error {
+			return fmt.Errorf("some error")
+		}).
+		Times(1)
 
-	expectedStatus := http.StatusInternalServerError
-	if rr.Code != expectedStatus {
-		t.Errorf("Exected status code: %v\nGot status code: %v", expectedStatus, rr.Code)
-	}
-	expectedBody := fmt.Sprintf(`{"error":"%v"}`, fmt.Sprintf(ErrLibraryAction, "/"+action, id))
-	if rr.Body.String() != expectedBody {
-		t.Errorf("Expected body: %v\nGot body: %v", expectedBody, rr.Body.String())
-	}
+	s.server.withLibraryGetAction(&s.engine.RouterGroup, "/")
+	rr := s.withGetRequest(fmt.Sprintf("%v/%v", id, action)).exec()
+
+	assert.StatusCode(t, http.StatusInternalServerError, rr.Code)
+	assert.Body(t, errBody(ErrLibraryAction, "/"+action, id), rr.Body.String())
+}
+
+func Test_LibraryAction_Success(t *testing.T) {
+	s := setupServer(t).
+		withLibraryService()
+
+	id, _ := uuid.NewRandom()
+	action := "some-action"
+
+	s.mockLibraryService.EXPECT().
+		Action(gomock.Eq(id), gomock.Eq("/"+action)).
+		DoAndReturn(func(uuid.UUID, string) error {
+			return nil
+		}).
+		Times(1)
+
+	s.server.withLibraryGetAction(&s.engine.RouterGroup, "/")
+	rr := s.withGetRequest(fmt.Sprintf("%v/%v", id, action)).exec()
+
+	assert.StatusCode(t, http.StatusOK, rr.Code)
+	assert.Body(t, `{"message":"started"}`, rr.Body.String())
 }

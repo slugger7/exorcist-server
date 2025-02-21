@@ -13,9 +13,24 @@ import (
 const libraryRoute = "/libraries"
 
 func (s *Server) WithLibraryRoutes(r *gin.RouterGroup) *Server {
-	r.POST(libraryRoute, s.CreateLibrary)
-	r.GET(libraryRoute, s.GetLibraries)
-	r.GET(fmt.Sprintf("%v/:id/*action", libraryRoute), s.LibraryAction)
+	return s.withLibraryGet(r, libraryRoute).
+		withLibraryGetAction(r, libraryRoute).
+		withLibraryPost(r, libraryRoute)
+
+}
+
+func (s *Server) withLibraryGetAction(r *gin.RouterGroup, route string) *Server {
+	r.GET(fmt.Sprintf("%v/:id/*action", route), s.LibraryAction)
+	return s
+}
+
+func (s *Server) withLibraryPost(r *gin.RouterGroup, route string) *Server {
+	r.POST(route, s.CreateLibrary)
+	return s
+}
+
+func (s *Server) withLibraryGet(r *gin.RouterGroup, route string) *Server {
+	r.GET(route, s.GetLibraries)
 	return s
 }
 
@@ -83,5 +98,8 @@ func (s *Server) LibraryAction(c *gin.Context) {
 	if err != nil {
 		s.logger.Errorf("Could not perform action %v on %v: %v", action, libraryId, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf(ErrLibraryAction, action, libraryId)})
+		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "started"})
 }

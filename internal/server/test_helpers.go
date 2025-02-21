@@ -136,16 +136,6 @@ func setupEngine() *gin.Engine {
 	return r
 }
 
-func (s *TestServer) withGetEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
-	s.engine.GET(fmt.Sprintf("/%v", extraPathParams), f)
-	return s
-}
-
-func (s *TestServer) withPostEndpoint(f gin.HandlerFunc) *TestServer {
-	s.engine.POST("/", f)
-	return s
-}
-
 func (s *TestServer) withGetRequest(params string) *TestServer {
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/%v", params), nil)
 	s.request = req
@@ -158,19 +148,9 @@ func (s *TestServer) withPostRequest(body io.Reader) *TestServer {
 	return s
 }
 
-func (s *TestServer) withAuthGetEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
-	s.authGroup.GET(fmt.Sprintf("/%v", extraPathParams), f)
-	return s
-}
-
 func (s *TestServer) withAuthGetRequest(params string) *TestServer {
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%v/%v", AUTH_ROUTE, params), nil)
 	s.request = req
-	return s
-}
-
-func (s *TestServer) withAuthPutEndpoint(f gin.HandlerFunc, extraPathParams string) *TestServer {
-	s.authGroup.PUT(fmt.Sprintf("/%v", extraPathParams), f)
 	return s
 }
 
@@ -202,6 +182,10 @@ func bodyM(model any) *bytes.Reader {
 	return bytes.NewReader(b)
 }
 
-func errBody(e ApiError) string {
-	return fmt.Sprintf(`{"error":"%v"}`, e)
+func errBody(e ApiError, args ...any) string {
+	message := e
+	if args != nil {
+		message = fmt.Sprintf(e, args...)
+	}
+	return fmt.Sprintf(`{"error":"%v"}`, message)
 }
