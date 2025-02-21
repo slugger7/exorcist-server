@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	root         string = "/"
 	userRoute    string = "/users"
 	libraryRoute string = "/libraries"
 	videoRoute   string = "/videos"
@@ -29,7 +30,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		AllowCredentials: true, // Enable cookies/auth
 	}))
 
-	r = s.RegisterAuthenticationRoutes(r)
+	// Register authentication routes
+	s.withAuthLogin(&r.RouterGroup, root).
+		withAuthLogout(&r.RouterGroup, root)
 
 	authenticated := r.Group("/api")
 	authenticated.Use(s.AuthRequired)
