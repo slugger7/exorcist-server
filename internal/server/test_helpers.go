@@ -19,9 +19,11 @@ import (
 	mock_service "github.com/slugger7/exorcist/internal/mock/service"
 	mock_libraryService "github.com/slugger7/exorcist/internal/mock/service/library"
 	mock_userService "github.com/slugger7/exorcist/internal/mock/service/user"
+	mock_videoService "github.com/slugger7/exorcist/internal/mock/service/video"
 	"github.com/slugger7/exorcist/internal/mocks/mservice"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	userService "github.com/slugger7/exorcist/internal/service/user"
+	videoService "github.com/slugger7/exorcist/internal/service/video"
 	"go.uber.org/mock/gomock"
 )
 
@@ -46,6 +48,7 @@ type TestServer struct {
 	mockService        *mock_service.MockIService
 	mockUserService    *mock_userService.MockIUserService
 	mockLibraryService *mock_libraryService.MockILibraryService
+	mockVideoService   *mock_videoService.MockIVideoService
 	ctrl               *gomock.Controller
 	engine             *gin.Engine
 	authGroup          *gin.RouterGroup
@@ -88,6 +91,18 @@ func (s *TestServer) withLibraryService() *TestServer {
 
 	s.mockLibraryService = ls
 
+	return s
+}
+
+func (s *TestServer) withVideoService() *TestServer {
+	vs := mock_videoService.NewMockIVideoService(s.ctrl)
+
+	s.mockService.EXPECT().
+		Video().
+		DoAndReturn(func() videoService.IVideoService {
+			return vs
+		})
+	s.mockVideoService = vs
 	return s
 }
 

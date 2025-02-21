@@ -6,26 +6,21 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
-func Test_GetVideo_InvalidId(t *testing.T) {
-	s := setupOldServer()
+func Test_GetVideo_InvalidIdD(t *testing.T) {
+	s := setupServer(t)
 
-	invalidId := "someinvalidid"
+	id := "some invalid uuid"
 
 	rr := s.withGetEndpoint(s.server.GetVideo, ":id").
-		withGetRequest(nil, invalidId).
+		withGetRequest(id).
 		exec()
 
-	expectedStatus := http.StatusBadRequest
-	if expectedStatus != rr.Code {
-		t.Errorf("Expected status code: %v\nGot status code: %v", expectedStatus, rr.Code)
-	}
-	expectedBody := fmt.Sprintf(`{"error":"%v"}`, ErrInvalidIdFormat)
-	if rr.Body.String() != expectedBody {
-		t.Errorf("Expected body: %v\nGot body: %v", expectedBody, rr.Body.String())
-	}
+	assert.StatusCode(t, http.StatusBadRequest, rr.Code)
+	assert.Body(t, fmt.Sprintf(`{"error":"%v"}`, ErrInvalidIdFormat), rr.Body.String())
 }
 
 func Test_GetVideo_ServiceReturnsError(t *testing.T) {
