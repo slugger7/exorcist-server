@@ -10,10 +10,12 @@ package table
 // UseSchema sets a new schema name for all generated table SQL builder types. It is recommended to invoke
 // this method only once at the beginning of the program.
 func UseSchema(schema string) {
+	Image = Image.FromSchema(schema)
 	Job = Job.FromSchema(schema)
 	Library = Library.FromSchema(schema)
 	LibraryPath = LibraryPath.FromSchema(schema)
 	SchemaMigrations = SchemaMigrations.FromSchema(schema)
 	User = User.FromSchema(schema)
 	Video = Video.FromSchema(schema)
+	VideoImage = VideoImage.FromSchema(schema)
 }
