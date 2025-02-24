@@ -12,6 +12,7 @@ package mock_repository
 import (
 	reflect "reflect"
 
+	imageRepository "github.com/slugger7/exorcist/internal/repository/image"
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
@@ -70,6 +71,20 @@ func (m *MockIRepository) Health() map[string]string {
 func (mr *MockIRepositoryMockRecorder) Health() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Health", reflect.TypeOf((*MockIRepository)(nil).Health))
+}
+
+// Image mocks base method.
+func (m *MockIRepository) Image() imageRepository.IImageRepository {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Image")
+	ret0, _ := ret[0].(imageRepository.IImageRepository)
+	return ret0
+}
+
+// Image indicates an expected call of Image.
+func (mr *MockIRepositoryMockRecorder) Image() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Image", reflect.TypeOf((*MockIRepository)(nil).Image))
 }
 
 // Job mocks base method.

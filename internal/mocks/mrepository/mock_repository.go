@@ -15,6 +15,7 @@ type MockRepository struct {
 	*MockUserRepo
 	*MockVideoRepo
 	*MockJobRepo
+	*MockImageRepo
 }
 
 // Deprecated: moved to mockgen in mock folder
@@ -26,6 +27,7 @@ func SetupMockRespository() *MockRepository {
 		MockUserRepo:        SetupMockUserRepository(),
 		MockVideoRepo:       SetupMockVideoRepository(),
 		MockJobRepo:         SetupMockJobRepo(),
+		MockImageRepo:       SetupMockImageRepo(),
 	}
 }
 
