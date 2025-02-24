@@ -11,7 +11,7 @@ create table library_path (
   path varchar not null unique,
   created timestamp default current_timestamp not null,
   modified timestamp default current_timestamp not null,
-  constraint fk_library
+  constraint fk_library_path_library
     foreign key(library_id) references library(id)
     on delete cascade
 );
@@ -32,7 +32,7 @@ create table video (
   exists boolean default true not null,
   created timestamp default current_timestamp not null,
   modified timestamp default current_timestamp not null,
-  constraint fk_library_path
+  constraint fk_video_library_path
     foreign key(library_path_id) references library_path(id)
     on delete cascade
 );
