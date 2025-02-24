@@ -48,8 +48,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		withLibraryGetAction(authenticated, libraryRoute).
 		withLibraryPost(authenticated, libraryRoute)
 
-	s.WithLibraryPathRoutes(authenticated).
-		WithJobRoutes(authenticated)
+	// Register library path controller routes
+	s.withLibraryPathCreate(authenticated, libraryPathRoute).
+		withLibraryPathGetAll(authenticated, libraryPathRoute)
+
+	s.WithJobRoutes(authenticated)
 
 	r.GET("/health", s.HealthHandler)
 	return r

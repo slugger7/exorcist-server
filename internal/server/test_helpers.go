@@ -18,9 +18,11 @@ import (
 	"github.com/slugger7/exorcist/internal/logger"
 	mock_service "github.com/slugger7/exorcist/internal/mock/service"
 	mock_libraryService "github.com/slugger7/exorcist/internal/mock/service/library"
+	mock_libraryPathService "github.com/slugger7/exorcist/internal/mock/service/library_path"
 	mock_userService "github.com/slugger7/exorcist/internal/mock/service/user"
 	mock_videoService "github.com/slugger7/exorcist/internal/mock/service/video"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
+	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 	videoService "github.com/slugger7/exorcist/internal/service/video"
 	"go.uber.org/mock/gomock"
@@ -35,15 +37,16 @@ type TestCookie struct {
 }
 
 type TestServer struct {
-	server             *Server
-	mockService        *mock_service.MockIService
-	mockUserService    *mock_userService.MockIUserService
-	mockLibraryService *mock_libraryService.MockILibraryService
-	mockVideoService   *mock_videoService.MockIVideoService
-	ctrl               *gomock.Controller
-	engine             *gin.Engine
-	authGroup          *gin.RouterGroup
-	request            *http.Request
+	server                 *Server
+	mockService            *mock_service.MockIService
+	mockUserService        *mock_userService.MockIUserService
+	mockLibraryService     *mock_libraryService.MockILibraryService
+	mockLibraryPathService *mock_libraryPathService.MockILibraryPathService
+	mockVideoService       *mock_videoService.MockIVideoService
+	ctrl                   *gomock.Controller
+	engine                 *gin.Engine
+	authGroup              *gin.RouterGroup
+	request                *http.Request
 }
 
 func setupServer(t *testing.T) *TestServer {
@@ -81,6 +84,21 @@ func (s *TestServer) withLibraryService() *TestServer {
 		AnyTimes()
 
 	s.mockLibraryService = ls
+
+	return s
+}
+
+func (s *TestServer) withLibraryPathService() *TestServer {
+	ls := mock_libraryPathService.NewMockILibraryPathService(s.ctrl)
+
+	s.mockService.EXPECT().
+		LibraryPath().
+		DoAndReturn(func() libraryPathService.ILibraryPathService {
+			return ls
+		}).
+		AnyTimes()
+
+	s.mockLibraryPathService = ls
 
 	return s
 }
@@ -188,4 +206,12 @@ func errBody(e ApiError, args ...any) string {
 		message = fmt.Sprintf(e, args...)
 	}
 	return fmt.Sprintf(`{"error":"%v"}`, message)
+}
+
+func msgBody(msg string, args ...any) string {
+	message := msg
+	if args != nil {
+		message = fmt.Sprintf(msg, args...)
+	}
+	return fmt.Sprintf(`{"message":"%v"}`, message)
 }
