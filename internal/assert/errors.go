@@ -19,7 +19,7 @@ func ErrorNotNil(t *testing.T, err error) {
 	}
 }
 
-func ErrorMessage(t *testing.T, err error, message string) {
+func ErrorMessage(t *testing.T, message string, err error) {
 	var e errs.IError
 	if errors.As(err, &e) {
 		if e.Message() != message {
