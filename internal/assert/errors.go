@@ -30,7 +30,7 @@ func ErrorMessage(t *testing.T, err error, message string) {
 	}
 }
 
-func Error(t *testing.T, err, expectedErr error) {
+func Error(t *testing.T, expectedErr, err error) {
 	if err.Error() != expectedErr.Error() {
 		t.Errorf("Expected error: %v\nGot error: %v", expectedErr.Error(), err.Error())
 	}

@@ -267,7 +267,7 @@ func Test_UpdatePassword_GetUserReturnsNilUser(t *testing.T) {
 	err := s.svc.UpdatePassword(id, models.ResetPasswordModel{})
 
 	assert.ErrorNotNil(t, err)
-	assert.Error(t, err, fmt.Errorf(ErrUserNil, id))
+	assert.Error(t, fmt.Errorf(ErrUserNil, id), err)
 }
 
 func Test_UpdatePassword_PasswordsDoNotMatch(t *testing.T) {
@@ -288,7 +288,7 @@ func Test_UpdatePassword_PasswordsDoNotMatch(t *testing.T) {
 	err := s.svc.UpdatePassword(id, m)
 
 	assert.ErrorNotNil(t, err)
-	assert.Error(t, err, fmt.Errorf(ErrNonMatchingPasswords, id))
+	assert.Error(t, fmt.Errorf(ErrNonMatchingPasswords, id), err)
 }
 
 func Test_UpdatePassword_RepoUpdateReturnsErr(t *testing.T) {
