@@ -12,6 +12,7 @@ package mock_service
 import (
 	reflect "reflect"
 
+	imageService "github.com/slugger7/exorcist/internal/service/image"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
 	userService "github.com/slugger7/exorcist/internal/service/user"
@@ -41,6 +42,20 @@ func NewMockIService(ctrl *gomock.Controller) *MockIService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIService) EXPECT() *MockIServiceMockRecorder {
 	return m.recorder
+}
+
+// Image mocks base method.
+func (m *MockIService) Image() imageService.IImageService {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Image")
+	ret0, _ := ret[0].(imageService.IImageService)
+	return ret0
+}
+
+// Image indicates an expected call of Image.
+func (mr *MockIServiceMockRecorder) Image() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Image", reflect.TypeOf((*MockIService)(nil).Image))
 }
 
 // Library mocks base method.
