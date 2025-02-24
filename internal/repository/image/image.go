@@ -8,7 +8,7 @@ import (
 )
 
 type IImageRepository interface {
-	Create(model *model.Image) (*model.Image, error)
+	Create(m *model.Image) (*model.Image, error)
 }
 
 type ImageRepository struct {

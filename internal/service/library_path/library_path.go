@@ -16,7 +16,7 @@ const (
 )
 
 type ILibraryPathService interface {
-	Create(model *model.LibraryPath) (*model.LibraryPath, error)
+	Create(m *model.LibraryPath) (*model.LibraryPath, error)
 	GetAll() ([]model.LibraryPath, error)
 }
 

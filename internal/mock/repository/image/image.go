@@ -41,16 +41,16 @@ func (m *MockIImageRepository) EXPECT() *MockIImageRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockIImageRepository) Create(model *model.Image) (*model.Image, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", model)
+func (m_2 *MockIImageRepository) Create(m *model.Image) (*model.Image, error) {
+	m_2.ctrl.T.Helper()
+	ret := m_2.ctrl.Call(m_2, "Create", m)
 	ret0, _ := ret[0].(*model.Image)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockIImageRepositoryMockRecorder) Create(model any) *gomock.Call {
+func (mr *MockIImageRepositoryMockRecorder) Create(m any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIImageRepository)(nil).Create), model)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIImageRepository)(nil).Create), m)
 }
