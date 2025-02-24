@@ -29,6 +29,9 @@ mockgen -source=${REPO_DIR}/user/user.go >  ${MOCK_REPO_DIR}/user/user.go
 mkdir -p ${MOCK_REPO_DIR}/video
 mockgen -source=${REPO_DIR}/video/video.go >  ${MOCK_REPO_DIR}/video/video.go
 
+mkdir -p ${MOCK_REPO_DIR}/image
+mockgen -source=${REPO_DIR}/image/image.go > ${MOCK_REPO_DIR}/image/image.go
+
 echo "Generate service mocks"
 mkdir -p ${MOCK_SERVICE_DIR}
 mockgen -source=${SERVICE_DIR}/service.go > ${MOCK_SERVICE_DIR}/service.go

@@ -15,6 +15,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	imageRepository "github.com/slugger7/exorcist/internal/repository/image"
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
@@ -32,6 +33,7 @@ type IRepository interface {
 	LibraryPath() libraryPathRepository.ILibraryPathRepository
 	Video() videoRepository.IVideoRepository
 	User() userRepository.IUserRepository
+	Image() imageRepository.IImageRepository
 }
 
 type Repository struct {
@@ -43,6 +45,7 @@ type Repository struct {
 	libraryPathRepo libraryPathRepository.ILibraryPathRepository
 	videoRepo       videoRepository.IVideoRepository
 	userRepo        userRepository.IUserRepository
+	imageRepo       imageRepository.IImageRepository
 }
 
 var dbInstance *Repository
@@ -70,6 +73,7 @@ func New(env *environment.EnvironmentVariables) IRepository {
 			libraryPathRepo: libraryPathRepository.New(db, env),
 			videoRepo:       videoRepository.New(db, env),
 			userRepo:        userRepository.New(db, env),
+			imageRepo:       imageRepository.New(db, env),
 		}
 
 		err = dbInstance.runMigrations()
@@ -102,8 +106,8 @@ func (s *Repository) User() userRepository.IUserRepository {
 	return dbInstance.userRepo
 }
 
-func (s *Repository) Db() *sql.DB {
-	return dbInstance.db
+func (s *Repository) Image() imageRepository.IImageRepository {
+	return dbInstance.imageRepo
 }
 
 // Health checks the health of the database connection by pinging the database.

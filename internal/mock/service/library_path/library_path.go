@@ -41,18 +41,18 @@ func (m *MockILibraryPathService) EXPECT() *MockILibraryPathServiceMockRecorder 
 }
 
 // Create mocks base method.
-func (m *MockILibraryPathService) Create(arg0 *model.LibraryPath) (*model.LibraryPath, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0)
+func (m_2 *MockILibraryPathService) Create(m *model.LibraryPath) (*model.LibraryPath, error) {
+	m_2.ctrl.T.Helper()
+	ret := m_2.ctrl.Call(m_2, "Create", m)
 	ret0, _ := ret[0].(*model.LibraryPath)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockILibraryPathServiceMockRecorder) Create(arg0 any) *gomock.Call {
+func (mr *MockILibraryPathServiceMockRecorder) Create(m any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockILibraryPathService)(nil).Create), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockILibraryPathService)(nil).Create), m)
 }
 
 // GetAll mocks base method.
