@@ -42,7 +42,7 @@ Migrations run automatically when the application starts up.
 It is recommended to install the cli tool for running migrations. This will allow you to run migrations from the command line without having to start up the application. [CLI migration](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate)
 It is also recommended that you install the [Jet CLI tool](https://github.com/go-jet/jet?tab=readme-ov-file#prerequisites) in order to update the models of the application
 
-- Create migration: `migrate create -ext=sql -dir=./migrations <migration-name>`
+- Create migration: `./scripts/create-migration.sh <migration-name>`
 - Run migrations: `./scripts/run-migrations.sh`
 - Undo a migration: `./scripts/undo-migration.sh`
 - Update models: `./scripts/update-models.sh`
@@ -80,6 +80,7 @@ In order to generate diagrams you will need to install the cli tool
 Currently there is a [mocks](./internal/mocks) that have mocks in that have been made by us. This is *not* to be used any more as it is too much effort to manually update these mocks.
 As these are not being used any more the methods that are not being used any more should panic to prevent anyone else from using these mocks.
 
-We are using a mock generating library to prevent us having to create these mocks by hand. To get this working: 
+We are using a mock generating library to prevent us having to create these mocks by hand. To get this working:
+
 - Install the cli tool [mockgen](https://github.com/uber-go/mock)
 - When an interface has changed you should be able to run `make mocks` and the mocks will be regenerated for you
