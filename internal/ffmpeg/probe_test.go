@@ -1,18 +1,13 @@
-package ffmpeg_test
+package ffmpeg
 
 import (
 	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/slugger7/exorcist/internal/ffmpeg"
 )
 
-const testVideoPath = "./test_data/working_video.mp4"
-const brokenVideoPath = "./test_data/broken_video.mp4"
-
 func Test_GetDImensions_NoVideoCodecInStreams_shouldCreateError(t *testing.T) {
-	sterams := []ffmpeg.Stream{
+	sterams := []Stream{
 		{
 			CodecType: "not_video",
 		},
@@ -20,7 +15,7 @@ func Test_GetDImensions_NoVideoCodecInStreams_shouldCreateError(t *testing.T) {
 
 	expectedError := "could not extract the height and with from the probe data streams"
 
-	_, _, err := ffmpeg.GetDimensions(sterams)
+	_, _, err := GetDimensions(sterams)
 
 	if err != nil {
 		if err.Error() != expectedError {
@@ -33,7 +28,7 @@ func Test_GetDImensions_NoVideoCodecInStreams_shouldCreateError(t *testing.T) {
 
 func Test_GetDImensions_WithVideoCodec_shouldReturnHeightAndWidth_withNilError(t *testing.T) {
 	width, height := 69, 420
-	streams := []ffmpeg.Stream{
+	streams := []Stream{
 		{
 			CodecType: "video",
 			Width:     &width,
@@ -41,7 +36,7 @@ func Test_GetDImensions_WithVideoCodec_shouldReturnHeightAndWidth_withNilError(t
 		},
 	}
 
-	actualWidth, actualHeight, err := ffmpeg.GetDimensions(streams)
+	actualWidth, actualHeight, err := GetDimensions(streams)
 	if err != nil {
 		t.Errorf("Could not extract height and width from streams with error %v", err)
 	}
@@ -54,7 +49,7 @@ func Test_GetDImensions_WithVideoCodec_shouldReturnHeightAndWidth_withNilError(t
 }
 
 func Test_UnmarshalledProbe_WithBrokenTestVideoFile_ShouldThrowError(t *testing.T) {
-	_, err := ffmpeg.UnmarshalledProbe(brokenVideoPath)
+	_, err := UnmarshalledProbe(brokenVideoPath)
 	if err != nil {
 		if !strings.Contains(err.Error(), "Invalid data found when processing input") {
 			t.Errorf("Incorrect error was thrown: %v", err)
@@ -68,24 +63,24 @@ func Test_UnmarshalledProbe_WithBrokenTestVideoFile_ShouldThrowError(t *testing.
 }
 
 func Test_UnmarshalProbeData_WithAWorkingFile_ShouldCreateCorrectStruct(t *testing.T) {
-	actual, err := ffmpeg.UnmarshalledProbe(testVideoPath)
+	actual, err := UnmarshalledProbe(testVideoPath)
 	if err != nil {
 		t.Errorf("Error was thrown %v", err)
 		return
 	}
 
 	height, width := 270, 480
-	expectedFormat := ffmpeg.Format{
+	expectedFormat := Format{
 		Duration: "33.023333",
 		Size:     "3889885",
 	}
-	expectedStream := ffmpeg.Stream{
+	expectedStream := Stream{
 		Height:    &height,
 		Width:     &width,
 		CodecType: "video",
 	}
 
-	var actualVideoStream *ffmpeg.Stream
+	var actualVideoStream *Stream
 	for _, v := range actual.Streams {
 		if v.CodecType == expectedStream.CodecType {
 			actualVideoStream = &v
@@ -105,7 +100,7 @@ func Test_UnmarshalProbeData_WithAWorkingFile_ShouldCreateCorrectStruct(t *testi
 }
 
 func Test_UnmarshalProbeData_WithInvalidJson_ShouldThrowError(t *testing.T) {
-	_, err := ffmpeg.UnmarshalProbeData("this is not json")
+	_, err := UnmarshalProbeData("this is not json")
 	if err != nil {
 		if !strings.Contains(err.Error(), "invalid character 'h' in literal true (expecting 'r')") {
 			t.Errorf("Incorrect error was thrown: %v", err)
@@ -132,12 +127,12 @@ func Test_UnmarshallProbeData_WithValidJson_ShouldParseJson(t *testing.T) {
 		]
 	}`
 	expectedHeight, expectedWidth := 69, 420
-	expectedProbeData := ffmpeg.Probe{
-		Format: &ffmpeg.Format{
+	expectedProbeData := Probe{
+		Format: &Format{
 			Duration: "66.6",
 			Size:     "666",
 		},
-		Streams: []ffmpeg.Stream{
+		Streams: []Stream{
 			{
 				CodecType: "video",
 				Height:    &expectedHeight,
@@ -145,7 +140,7 @@ func Test_UnmarshallProbeData_WithValidJson_ShouldParseJson(t *testing.T) {
 			},
 		},
 	}
-	data, err := ffmpeg.UnmarshalProbeData(jsonData)
+	data, err := UnmarshalProbeData(jsonData)
 	if err != nil {
 		t.Errorf("Could not unmarshal json data: %v", err)
 	}
