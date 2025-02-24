@@ -207,3 +207,11 @@ func errBody(e ApiError, args ...any) string {
 	}
 	return fmt.Sprintf(`{"error":"%v"}`, message)
 }
+
+func msgBody(msg string, args ...any) string {
+	message := msg
+	if args != nil {
+		message = fmt.Sprintf(msg, args...)
+	}
+	return fmt.Sprintf(`{"message":"%v"}`, message)
+}

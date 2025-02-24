@@ -1,8 +1,8 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_AuthRequiredMiddleware_Fails(t *testing.T) {
@@ -48,108 +49,61 @@ func Test_AuthRequiredMiddleware_Success(t *testing.T) {
 }
 
 func Test_Login_InvalidBody(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t)
 
-	r.POST("/", s.server.Login)
+	s.server.withAuthLogin(&s.engine.RouterGroup, "/")
+	rr := s.withPostRequest(body(`{some invalid body}`)).
+		exec()
 
-	req, err := http.NewRequest("POST", "/", body(`{invalid json}`))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusBadRequest
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"could not read body of request"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	assert.StatusCode(t, http.StatusUnprocessableEntity, rr.Code)
 }
 
-func Test_Login_InvalidParametersInBody(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+func Test_Login_ErrFromValidateUser(t *testing.T) {
+	s := setupServer(t).withUserService()
 
-	r.POST("/", s.server.Login)
-
-	req, err := http.NewRequest("POST", "/", body(`{"username": " ", "password": " "}`))
-	if err != nil {
-		t.Fatal(err)
+	m := LoginModel{
+		Username: "someUsername",
+		Password: "somePassword",
 	}
+	s.mockUserService.EXPECT().
+		Validate(gomock.Eq(m.Username), gomock.Eq(m.Password)).
+		DoAndReturn(func(string, string) (*model.User, error) {
+			return nil, fmt.Errorf("some error")
+		}).
+		Times(1)
 
-	rr := httptest.NewRecorder()
+	s.server.withAuthLogin(&s.engine.RouterGroup, "/")
+	rr := s.withPostRequest(bodyM(m)).exec()
 
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusBadRequest
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"parameters can't be empty"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
-}
-
-func Test_Login_NoUserFromValidateUser(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
-
-	r.POST("/", s.server.Login)
-
-	req, err := http.NewRequest("POST", "/", body(`{"username": "admin", "password": "admin"}`))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusUnauthorized
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"could not authenticate with credentials"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	assert.StatusCode(t, http.StatusUnauthorized, rr.Code)
+	assert.Body(t, errBody(ErrUnauthorized), rr.Body.String())
 }
 
 func Test_Login_Success(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t).withUserService()
 
-	id, err := uuid.NewRandom()
-	if err != nil {
-		t.Fatalf("could not generate random uuid %v", err)
-	}
-	s.mockService.User.MockModel[0] = &model.User{Username: "admin", ID: id}
+	id, _ := uuid.NewRandom()
+	u := &model.User{Username: "admin", ID: id}
 
-	r.POST("/", s.server.Login)
-
-	req, err := http.NewRequest("POST", "/", body(`{"username": "admin", "password": "admin"}`))
-	if err != nil {
-		t.Fatal(err)
+	l := LoginModel{
+		Username: u.Username,
+		Password: "some password",
 	}
 
-	rr := httptest.NewRecorder()
+	s.mockUserService.EXPECT().
+		Validate(gomock.Eq(l.Username), gomock.Eq(l.Password)).
+		DoAndReturn(func(string, string) (*model.User, error) {
+			return u, nil
+		})
 
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusCreated
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
+	s.server.withAuthLogin(&s.engine.RouterGroup, "/")
+	rr := s.withPostRequest(bodyM(l)).exec()
 
-	expectedBody := `{"message":"successfully authenticated user"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	assert.StatusCode(t, http.StatusCreated, rr.Code)
+	assert.Body(t, msgBody(MsgAuthSuccess), rr.Body.String())
 
 	cookie := strings.Trim(rr.Header().Get("Set-Cookie"), " ")
+
 	if cookie == "" {
 		t.Errorf("No header is being set for exorcist")
 	}
@@ -159,27 +113,13 @@ func Test_Login_Success(t *testing.T) {
 }
 
 func Test_Logout_InvalidSessionToken(t *testing.T) {
-	r := setupEngine()
-	s := setupOldServer()
+	s := setupServer(t)
 
-	r.GET("/", s.server.Logout)
+	s.server.withAuthLogout(&s.engine.RouterGroup, "/")
+	rr := s.withGetRequest("").exec()
 
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	r.ServeHTTP(rr, req)
-	expectedStatusCode := http.StatusBadRequest
-	if rr.Code != expectedStatusCode {
-		t.Errorf("wrong status code returned\nexpected %v but got %v", expectedStatusCode, rr.Code)
-	}
-	expectedBody := `{"error":"invalid session token"}`
-	if body := rr.Body.String(); body != expectedBody {
-		t.Errorf("incorrect body\nexpected %v but got %v", expectedBody, body)
-	}
+	assert.StatusCode(t, http.StatusBadRequest, rr.Code)
+	assert.Body(t, errBody(ErrInvalidSessionToken), rr.Body.String())
 }
 
 func Test_Logout_Success(t *testing.T) {
@@ -194,5 +134,5 @@ func Test_Logout_Success(t *testing.T) {
 		exec()
 
 	assert.StatusCode(t, http.StatusOK, rr.Code)
-	assert.Body(t, `{"message":"successfully logged out"}`, rr.Body.String())
+	assert.Body(t, msgBody(MsgLoggedOut), rr.Body.String())
 }

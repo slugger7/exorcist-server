@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -40,26 +39,24 @@ func (s *Server) AuthRequired(c *gin.Context) {
 	c.Next()
 }
 
+type LoginModel struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+const MsgAuthSuccess string = "successfully authenticated user"
+
 func (s *Server) Login(c *gin.Context) {
 	session := sessions.Default(c)
-	var userBody struct {
-		Username string
-		Password string
-	}
-
-	if err := c.BindJSON(&userBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "could not read body of request"})
-		return
-	}
-
-	if strings.Trim(userBody.Username, " ") == "" || strings.Trim(userBody.Password, " ") == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "parameters can't be empty"})
+	var userBody LoginModel
+	if err := c.ShouldBindBodyWithJSON(&userBody); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	user, err := s.service.User().Validate(userBody.Username, userBody.Password)
 	if err != nil || user == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "could not authenticate with credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": ErrUnauthorized})
 		return
 	}
 
@@ -69,14 +66,19 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "successfully authenticated user"})
+	c.JSON(http.StatusCreated, gin.H{"message": MsgAuthSuccess})
 }
+
+const (
+	ErrInvalidSessionToken ApiError = "invalid session token"
+	MsgLoggedOut           string   = "successfully logged out"
+)
 
 func (s *Server) Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userKey)
 	if user == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session token"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidSessionToken})
 		return
 	}
 
@@ -86,5 +88,5 @@ func (s *Server) Logout(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
+	c.JSON(http.StatusOK, gin.H{"message": MsgLoggedOut})
 }
