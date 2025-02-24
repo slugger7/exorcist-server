@@ -4,6 +4,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
+	imageService "github.com/slugger7/exorcist/internal/service/image"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
 	userService "github.com/slugger7/exorcist/internal/service/user"
@@ -15,6 +16,7 @@ type IService interface {
 	Library() libraryService.ILibraryService
 	LibraryPath() libraryPathService.ILibraryPathService
 	Video() videoService.IVideoService
+	Image() imageService.IImageService
 }
 
 type Service struct {
@@ -24,6 +26,7 @@ type Service struct {
 	library     libraryService.ILibraryService
 	libraryPath libraryPathService.ILibraryPathService
 	video       videoService.IVideoService
+	image       imageService.IImageService
 }
 
 var serviceInstance *Service
@@ -37,6 +40,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 			library:     libraryService.New(repo, env, jobCh),
 			libraryPath: libraryPathService.New(repo, env),
 			video:       videoService.New(repo, env),
+			image:       imageService.New(repo, env),
 		}
 
 		serviceInstance.logger.Info("Service instance created")
@@ -62,4 +66,9 @@ func (s *Service) LibraryPath() libraryPathService.ILibraryPathService {
 func (s *Service) Video() videoService.IVideoService {
 	s.logger.Debug("Getting videosService")
 	return s.video
+}
+
+func (s *Service) Image() imageService.IImageService {
+	s.logger.Debug("Getting imageService")
+	return s.image
 }
