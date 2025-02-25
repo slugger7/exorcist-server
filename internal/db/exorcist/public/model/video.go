@@ -20,7 +20,7 @@ type Video struct {
 	FileName      string
 	Height        int32
 	Width         int32
-	Runtime       int64
+	Runtime       float64
 	Size          int64
 	Checksum      *string
 	Added         time.Time
