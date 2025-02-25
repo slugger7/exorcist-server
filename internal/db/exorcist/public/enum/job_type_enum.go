@@ -13,8 +13,10 @@ var JobTypeEnum = &struct {
 	UpdateExistingVideos postgres.StringExpression
 	ScanPath             postgres.StringExpression
 	GenerateChecksum     postgres.StringExpression
+	GenerateThumbnail    postgres.StringExpression
 }{
 	UpdateExistingVideos: postgres.NewEnumValue("update_existing_videos"),
 	ScanPath:             postgres.NewEnumValue("scan_path"),
 	GenerateChecksum:     postgres.NewEnumValue("generate_checksum"),
+	GenerateThumbnail:    postgres.NewEnumValue("generate_thumbnail"),
 }
