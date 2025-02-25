@@ -15,12 +15,14 @@ const (
 	JobTypeEnum_UpdateExistingVideos JobTypeEnum = "update_existing_videos"
 	JobTypeEnum_ScanPath             JobTypeEnum = "scan_path"
 	JobTypeEnum_GenerateChecksum     JobTypeEnum = "generate_checksum"
+	JobTypeEnum_GenerateThumbnail    JobTypeEnum = "generate_thumbnail"
 )
 
 var JobTypeEnumAllValues = []JobTypeEnum{
 	JobTypeEnum_UpdateExistingVideos,
 	JobTypeEnum_ScanPath,
 	JobTypeEnum_GenerateChecksum,
+	JobTypeEnum_GenerateThumbnail,
 }
 
 func (e *JobTypeEnum) Scan(value interface{}) error {
@@ -41,6 +43,8 @@ func (e *JobTypeEnum) Scan(value interface{}) error {
 		*e = JobTypeEnum_ScanPath
 	case "generate_checksum":
 		*e = JobTypeEnum_GenerateChecksum
+	case "generate_thumbnail":
+		*e = JobTypeEnum_GenerateThumbnail
 	default:
 		return errors.New("jet: Invalid scan value '" + enumValue + "' for JobTypeEnum enum")
 	}

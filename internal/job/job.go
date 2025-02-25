@@ -68,25 +68,44 @@ func (jr *JobRunner) loop() {
 					break
 				}
 
+				job.Status = model.JobStatusEnum_InProgress
+				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
+					jr.logger.Errorf("could not update job (%v) status to in progress: %v", job.ID, err.Error())
+					return
+				}
+
 				switch job.JobType {
 				case model.JobTypeEnum_ScanPath:
 					if err := jr.ScanPath(job); err != nil {
-						jr.logger.Errorf("Scan path finished with errors", err)
+						jr.logger.Errorf("Scan path finished with errors", err.Error())
 						job.Status = model.JobStatusEnum_Failed
 						if erro := jr.repo.Job().UpdateJobStatus(job); erro != nil {
-							jr.logger.Errorf("Could not update job status after error. Killing to prevent infinite loop: %v", erro)
+							jr.logger.Errorf("Could not update job status after error. Killing to prevent infinite loop: %v", erro.Error())
 							return
 						}
 					}
 				case model.JobTypeEnum_GenerateChecksum:
 					if err := jr.GenerateChecksum(job); err != nil {
-						panic("not implemented")
+						jr.logger.Errorf("Generate checksum finished with errors: %v", err.Error())
+						job.Status = model.JobStatusEnum_Failed
+						if erro := jr.repo.Job().UpdateJobStatus(job); erro != nil {
+							jr.logger.Errorf("Could not update job status after error. Killing to prevent infinite loop: %v", erro.Error())
+							return
+						}
+					}
+				case model.JobTypeEnum_GenerateThumbnail:
+					if err := jr.GenerateThumbnail(job); err != nil {
+						jr.logger.Errorf("Generate thumbnail finished with errors: %v", err.Error())
+						job.Status = model.JobStatusEnum_Failed
+						if erro := jr.repo.Job().UpdateJobStatus(job); erro != nil {
+							jr.logger.Errorf("Could not update job status after error. Killing to prevent infinite loop: %v", erro.Error())
+						}
 					}
 				default:
 					jr.logger.Errorf("Job of type %v is not implemented", job.JobType)
-					job.Status = model.JobStatusEnum_Failed
+					job.Status = model.JobStatusEnum_Cancelled
 					errorMessage := `{"error":"can't run job due to no job runner implemented"}`
-					job.Data = &errorMessage
+					job.Outcome = &errorMessage
 					if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 						jr.logger.Errorf("Could not update not implemented job %v. Killing to prevent infinite loop: %v", job.JobType, err.Error())
 						return

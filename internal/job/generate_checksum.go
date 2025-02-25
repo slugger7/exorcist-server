@@ -14,6 +14,24 @@ type GenerateChecksumData struct {
 	VideoId uuid.UUID `json:"videoId"`
 }
 
+func CreateGenerateChecksumJob(videoId uuid.UUID) (*model.Job, error) {
+	d := GenerateChecksumData{
+		VideoId: videoId,
+	}
+	js, err := json.Marshal(d)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not marshal generate checksum data for: %v", videoId)
+	}
+	data := string(js)
+	job := model.Job{
+		JobType: model.JobTypeEnum_GenerateChecksum,
+		Status:  model.JobStatusEnum_NotStarted,
+		Data:    &data,
+	}
+
+	return &job, nil
+}
+
 func (jr *JobRunner) GenerateChecksum(job *model.Job) error {
 	var jobData GenerateChecksumData
 	if err := json.Unmarshal([]byte(*job.Data), &jobData); err != nil {

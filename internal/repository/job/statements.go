@@ -40,7 +40,7 @@ func (jb *JobRepository) getNextJobStatement() JobStatement {
 }
 
 func (jb *JobRepository) updateJobStatusStatement(model *model.Job) JobStatement {
-	statement := table.Job.UPDATE(table.Job.Modified, table.Job.Status).
+	statement := table.Job.UPDATE(table.Job.Modified, table.Job.Status, table.Job.Outcome).
 		MODEL(model).
 		WHERE(table.Job.ID.EQ(postgres.UUID(model.ID)))
 

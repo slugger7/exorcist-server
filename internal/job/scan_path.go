@@ -2,7 +2,9 @@ package job
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"path/filepath"
 	"slices"
 	"strconv"
 
@@ -107,6 +109,10 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		jr.logger.Errorf("Error writing last batch of videos to database: %v", err)
 	}
 
+	if len(accErrs) > 0 {
+		return errors.Join(accErrs...)
+	}
+
 	return nil
 }
 
@@ -123,13 +129,19 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 
 	jobs := []model.Job{}
 	for _, v := range vids {
-		data := fmt.Sprintf(`{"videoId": "%v"}`, v.ID)
-		job := model.Job{
-			JobType: model.JobTypeEnum_GenerateChecksum,
-			Status:  model.JobStatusEnum_NotStarted,
-			Data:    &data,
+		checksumJob, err := CreateGenerateChecksumJob(v.ID)
+		if err != nil {
+			return errs.BuildError(err, "could not create checksum job")
 		}
-		jobs = append(jobs, job)
+		jobs = append(jobs, *checksumJob)
+
+		assetPath := filepath.Join(jr.env.Assets, v.ID.String(), fmt.Sprintf(`%v.png`, v.FileName))
+		thumbnailJob, err := CreateGenerateThumbnailJob(v.ID, assetPath, 0, 0, 0)
+		if err != nil {
+			return errs.BuildError(err, "could not create generate thumbnail job")
+		}
+
+		jobs = append(jobs, *thumbnailJob)
 	}
 
 	if _, err = jr.repo.Job().CreateAll(jobs); err != nil {
