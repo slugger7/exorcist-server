@@ -78,7 +78,7 @@ func (ds *VideoRepository) insertStatement(videos []model.Video) *VideoStatement
 		table.Video.Size,
 	).
 		MODELS(videos).
-		RETURNING(table.Video.ID)
+		RETURNING(table.Video.AllColumns)
 
 	util.DebugCheck(ds.Env, statement)
 

@@ -99,12 +99,7 @@ func Test_InsertVideosStatement_WithVideos_ShouldReturnStatement(t *testing.T) {
 	videos := []model.Video{video}
 	actual, _ := ds.insertStatement(videos).Sql()
 
-	expected :=
-		`
-INSERT INTO public.video (library_path_id, relative_path, title, file_name, height, width, runtime, size)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING video.id AS "video.id";
-`
+	expected := "\nINSERT INTO public.video (library_path_id, relative_path, title, file_name, height, width, runtime, size)\nVALUES ($1, $2, $3, $4, $5, $6, $7, $8)\nRETURNING video.id AS \"video.id\",\n          video.library_path_id AS \"video.library_path_id\",\n          video.relative_path AS \"video.relative_path\",\n          video.title AS \"video.title\",\n          video.file_name AS \"video.file_name\",\n          video.height AS \"video.height\",\n          video.width AS \"video.width\",\n          video.runtime AS \"video.runtime\",\n          video.size AS \"video.size\",\n          video.checksum AS \"video.checksum\",\n          video.added AS \"video.added\",\n          video.deleted AS \"video.deleted\",\n          video.exists AS \"video.exists\",\n          video.created AS \"video.created\",\n          video.modified AS \"video.modified\";\n"
 	if actual != expected {
 		t.Errorf("Expected \n%v got \n%v", expected, actual)
 	}
