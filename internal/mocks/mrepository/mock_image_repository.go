@@ -10,6 +10,11 @@ import (
 type MockImageRepo mocks.MockFixture[model.Image]
 
 // Deprecated
+func (*MockImageRepo) RelateVideo(m *model.VideoImage) (*model.VideoImage, error) {
+	panic("unimplemented")
+}
+
+// Deprecated
 func (m *MockImageRepo) Create(model *model.Image) (*model.Image, error) {
 	panic("unimplemented")
 }

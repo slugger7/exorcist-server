@@ -54,3 +54,18 @@ func (mr *MockIImageRepositoryMockRecorder) Create(m any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIImageRepository)(nil).Create), m)
 }
+
+// RelateVideo mocks base method.
+func (m_2 *MockIImageRepository) RelateVideo(m *model.VideoImage) (*model.VideoImage, error) {
+	m_2.ctrl.T.Helper()
+	ret := m_2.ctrl.Call(m_2, "RelateVideo", m)
+	ret0, _ := ret[0].(*model.VideoImage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RelateVideo indicates an expected call of RelateVideo.
+func (mr *MockIImageRepositoryMockRecorder) RelateVideo(m any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RelateVideo", reflect.TypeOf((*MockIImageRepository)(nil).RelateVideo), m)
+}
