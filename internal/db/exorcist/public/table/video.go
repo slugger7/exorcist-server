@@ -24,7 +24,7 @@ type videoTable struct {
 	FileName      postgres.ColumnString
 	Height        postgres.ColumnInteger
 	Width         postgres.ColumnInteger
-	Runtime       postgres.ColumnInteger
+	Runtime       postgres.ColumnFloat
 	Size          postgres.ColumnInteger
 	Checksum      postgres.ColumnString
 	Added         postgres.ColumnTimestamp
@@ -79,7 +79,7 @@ func newVideoTableImpl(schemaName, tableName, alias string) videoTable {
 		FileNameColumn      = postgres.StringColumn("file_name")
 		HeightColumn        = postgres.IntegerColumn("height")
 		WidthColumn         = postgres.IntegerColumn("width")
-		RuntimeColumn       = postgres.IntegerColumn("runtime")
+		RuntimeColumn       = postgres.FloatColumn("runtime")
 		SizeColumn          = postgres.IntegerColumn("size")
 		ChecksumColumn      = postgres.StringColumn("checksum")
 		AddedColumn         = postgres.TimestampColumn("added")
