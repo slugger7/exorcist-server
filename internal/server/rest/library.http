@@ -1,4 +1,5 @@
 ### Create Library
+# @name createLibrary
 POST {{host}}:{{port}}/api/libraries
 Content-Type: application/json
 
@@ -6,8 +7,25 @@ Content-Type: application/json
   "name": "new library name"
 }
 
+@libraryId = {{createLibrary.response.body.id}}
+
 ### Get libraries
+# @name getLibraries
 GET {{host}}:{{port}}/api/libraries
 
+@libraryId = {{getLibraries.response.body.0.id}}
+
 ### Scan library
-GET {{host}}:{{port}}/api/libraries/4267107e-15b1-4e0f-8bd7-6ba62c67a77c/scan
+GET {{host}}:{{port}}/api/libraries/{{libraryId}}/scan
+
+### Create Library path
+POST {{host}}:{{port}}/api/libraryPaths
+Content-Type: application/json
+
+{
+  "path": "./",
+  "libraryId": "{{libraryId}}"
+}
+
+### Get all library paths
+GET {{host}}:{{port}}/api/libraryPaths
