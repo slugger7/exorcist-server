@@ -104,8 +104,8 @@ func (jr *JobRunner) loop() {
 				default:
 					jr.logger.Errorf("Job of type %v is not implemented", job.JobType)
 					job.Status = model.JobStatusEnum_Cancelled
-					errorMessage := `{"error":"can't run job due to no job runner implemented"}` // FIXME: this overrides the job data preventing us from debugging failed jobs
-					job.Data = &errorMessage
+					errorMessage := `{"error":"can't run job due to no job runner implemented"}`
+					job.Outcome = &errorMessage
 					if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 						jr.logger.Errorf("Could not update not implemented job %v. Killing to prevent infinite loop: %v", job.JobType, err.Error())
 						return
