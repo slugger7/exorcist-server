@@ -19,4 +19,5 @@ type Job struct {
 	Created  time.Time
 	Modified time.Time
 	JobType  JobTypeEnum
+	Outcome  *string
 }
