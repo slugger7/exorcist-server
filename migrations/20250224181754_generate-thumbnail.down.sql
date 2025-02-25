@@ -10,6 +10,8 @@ begin;
 
   update job set job_type = old_job_type::text::job_type_enum;
 
+  alter table job alter column job_type drop default;
+
   alter table job drop column old_job_type;
 
   drop type old_job_type_enum;
