@@ -2,7 +2,6 @@ package job
 
 import (
 	"encoding/json"
-	"fmt"
 	"slices"
 	"strconv"
 
@@ -123,13 +122,19 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 
 	jobs := []model.Job{}
 	for _, v := range vids {
-		data := fmt.Sprintf(`{"videoId": "%v"}`, v.ID)
-		job := model.Job{
-			JobType: model.JobTypeEnum_GenerateChecksum,
-			Status:  model.JobStatusEnum_NotStarted,
-			Data:    &data,
+		checksumJob, err := CreateGenerateChecksumJob(v.ID)
+		if err != nil {
+			return errs.BuildError(err, "could not create checksum job")
 		}
-		jobs = append(jobs, job)
+		jobs = append(jobs, *checksumJob)
+
+		// TODO: figure out asset path
+		thumbnailJob, err := CreateGenerateThumbnailJob(v.ID, "asset path", 0, 0, 0)
+		if err != nil {
+			return errs.BuildError(err, "could not create generate thumbnail job")
+		}
+
+		jobs = append(jobs, *thumbnailJob)
 	}
 
 	if _, err = jr.repo.Job().CreateAll(jobs); err != nil {

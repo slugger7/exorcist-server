@@ -22,6 +22,29 @@ type GenerateThumbnailData struct {
 	Width int `json:"width"`
 }
 
+func CreateGenerateThumbnailJob(videoId uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
+	d := GenerateThumbnailData{
+		VideoId:   videoId,
+		Path:      imagePath,
+		Height:    height,
+		Width:     width,
+		Timestamp: timestamp,
+	}
+
+	js, err := json.Marshal(d)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not marshal generate thumbnail data")
+	}
+	data := string(js)
+	job := &model.Job{
+		JobType: model.JobTypeEnum_GenerateThumbnail,
+		Status:  model.JobStatusEnum_NotStarted,
+		Data:    &data,
+	}
+
+	return job, nil
+}
+
 func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 	var jobData GenerateThumbnailData
 	if err := json.Unmarshal([]byte(*job.Data), &jobData); err != nil {
