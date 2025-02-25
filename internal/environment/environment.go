@@ -30,20 +30,24 @@ type EnvironmentVariables struct {
 	Port             int
 	Secret           string
 	LogLevel         string
+	Assets           string
 }
 
+type OsEnv = string
+
 const (
-	DATABASE_HOST     = "DATABASE_HOST"
-	DATABASE_PORT     = "DATABASE_PORT"
-	DATABASE_USER     = "DATABASE_USER"
-	DATABASE_PASSWORD = "DATABASE_PASSWORD"
-	DATABASE_NAME     = "DATABASE_NAME"
-	DEBUG_SQL         = "DEBUG_SQL"
-	MEDIUA_PATH       = "MEDIA_PATH"
-	APP_ENV           = "APP_ENV"
-	PORT              = "PORT"
-	SECRET            = "SECRET"
-	LOG_LEVEL         = "LOG_LEVEL"
+	DATABASE_HOST     OsEnv = "DATABASE_HOST"
+	DATABASE_PORT     OsEnv = "DATABASE_PORT"
+	DATABASE_USER     OsEnv = "DATABASE_USER"
+	DATABASE_PASSWORD OsEnv = "DATABASE_PASSWORD"
+	DATABASE_NAME     OsEnv = "DATABASE_NAME"
+	DEBUG_SQL         OsEnv = "DEBUG_SQL"
+	MEDIUA_PATH       OsEnv = "MEDIA_PATH"
+	APP_ENV           OsEnv = "APP_ENV"
+	PORT              OsEnv = "PORT"
+	SECRET            OsEnv = "SECRET"
+	LOG_LEVEL         OsEnv = "LOG_LEVEL"
+	ASSETS            OsEnv = "ASSETS"
 )
 
 var env *EnvironmentVariables
@@ -70,6 +74,7 @@ func RefreshEnvironmentVariables() {
 		Port:             getIntValue(PORT),
 		Secret:           os.Getenv(SECRET),
 		LogLevel:         getValueOrDefault(LOG_LEVEL, "debug"),
+		Assets:           os.Getenv(ASSETS),
 	}
 }
 

@@ -3,6 +3,7 @@ package job
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -45,6 +46,11 @@ func CreateGenerateThumbnailJob(videoId uuid.UUID, imagePath string, timestamp, 
 	return job, nil
 }
 
+func createAssetDirectory(path string) error {
+	dir := filepath.Dir(path)
+	return os.MkdirAll(dir, os.ModePerm)
+}
+
 func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 	var jobData GenerateThumbnailData
 	if err := json.Unmarshal([]byte(*job.Data), &jobData); err != nil {
@@ -71,6 +77,10 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 	}
 
 	absolutePath := filepath.Join(video.LibraryPath.Path, video.RelativePath)
+	err = createAssetDirectory(jobData.Path)
+	if err != nil {
+		return errs.BuildError(err, "could not create path for asset")
+	}
 
 	if err := ffmpeg.ImageAt(absolutePath, jobData.Timestamp, jobData.Path, jobData.Width, jobData.Height); err != nil {
 		return errs.BuildError(err, "could not create image at timestamp")
@@ -92,7 +102,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		VideoImageType: model.VideoImageTypeEnum_Thumbnail,
 	}
 
-	videoImage, err = jr.repo.Image().RelateVideo(videoImage)
+	_, err = jr.repo.Image().RelateVideo(videoImage)
 	if err != nil {
 		return errs.BuildError(err, "could not create video image relation")
 	}

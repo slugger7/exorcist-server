@@ -2,6 +2,9 @@ package job
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"path/filepath"
 	"slices"
 	"strconv"
 
@@ -106,6 +109,10 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		jr.logger.Errorf("Error writing last batch of videos to database: %v", err)
 	}
 
+	if len(accErrs) > 0 {
+		return errors.Join(accErrs...)
+	}
+
 	return nil
 }
 
@@ -128,8 +135,8 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 		}
 		jobs = append(jobs, *checksumJob)
 
-		// TODO: figure out asset path
-		thumbnailJob, err := CreateGenerateThumbnailJob(v.ID, "asset path", 0, 0, 0)
+		assetPath := filepath.Join(jr.env.Assets, v.ID.String(), fmt.Sprintf(`%v.png`, v.FileName))
+		thumbnailJob, err := CreateGenerateThumbnailJob(v.ID, assetPath, 0, 0, 0)
 		if err != nil {
 			return errs.BuildError(err, "could not create generate thumbnail job")
 		}
