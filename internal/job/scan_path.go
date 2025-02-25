@@ -92,7 +92,7 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 			FileName:      v.FileName,
 			Height:        int32(height),
 			Width:         int32(width),
-			Runtime:       int64(runtime), // FIXME: this value is off by a factor and needs fixing
+			Runtime:       float64(runtime),
 			Size:          int64(size),
 		})
 
