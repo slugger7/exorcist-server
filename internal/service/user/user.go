@@ -79,6 +79,11 @@ func (us *UserService) Create(username, password string) (*model.User, error) {
 	return newUser, nil
 }
 
+const (
+	ErrUserDoesNotExist         string = "user with username %v does not exist"
+	ErrUsersPasswordDidNotMatch string = "password for user %v did not match"
+)
+
 func (us *UserService) Validate(username, password string) (*model.User, error) {
 	user, err := us.repo.User().
 		GetUserByUsername(username, table.User.ID, table.User.Password)
@@ -87,11 +92,11 @@ func (us *UserService) Validate(username, password string) (*model.User, error) 
 	}
 
 	if user == nil {
-		return nil, fmt.Errorf("user with username %v does not exist", username)
+		return nil, fmt.Errorf(ErrUserDoesNotExist, username)
 	}
 
 	if !compareHashedPassword(user.Password, password) {
-		return nil, fmt.Errorf("password for user %v did not match", username)
+		return nil, fmt.Errorf(ErrUsersPasswordDidNotMatch, username)
 	}
 	user.Password = "" // do not want to return the hash of the password
 
