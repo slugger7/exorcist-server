@@ -35,3 +35,6 @@ build
 
 # VS Code debug binary
 *__debug_bin*
+
+# Emacs files
+.#*
