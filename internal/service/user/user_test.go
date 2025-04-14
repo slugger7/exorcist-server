@@ -5,24 +5,17 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	mock_repository "github.com/slugger7/exorcist/internal/mock/repository"
 	mock_userRepository "github.com/slugger7/exorcist/internal/mock/repository/user"
-	"github.com/slugger7/exorcist/internal/mocks/mrepository"
 	"github.com/slugger7/exorcist/internal/models"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	"go.uber.org/mock/gomock"
 )
-
-// Deprecated: use mockgen mocks instead
-func setupOld() (*UserService, *mrepository.MockRepository) {
-	mockRepo := mrepository.SetupMockRespository()
-	us := &UserService{repo: mockRepo}
-	return us, mockRepo
-}
 
 type testService struct {
 	svc      *UserService
@@ -48,22 +41,33 @@ func setup(t *testing.T) *testService {
 }
 
 func Test_UserExists_ErrorFromRepo(t *testing.T) {
-	us, mr := setupOld()
-	expectedErr := errors.New("expected error")
-	mr.MockUserRepo.MockError[0] = expectedErr
+	s := setup(t)
 
-	if _, err := us.UserExists(""); err.Error() != expectedErr.Error() {
+	expectedErr := fmt.Errorf("expected error")
+
+	s.userRepo.EXPECT().
+		GetUserByUsername(gomock.Any()).
+		DoAndReturn(func(u string, columns ...postgres.Projection) (*model.User, error) {
+			return nil, expectedErr
+		}).
+		Times(1)
+
+	if _, err := s.svc.UserExists(""); err.Error() != expectedErr.Error() {
 		t.Errorf("Expected: %v\nGot: %v", expectedErr.Error(), err.Error())
 	}
 }
 
 func Test_UserExists_UserIsNil_ShouldReturnFalse(t *testing.T) {
-	us, mr := setupOld()
+	s := setup(t)
 
-	mr.MockUserRepo.MockModel[0] = nil
-	mr.MockUserRepo.MockError[0] = nil
+	s.userRepo.EXPECT().
+		GetUserByUsername(gomock.Any()).
+		DoAndReturn(func(u string, columns ...postgres.Projection) (*model.User, error) {
+			return nil, nil
+		}).
+		Times(1)
 
-	actual, err := us.UserExists("")
+	actual, err := s.svc.UserExists("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,10 +78,16 @@ func Test_UserExists_UserIsNil_ShouldReturnFalse(t *testing.T) {
 }
 
 func Test_UserExists_UserIsDefined_ShouldReturnTrue(t *testing.T) {
-	us, mr := setupOld()
-	mr.MockUserRepo.MockModel[0] = &model.User{}
+	s := setup(t)
 
-	actual, err := us.UserExists("")
+	s.userRepo.EXPECT().
+		GetUserByUsername(gomock.Any()).
+		DoAndReturn(func(u string, columns ...postgres.Projection) (*model.User, error) {
+			return &model.User{}, nil
+		}).
+		Times(1)
+
+	actual, err := s.svc.UserExists("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,12 +98,18 @@ func Test_UserExists_UserIsDefined_ShouldReturnTrue(t *testing.T) {
 }
 
 func Test_CreateUser_UserExistsRaisesError_ShouldReturnError(t *testing.T) {
-	us, mr := setupOld()
+	s := setup(t)
 
-	mr.MockUserRepo.MockError[0] = errors.New("error")
+	s.userRepo.EXPECT().
+		GetUserByUsername(gomock.Any()).
+		DoAndReturn(func(u string, columns ...postgres.Projection) (*model.User, error) {
+			return nil, fmt.Errorf("error")
+		}).
+		Times(1)
+
 	username := "someUsername"
 
-	user, err := us.Create(username, "")
+	user, err := s.svc.Create(username, "")
 	if err == nil {
 		t.Error("Expected an error but it was nil")
 	}
@@ -113,13 +129,17 @@ func Test_CreateUser_UserExistsRaisesError_ShouldReturnError(t *testing.T) {
 }
 
 func Test_CreateUser_UserExistsTrue_ShouldReturnError(t *testing.T) {
-	us, mr := setupOld()
+	s := setup(t)
 
-	mr.MockUserRepo.MockModel[0] = &model.User{}
-
+	s.userRepo.EXPECT().
+		GetUserByUsername(gomock.Any()).
+		DoAndReturn(func(u string, columns ...postgres.Projection) (*model.User, error) {
+			return &model.User{}, nil
+		}).
+		Times(1)
 	username := "someUsername"
 
-	user, err := us.Create(username, "")
+	user, err := s.svc.Create(username, "")
 	if err == nil {
 		t.Error("Expected error but was nil")
 	}
@@ -133,12 +153,25 @@ func Test_CreateUser_UserExistsTrue_ShouldReturnError(t *testing.T) {
 }
 
 func Test_CreateUser_UserExistsFalse_RepoCreateReturnsError_ShouldReturnError(t *testing.T) {
-	us, mr := setupOld()
+	s := setup(t)
 
-	mr.MockUserRepo.MockError[1] = fmt.Errorf("error")
+	s.userRepo.EXPECT().
+		CreateUser(gomock.Any()).
+		DoAndReturn(func(user model.User) (*model.User, error) {
+			return nil, fmt.Errorf("error")
+		}).
+		Times(1)
+
+	s.userRepo.EXPECT().
+		GetUserByUsername(gomock.Any()).
+		DoAndReturn(func(u string, columns ...postgres.Projection) (*model.User, error) {
+			return nil, nil
+		}).
+		Times(1)
+
 	username := "someUsername"
 
-	user, err := us.Create(username, "")
+	user, err := s.svc.Create(username, "")
 	if err == nil {
 		t.Error("Expected an error but was nil")
 	}
@@ -157,12 +190,25 @@ func Test_CreateUser_UserExistsFalse_RepoCreateReturnsError_ShouldReturnError(t 
 }
 
 func Test_CreateUser_UserExistsFalse_RepoCreatesUser_ShouldReturnUser(t *testing.T) {
-	us, mr := setupOld()
+	s := setup(t)
+
 	username := "someUser"
 	password := "somePassword"
-	mr.MockUserRepo.MockModel[1] = &model.User{Username: username, Password: password}
 
-	user, err := us.Create(username, "")
+	s.userRepo.EXPECT().
+		GetUserByUsername(gomock.Any()).
+		DoAndReturn(func(u string, columns ...postgres.Projection) (*model.User, error) {
+			return nil, nil
+		}).
+		Times(1)
+	s.userRepo.EXPECT().
+		CreateUser(gomock.Any()).
+		DoAndReturn(func(user model.User) (*model.User, error) {
+			return &model.User{Username: username, Password: password}, nil
+		}).
+		Times(1)
+
+	user, err := s.svc.Create(username, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,46 +225,73 @@ func Test_CreateUser_UserExistsFalse_RepoCreatesUser_ShouldReturnUser(t *testing
 }
 
 func Test_ValidateUser_RepoReturnsError_ShouldReturnError(t *testing.T) {
-	us, mr := setupOld()
+	s := setup(t)
 
 	expecedError := errors.New("expected error")
-	mr.MockUserRepo.MockError[0] = expecedError
 
-	if _, err := us.Validate("", ""); err.Error() != expecedError.Error() {
+	s.userRepo.EXPECT().
+		GetUserByUsername(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(username string, columns ...postgres.Projection) (*model.User, error) {
+			return nil, expecedError
+		}).
+		Times(1)
+
+	if _, err := s.svc.Validate("", ""); err.Error() != expecedError.Error() {
 		t.Errorf("Expected error: %v\nGot error: %v", expecedError.Error(), err.Error())
 	}
 }
 
 func Test_ValidateUser_RepoReturnsNilUser_ShouldReturnError(t *testing.T) {
-	us, _ := setupOld()
+	s := setup(t)
 
 	username := "someUsername"
-	expectedError := fmt.Errorf("user with username %v does not exist", username)
+	expectedError := fmt.Errorf(ErrUserDoesNotExist, username)
 
-	if _, err := us.Validate(username, ""); err.Error() != expectedError.Error() {
+	s.userRepo.EXPECT().
+		GetUserByUsername(username, gomock.Any()).
+		DoAndReturn(func(username string, columns ...postgres.Projection) (*model.User, error) {
+			return nil, nil
+		}).
+		Times(1)
+
+	if _, err := s.svc.Validate(username, ""); err.Error() != expectedError.Error() {
 		t.Errorf("Expected error: %v\nGot error: %v", expectedError.Error(), err.Error())
 	}
 }
 
 func Test_ValidateUser_PasswordsDoNotMatch(t *testing.T) {
-	us, mr := setupOld()
-	mr.MockUserRepo.MockModel[0] = &model.User{Password: ""}
-	username := "someUsername"
-	expectedError := fmt.Errorf("password for user %v did not match", username)
+	s := setup(t)
 
-	if _, err := us.Validate(username, ""); err.Error() != expectedError.Error() {
+	username := "someUsername"
+
+	s.userRepo.EXPECT().
+		GetUserByUsername(username, gomock.Any()).
+		DoAndReturn(func(username string, columns ...postgres.Projection) (*model.User, error) {
+			return &model.User{Password: ""}, nil
+		}).
+		Times(1)
+
+	expectedError := fmt.Errorf(ErrUsersPasswordDidNotMatch, username)
+
+	if _, err := s.svc.Validate(username, ""); err.Error() != expectedError.Error() {
 		t.Errorf("Expected error: %v\nGot error: %v", expectedError.Error(), err.Error())
 	}
 }
 
 func Test_ValidateUser_PasswordsMatch_ShouldReturnUser(t *testing.T) {
-	us, mr := setupOld()
+	s := setup(t)
 
 	password := "somePassword"
 	username := "someUsername"
-	mr.MockUserRepo.MockModel[0] = &model.User{Username: username, Password: hashPassword(password)}
 
-	user, err := us.Validate(username, password)
+	s.userRepo.EXPECT().
+		GetUserByUsername(username, gomock.Any()).
+		DoAndReturn(func(username string, columns ...postgres.Projection) (*model.User, error) {
+			return &model.User{Username: username, Password: hashPassword(password)}, nil
+		}).
+		Times(1)
+
+	user, err := s.svc.Validate(username, password)
 	if err != nil {
 		t.Fatal(err)
 	}
