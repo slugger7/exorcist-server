@@ -8,22 +8,60 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	errs "github.com/slugger7/exorcist/internal/errors"
-	"github.com/slugger7/exorcist/internal/mocks/mrepository"
+	mock_repository "github.com/slugger7/exorcist/internal/mock/repository"
+	mock_libraryRepository "github.com/slugger7/exorcist/internal/mock/repository/library"
+	mock_libraryPathRepository "github.com/slugger7/exorcist/internal/mock/repository/library_path"
+
+	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
+	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
+	"go.uber.org/mock/gomock"
 )
 
-func setup() (*LibraryPathService, *mrepository.MockRepository) {
-	mockRepo := mrepository.SetupMockRespository()
-	ls := &LibraryPathService{repo: mockRepo}
-	return ls, mockRepo
+type testService struct {
+	svc         *LibraryPathService
+	repo        *mock_repository.MockIRepository
+	libRepo     *mock_libraryRepository.MockILibraryRepository
+	libPathRepo *mock_libraryPathRepository.MockILibraryPathRepository
+}
+
+func setup(t *testing.T) *testService {
+	ctrl := gomock.NewController(t)
+
+	mockRepo := mock_repository.NewMockIRepository(ctrl)
+	mockLibraryPathRepo := mock_libraryPathRepository.NewMockILibraryPathRepository(ctrl)
+	mockLibraryRepo := mock_libraryRepository.NewMockILibraryRepository(ctrl)
+
+	mockRepo.EXPECT().
+		LibraryPath().
+		DoAndReturn(func() libraryPathRepository.ILibraryPathRepository {
+			return mockLibraryPathRepo
+		}).
+		AnyTimes()
+
+	mockRepo.EXPECT().
+		Library().
+		DoAndReturn(func() libraryRepository.ILibraryRepository {
+			return mockLibraryRepo
+		}).
+		AnyTimes()
+
+	lps := &LibraryPathService{repo: mockRepo}
+	return &testService{
+		lps,
+		mockRepo,
+		mockLibraryRepo,
+		mockLibraryPathRepo,
+	}
 }
 
 func Test_Create_ModelPassedToFunctionNil(t *testing.T) {
-	ls, _ := setup()
+	s := setup(t)
 
-	lib, err := ls.Create(nil)
+	lib, err := s.svc.Create(nil)
 	if err == nil {
 		t.Error("Expected an error but got nothing")
 	}
+
 	if err.Error() != LibraryPathWasNilErr {
 		t.Errorf("Expected error: %v\nGot error: %v", LibraryPathWasNilErr, err.Error())
 	}
@@ -34,14 +72,19 @@ func Test_Create_ModelPassedToFunctionNil(t *testing.T) {
 }
 
 func Test_Create_ErrorWhileGettingLibraryByIdFromRepo(t *testing.T) {
-	ls, repo := setup()
+	s := setup(t)
 
 	id, _ := uuid.NewRandom()
 	libPathModel := &model.LibraryPath{LibraryID: id}
 
-	repo.MockLibraryRepo.MockError[0] = errors.New("error")
+	s.libRepo.EXPECT().
+		GetLibraryById(libPathModel.LibraryID).
+		DoAndReturn(func(id uuid.UUID) (*model.Library, error) {
+			return nil, fmt.Errorf("error")
+		}).
+		Times(1)
 
-	lib, err := ls.Create(libPathModel)
+	lib, err := s.svc.Create(libPathModel)
 
 	if err == nil {
 		t.Error("expecting an error but was nil")
@@ -62,13 +105,19 @@ func Test_Create_ErrorWhileGettingLibraryByIdFromRepo(t *testing.T) {
 }
 
 func Test_Create_LibraryNilFromRepo(t *testing.T) {
-	ls, repo := setup()
+	s := setup(t)
 
 	id, err := uuid.NewRandom()
 	libPathModel := &model.LibraryPath{LibraryID: id}
 
-	repo.MockLibraryRepo.MockModel[0] = nil
-	lib, err := ls.Create(libPathModel)
+	s.libRepo.EXPECT().
+		GetLibraryById(libPathModel.LibraryID).
+		DoAndReturn(func(id uuid.UUID) (*model.Library, error) {
+			return nil, nil
+		}).
+		Times(1)
+
+	lib, err := s.svc.Create(libPathModel)
 	if err == nil {
 		t.Error("expecting an error but was nil")
 	}
@@ -83,16 +132,26 @@ func Test_Create_LibraryNilFromRepo(t *testing.T) {
 }
 
 func Test_Create_LibraryExists_CreatingLibraryPathReturnsError(t *testing.T) {
-	ls, repo := setup()
+	s := setup(t)
 
 	id, _ := uuid.NewRandom()
 	libPathModel := &model.LibraryPath{Path: "/some/expected/path", LibraryID: id}
 	library := &model.Library{ID: id}
 
-	repo.MockLibraryRepo.MockModel[0] = library
-	repo.MockLibraryPathRepo.MockError[1] = errors.New("error")
+	s.libRepo.EXPECT().
+		GetLibraryById(id).
+		DoAndReturn(func(id uuid.UUID) (*model.Library, error) {
+			return library, nil
+		}).
+		Times(1)
 
-	lib, err := ls.Create(libPathModel)
+	s.libPathRepo.EXPECT().
+		Create(libPathModel.Path, libPathModel.LibraryID).
+		DoAndReturn(func(p string, id uuid.UUID) (*model.LibraryPath, error) {
+			return nil, fmt.Errorf("error")
+		})
+
+	lib, err := s.svc.Create(libPathModel)
 	if err == nil {
 		t.Error("Expecting an error but was nil")
 	}
@@ -111,17 +170,27 @@ func Test_Create_LibraryExists_CreatingLibraryPathReturnsError(t *testing.T) {
 	}
 }
 
-func Test_Create_Succcess(t *testing.T) {
-	ls, repo := setup()
+func Test_Create_Success(t *testing.T) {
+	s := setup(t)
 
 	id, _ := uuid.NewRandom()
 	libPathModel := &model.LibraryPath{Path: "/some/expected/path", LibraryID: id}
 	library := &model.Library{ID: id}
 
-	repo.MockLibraryRepo.MockModel[0] = library
-	repo.MockLibraryPathRepo.MockModel[1] = libPathModel
+	s.libRepo.EXPECT().
+		GetLibraryById(id).
+		DoAndReturn(func(id uuid.UUID) (*model.Library, error) {
+			return library, nil
+		}).
+		Times(1)
 
-	lib, err := ls.Create(libPathModel)
+	s.libPathRepo.EXPECT().
+		Create(libPathModel.Path, libPathModel.LibraryID).
+		DoAndReturn(func(p string, id uuid.UUID) (*model.LibraryPath, error) {
+			return libPathModel, nil
+		})
+
+	lib, err := s.svc.Create(libPathModel)
 	if err != nil {
 		t.Errorf("Expected no error but got: %v", err)
 	}
@@ -131,11 +200,16 @@ func Test_Create_Succcess(t *testing.T) {
 }
 
 func Test_GetAll_RepoReturnsError(t *testing.T) {
-	ls, repo := setup()
+	s := setup(t)
 
-	repo.MockLibraryPathRepo.MockError[0] = errors.New("error")
+	s.libPathRepo.EXPECT().
+		GetAll().
+		DoAndReturn(func() ([]model.LibraryPath, error) {
+			return nil, fmt.Errorf("error")
+		}).
+		Times(1)
 
-	libPaths, err := ls.GetAll()
+	libPaths, err := s.svc.GetAll()
 	if err == nil {
 		t.Error("expected error but was nil")
 	}
@@ -155,14 +229,20 @@ func Test_GetAll_RepoReturnsError(t *testing.T) {
 }
 
 func Test_GetAll_Success(t *testing.T) {
-	ls, repo := setup()
+	s := setup(t)
 
 	id, _ := uuid.NewRandom()
 	libPath := model.LibraryPath{ID: id}
 	libPaths := []model.LibraryPath{libPath}
-	repo.MockLibraryPathRepo.MockModels[0] = libPaths
 
-	libPaths, err := ls.GetAll()
+	s.libPathRepo.EXPECT().
+		GetAll().
+		DoAndReturn(func() ([]model.LibraryPath, error) {
+			return libPaths, nil
+		}).
+		Times(1)
+
+	libPaths, err := s.svc.GetAll()
 	if err != nil {
 		t.Errorf("Expected no error but got: %v", err)
 	}
