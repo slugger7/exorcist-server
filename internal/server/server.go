@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"sync"
@@ -19,11 +20,10 @@ type Server struct {
 	service service.IService
 	logger  logger.ILogger
 	jobCh   chan bool
-	wg      *sync.WaitGroup
 }
 
-func (s *Server) withJobRunner() *Server {
-	ch := job.New(s.env, s.service, s.repo, s.logger, s.wg)
+func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup) *Server {
+	ch := job.New(s.env, s.service, s.repo, s.logger, ctx, wg)
 	s.jobCh = ch
 
 	ch <- true // start if any jobs exist
@@ -34,15 +34,15 @@ func (s *Server) withJobRunner() *Server {
 func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server {
 	repo := repository.New(env)
 	lg := logger.New(env)
+	shutdownCtx, cancel := context.WithCancel(context.Background())
 
 	newServer := &Server{
 		repo:   repo,
 		env:    env,
 		logger: lg,
-		wg:     wg,
 	}
 
-	newServer.withJobRunner()
+	newServer.withJobRunner(shutdownCtx, wg)
 	newServer.service = service.New(repo, env, newServer.jobCh)
 
 	server := &http.Server{
@@ -54,6 +54,8 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 	}
 
 	server.RegisterOnShutdown(func() {
+		newServer.logger.Info("Shutting down server. Stopping job runner.")
+		cancel()
 		close(newServer.jobCh)
 	})
 
