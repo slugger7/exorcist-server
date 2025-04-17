@@ -52,9 +52,9 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 
 	select {
 	case <-jr.shutdownCtx.Done():
-		msg := "Shutdown signal received. Stopping"
+		const msg string = "shutdown signal received. stopping"
 		jr.logger.Warning(msg)
-		return fmt.Errorf(msg)
+		return errors.New(msg)
 	case videosOnDisk := <-mediaChan:
 
 		nonExistentVideos := media.FindNonExistentVideos(existingVideos, videosOnDisk)
@@ -67,7 +67,7 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		for i, v := range videosOnDisk {
 			select {
 			case <-jr.shutdownCtx.Done():
-				return fmt.Errorf("Partially done, ended due to shutdown")
+				return fmt.Errorf("partially done, ended due to shutdown")
 			default:
 				relativePath := media.GetRelativePath(libPath.Path, v.Path)
 
@@ -145,7 +145,7 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 	for _, v := range vids {
 		select {
 		case <-jr.shutdownCtx.Done():
-			return fmt.Errorf("Shutdown signal received")
+			return fmt.Errorf("shutdown signal received")
 		default:
 			checksumJob, err := CreateGenerateChecksumJob(v.ID)
 			if err != nil {
