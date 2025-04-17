@@ -53,17 +53,17 @@ func New(
 }
 
 func (jr *JobRunner) loop() {
+	defer jr.wg.Done()
+
 	jr.logger.Infof("Running jobs")
 	for {
 		select {
 		case <-jr.shutdownCtx.Done():
 			jr.logger.Debug("Shutdown signal received. Shutting down")
-			jr.wg.Done()
 			return
 		case _, ok := <-jr.ch:
 			if !ok {
 				jr.logger.Debug("Channel closed. stopping loop")
-				jr.wg.Done()
 				return
 			}
 
@@ -80,12 +80,10 @@ func (jr *JobRunner) processJobs() error {
 	for {
 		select {
 		case <-jr.shutdownCtx.Done():
-			jr.wg.Done()
-			return fmt.Errorf("Shutdown signal received. Stopping job loop")
+			return fmt.Errorf("shutdown signal received. Stopping job loop")
 		default:
 			job, err := jr.repo.Job().GetNextJob()
 			if err != nil {
-				jr.wg.Done()
 				return errs.BuildError(err, "Failed to fetch next job")
 			}
 			if job == nil {
