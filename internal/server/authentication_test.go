@@ -100,7 +100,7 @@ func Test_Login_Success(t *testing.T) {
 	rr := s.withPostRequest(bodyM(l)).exec()
 
 	assert.StatusCode(t, http.StatusCreated, rr.Code)
-	assert.Body(t, msgBody(MsgAuthSuccess), rr.Body.String())
+	assert.Body(t, fmt.Sprintf(`{"userId":"%v"}`, id), rr.Body.String())
 
 	cookie := strings.Trim(rr.Header().Get("Set-Cookie"), " ")
 
