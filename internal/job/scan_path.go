@@ -20,6 +20,8 @@ var extensions = [...]string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".w
 const batchSize = 100
 
 func (jr *JobRunner) getFilesByExtension(path string, extensions []string, ch chan []media.File) {
+	defer jr.wg.Done()
+
 	values, err := media.GetFilesByExtensions(path, extensions)
 	if err != nil {
 		jr.logger.Errorf("could not get files by extension: %v", err)
@@ -40,7 +42,7 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 	}
 
 	mediaChan := make(chan []media.File)
-
+	jr.wg.Add(1)
 	go jr.getFilesByExtension(libPath.Path, extensions[:], mediaChan)
 
 	existingVideos, err := jr.repo.Video().GetByLibraryPathId(libPath.ID)
@@ -48,72 +50,84 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		return errs.BuildError(err, "could not get existing videos for library path: %v", libPath.ID)
 	}
 
-	videosOnDisk := <-mediaChan
+	select {
+	case <-jr.shutdownCtx.Done():
+		const msg string = "shutdown signal received. stopping"
+		jr.logger.Warning(msg)
+		return errors.New(msg)
+	case videosOnDisk := <-mediaChan:
 
-	nonExistentVideos := media.FindNonExistentVideos(existingVideos, videosOnDisk)
-	if len(nonExistentVideos) > 0 {
-		jr.removeVideos(nonExistentVideos)
-	}
-
-	accErrs := []error{}
-	videoModels := []model.Video{}
-	for i, v := range videosOnDisk {
-		relativePath := media.GetRelativePath(libPath.Path, v.Path)
-
-		if videoExsists(existingVideos, relativePath) {
-			continue
+		nonExistentVideos := media.FindNonExistentVideos(existingVideos, videosOnDisk)
+		if len(nonExistentVideos) > 0 {
+			jr.removeVideos(nonExistentVideos)
 		}
 
-		data, err := ffmpeg.UnmarshalledProbe(v.Path)
-		if err != nil {
-			accErrs = append(accErrs, errs.BuildError(err, "could not get unmarshalled probe data: %v", v.Path))
-			continue
-		}
+		accErrs := []error{}
+		videoModels := []model.Video{}
+		for i, v := range videosOnDisk {
+			select {
+			case <-jr.shutdownCtx.Done():
+				return fmt.Errorf("partially done, ended due to shutdown")
+			default:
+				relativePath := media.GetRelativePath(libPath.Path, v.Path)
 
-		width, height, err := ffmpeg.GetDimensions(data.Streams)
-		if err != nil {
-			jr.logger.Warningf("could not extract dimensions for %v. Setting to 0. Reason: %v", v.Path, err)
-		}
+				if videoExsists(existingVideos, relativePath) {
+					continue
+				}
 
-		runtime, err := strconv.ParseFloat(data.Format.Duration, 32)
-		if err != nil {
-			jr.logger.Warningf("could not convert duration from string (%v) to float for video %v. Setting runtime to 0. Reason: %v", data.Format.Duration, v.Path, err)
-		}
+				data, err := ffmpeg.UnmarshalledProbe(v.Path)
+				if err != nil {
+					accErrs = append(accErrs, errs.BuildError(err, "could not get unmarshalled probe data: %v", v.Path))
+					continue
+				}
 
-		size, err := strconv.Atoi(data.Format.Size)
-		if err != nil {
-			jr.logger.Warningf("could not convert size from string (%v) to int for video %v. Setting to 0. Reason: %v", data.Format.Size, v.Path, err)
-		}
+				width, height, err := ffmpeg.GetDimensions(data.Streams)
+				if err != nil {
+					jr.logger.Warningf("could not extract dimensions for %v. Setting to 0. Reason: %v", v.Path, err)
+				}
 
-		videoModels = append(videoModels, model.Video{
-			LibraryPathID: libPath.ID,
-			RelativePath:  relativePath,
-			Title:         v.Name,
-			FileName:      v.FileName,
-			Height:        int32(height),
-			Width:         int32(width),
-			Runtime:       float64(runtime),
-			Size:          int64(size),
-		})
+				runtime, err := strconv.ParseFloat(data.Format.Duration, 32)
+				if err != nil {
+					jr.logger.Warningf("could not convert duration from string (%v) to float for video %v. Setting runtime to 0. Reason: %v", data.Format.Duration, v.Path, err)
+				}
 
-		if i%batchSize == 0 {
-			if err := jr.writeNewVideoBatch(videoModels); err != nil {
-				jr.logger.Errorf("Error wirting batch %v to database: %v", int(i/batchSize), err)
+				size, err := strconv.Atoi(data.Format.Size)
+				if err != nil {
+					jr.logger.Warningf("could not convert size from string (%v) to int for video %v. Setting to 0. Reason: %v", data.Format.Size, v.Path, err)
+				}
+
+				videoModels = append(videoModels, model.Video{
+					LibraryPathID: libPath.ID,
+					RelativePath:  relativePath,
+					Title:         v.Name,
+					FileName:      v.FileName,
+					Height:        int32(height),
+					Width:         int32(width),
+					Runtime:       float64(runtime),
+					Size:          int64(size),
+				})
+
+				if i%batchSize == 0 {
+					if err := jr.writeNewVideoBatch(videoModels); err != nil {
+						jr.logger.Errorf("Error wirting batch %v to database: %v", int(i/batchSize), err)
+					}
+
+					videoModels = []model.Video{}
+				}
 			}
 
-			videoModels = []model.Video{}
 		}
-	}
 
-	if err := jr.writeNewVideoBatch(videoModels); err != nil {
-		jr.logger.Errorf("Error writing last batch of videos to database: %v", err)
-	}
+		if err := jr.writeNewVideoBatch(videoModels); err != nil {
+			jr.logger.Errorf("Error writing last batch of videos to database: %v", err)
+		}
 
-	if len(accErrs) > 0 {
-		return errors.Join(accErrs...)
-	}
+		if len(accErrs) > 0 {
+			return errors.Join(accErrs...)
+		}
 
-	return nil
+		return nil
+	}
 }
 
 func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
@@ -129,19 +143,24 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 
 	jobs := []model.Job{}
 	for _, v := range vids {
-		checksumJob, err := CreateGenerateChecksumJob(v.ID)
-		if err != nil {
-			return errs.BuildError(err, "could not create checksum job")
-		}
-		jobs = append(jobs, *checksumJob)
+		select {
+		case <-jr.shutdownCtx.Done():
+			return fmt.Errorf("shutdown signal received")
+		default:
+			checksumJob, err := CreateGenerateChecksumJob(v.ID)
+			if err != nil {
+				return errs.BuildError(err, "could not create checksum job")
+			}
+			jobs = append(jobs, *checksumJob)
 
-		assetPath := filepath.Join(jr.env.Assets, v.ID.String(), fmt.Sprintf(`%v.png`, v.FileName))
-		thumbnailJob, err := CreateGenerateThumbnailJob(v.ID, assetPath, 0, 0, 0)
-		if err != nil {
-			return errs.BuildError(err, "could not create generate thumbnail job")
-		}
+			assetPath := filepath.Join(jr.env.Assets, v.ID.String(), fmt.Sprintf(`%v.png`, v.FileName))
+			thumbnailJob, err := CreateGenerateThumbnailJob(v.ID, assetPath, 0, 0, 0)
+			if err != nil {
+				return errs.BuildError(err, "could not create generate thumbnail job")
+			}
 
-		jobs = append(jobs, *thumbnailJob)
+			jobs = append(jobs, *thumbnailJob)
+		}
 	}
 
 	if _, err = jr.repo.Job().CreateAll(jobs); err != nil {
@@ -152,10 +171,15 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 
 func (jr *JobRunner) removeVideos(nonExistentVideos []model.Video) {
 	for _, v := range nonExistentVideos {
-		v.Exists = false
-		err := jr.repo.Video().UpdateExists(&v)
-		if err != nil {
-			jr.logger.Errorf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
+		select {
+		case <-jr.shutdownCtx.Done():
+			return
+		default:
+			v.Exists = false
+			err := jr.repo.Video().UpdateExists(&v)
+			if err != nil {
+				jr.logger.Errorf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
+			}
 		}
 	}
 }
