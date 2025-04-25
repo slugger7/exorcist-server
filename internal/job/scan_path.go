@@ -108,8 +108,11 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 				})
 
 				if i%batchSize == 0 {
+					batch := int(i / batchSize)
+					batches := int(len(videosOnDisk) / batchSize)
+					jr.logger.Infof("Writing batch %v/%v", batch, batches)
 					if err := jr.writeNewVideoBatch(videoModels); err != nil {
-						jr.logger.Errorf("Error wirting batch %v to database: %v", int(i/batchSize), err)
+						jr.logger.Errorf("Error writing batch %v to database: %v", batch, err)
 					}
 
 					videoModels = []model.Video{}
@@ -135,7 +138,6 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 		return nil
 	}
 
-	jr.logger.Debug("Writing batch")
 	vids, err := jr.repo.Video().Insert(models)
 	if err != nil {
 		return errs.BuildError(err, "error writing batch of models to db")
