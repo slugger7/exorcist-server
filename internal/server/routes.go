@@ -3,8 +3,10 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/environment"
 )
@@ -33,11 +35,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Use(cors.New(config))
 
+	r.Use(static.Serve("/", static.LocalFile("www", false)))
+
 	s.withCookieStore(r)
 
 	// Register authentication routes
-	s.withAuthLogin(&r.RouterGroup, fmt.Sprintf("%v/login", root)).
-		withAuthLogout(&r.RouterGroup, fmt.Sprintf("%v/logout", root))
+	s.withAuthLogin(&r.RouterGroup, fmt.Sprintf("%v/api/login", root)).
+		withAuthLogout(&r.RouterGroup, fmt.Sprintf("%v/api/logout", root))
 
 	authenticated := r.Group("/api")
 	authenticated.Use(s.AuthRequired)
@@ -57,6 +61,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 	s.WithJobRoutes(authenticated)
 
 	r.GET("/health", s.HealthHandler)
+
+	r.NoRoute(func(c *gin.Context) {
+		path := c.Request.RequestURI
+		if !strings.HasPrefix(path, "/api") {
+			c.File("www/index.html")
+		}
+	})
 	return r
 }
 
