@@ -15,15 +15,15 @@ Similar to [ghost](https://github.com/slugger7/ghost-media) and [poltergeist](ht
 - `docker compose up -d` to start the database
 - `make run` to start the application
 
+## Frontend
+
+The server will serve any files that are in the [www](./www) directory if it exists.
+
+The [web](https://github.com/slugger7/exorcist-web) project can be built and all of the files in its `dist` directory can be added to the [www](./www) directory.
+
+One thing to keep in mind is that any path that does not have the `/api` prefix will be forwarded to the webserver as it is not something for this webserver to handle and it assumes that it is meant for the frontend portion of the project like a Single Page Application
+
 ## Tools
-
-### Api
-
-[Gin](https://go.dev/doc/tutorial/web-service-gin)
-
-#### Authentication
-
-[example](https://github.com/depado/gin-auth-example/tree/main)
 
 ### Database
 
@@ -52,14 +52,6 @@ The usual workflow would to add a migration would be:
 1. Create a migration
 1. Run the migrations
 1. Update the models
-
-### FFMpeg stuff
-
-[Wrapper](https://github.com/u2takey/ffmpeg-go)
-
-### Environment
-
-[dotenv](https://github.com/joho/godotenv)
 
 ### Troubleshooting
 
