@@ -66,7 +66,7 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": MsgAuthSuccess})
+	c.JSON(http.StatusCreated, gin.H{"userId": user.ID})
 }
 
 const (

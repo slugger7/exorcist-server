@@ -24,12 +24,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}
 	r := gin.Default()
 
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"}, // Add your frontend URL
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type"},
-		AllowCredentials: true, // Enable cookies/auth
-	}))
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:5173"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"}
+	config.AllowHeaders = []string{"Accept", "Authorization", "Content-Type", "Origin"}
+	config.ExposeHeaders = []string{"Content-Length"}
+	config.AllowCredentials = true
+
+	r.Use(cors.New(config))
 
 	s.withCookieStore(r)
 
