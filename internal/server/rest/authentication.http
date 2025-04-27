@@ -1,5 +1,5 @@
 ### Login
-POST {{host}}:{{port}}/login
+POST {{host}}:{{port}}/api/login
 Content-Type: application/json
 
 {
@@ -8,4 +8,4 @@ Content-Type: application/json
 }
 
 ### Logout
-GET {{host}}:{{port}}/logout
+GET {{host}}:{{port}}/api/logout
