@@ -84,6 +84,6 @@ func Test_GetVideo_Success(t *testing.T) {
 	rr := s.withGetRequest(id.String()).
 		exec()
 
-	assert.StatusCode(t, http.StatusMovedPermanently, rr.Code)
-	// TODO: figure out how to test that a video is returned
+	assert.StatusCode(t, http.StatusOK, rr.Code)
+	// TODO: test the body of the response of this request
 }
