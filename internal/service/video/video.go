@@ -47,12 +47,7 @@ func (vs *VideoService) GetOverview() ([]models.VideoOverviewDTO, error) {
 
 	videos := make([]models.VideoOverviewDTO, len(vids))
 	for i, v := range vids {
-		videos[i] = models.VideoOverviewDTO{
-			Id:            v.Video.ID,
-			Title:         v.Video.Title,
-			Path:          v.LibraryPath.Path + v.Video.RelativePath,
-			ThumbnailPath: v.Image.Path,
-		}
+		videos[i] = v.ToDTO()
 	}
 
 	return videos, nil

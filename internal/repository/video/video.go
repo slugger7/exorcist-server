@@ -10,16 +10,11 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 type VideoLibraryPathModel struct {
 	model.Video
-	model.LibraryPath
-}
-
-type VideoOverviewModel struct {
-	model.Video
-	model.Image
 	model.LibraryPath
 }
 
@@ -31,7 +26,7 @@ type IVideoRepository interface {
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
-	GetOverview() ([]VideoOverviewModel, error)
+	GetOverview() ([]models.VideoOverviewModel, error)
 }
 
 type VideoRepository struct {
@@ -152,10 +147,11 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 	return nil
 }
 
-func (ds *VideoRepository) GetOverview() ([]VideoOverviewModel, error) {
+func (ds *VideoRepository) GetOverview() ([]models.VideoOverviewModel, error) {
 	statement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
+		table.LibraryPath.Path,
 		table.Video.Title,
 		table.Image.Path,
 		table.VideoImage.VideoImageType,
@@ -173,7 +169,7 @@ func (ds *VideoRepository) GetOverview() ([]VideoOverviewModel, error) {
 			table.Image.ID.EQ(table.VideoImage.ImageID),
 		))
 
-	var vids []VideoOverviewModel
+	var vids []models.VideoOverviewModel
 
 	if err := statement.Query(ds.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview")

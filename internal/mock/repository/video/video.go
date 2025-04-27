@@ -14,6 +14,7 @@ import (
 
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	models "github.com/slugger7/exorcist/internal/models"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -103,10 +104,10 @@ func (mr *MockIVideoRepositoryMockRecorder) GetByLibraryPathId(id any) *gomock.C
 }
 
 // GetOverview mocks base method.
-func (m *MockIVideoRepository) GetOverview() ([]videoRepository.VideoOverviewModel, error) {
+func (m *MockIVideoRepository) GetOverview() ([]models.VideoOverviewModel, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOverview")
-	ret0, _ := ret[0].([]videoRepository.VideoOverviewModel)
+	ret0, _ := ret[0].([]models.VideoOverviewModel)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
