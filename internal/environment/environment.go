@@ -31,6 +31,7 @@ type EnvironmentVariables struct {
 	Secret           string
 	LogLevel         string
 	Assets           string
+	Web              *string
 }
 
 type OsEnv = string
@@ -48,6 +49,7 @@ const (
 	SECRET            OsEnv = "SECRET"
 	LOG_LEVEL         OsEnv = "LOG_LEVEL"
 	ASSETS            OsEnv = "ASSETS"
+	WEB               OsEnv = "WEB"
 )
 
 var env *EnvironmentVariables
@@ -75,10 +77,19 @@ func RefreshEnvironmentVariables() {
 		Secret:           os.Getenv(SECRET),
 		LogLevel:         getValueOrDefault(LOG_LEVEL, "debug"),
 		Assets:           os.Getenv(ASSETS),
+		Web:              getValueOrNil(WEB),
 	}
 }
 
-func getValueOrDefault(key, value string) string {
+func getValueOrNil(key OsEnv) *string {
+	val := os.Getenv(key)
+	if val == "" {
+		return nil
+	}
+	return &val
+}
+
+func getValueOrDefault(key OsEnv, value string) string {
 	val := os.Getenv(key)
 	if val == "" {
 		return value
@@ -86,14 +97,14 @@ func getValueOrDefault(key, value string) string {
 	return val
 }
 
-func getIntValue(key string) int {
+func getIntValue(key OsEnv) int {
 	value, err := strconv.Atoi(os.Getenv(key))
 	errs.PanicError(err)
 
 	return value
 }
 
-func getBoolValue(key string, defaultValue bool) bool {
+func getBoolValue(key OsEnv, defaultValue bool) bool {
 	rawValue := os.Getenv(key)
 	actualValue, err := strconv.ParseBool(rawValue)
 	if err != nil {
