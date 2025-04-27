@@ -9,12 +9,12 @@ import (
 
 const jobRoute = "/jobs"
 
-func (s *Server) WithJobRoutes(r *gin.RouterGroup) *Server {
-	r.GET(fmt.Sprintf("%v/start-runner", jobRoute), s.StartJobRunner)
+func (s *Server) withJobRoutes(r *gin.RouterGroup) *Server {
+	r.GET(fmt.Sprintf("%v/start-runner", jobRoute), s.startJobRunner)
 	return s
 }
 
-func (s *Server) StartJobRunner(c *gin.Context) {
+func (s *Server) startJobRunner(c *gin.Context) {
 	s.jobCh <- true
 	c.JSON(http.StatusOK, nil)
 }

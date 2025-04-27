@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/environment"
 )
@@ -24,18 +23,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}
 	r := gin.Default()
 
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"}, // Add your frontend URL
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type"},
-		AllowCredentials: true, // Enable cookies/auth
-	}))
-
-	s.withCookieStore(r)
+	s.withCors(r).
+		withStaticFiles(r).
+		withCookieStore(r)
 
 	// Register authentication routes
-	s.withAuthLogin(&r.RouterGroup, fmt.Sprintf("%v/login", root)).
-		withAuthLogout(&r.RouterGroup, fmt.Sprintf("%v/logout", root))
+	s.withAuthLogin(&r.RouterGroup, fmt.Sprintf("%v/api/login", root)).
+		withAuthLogout(&r.RouterGroup, fmt.Sprintf("%v/api/logout", root))
 
 	authenticated := r.Group("/api")
 	authenticated.Use(s.AuthRequired)
@@ -52,7 +46,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 	s.withLibraryPathCreate(authenticated, libraryPathRoute).
 		withLibraryPathGetAll(authenticated, libraryPathRoute)
 
-	s.WithJobRoutes(authenticated)
+	// Register video controller routes
+	s.withVideoGet(authenticated, videoRoute).
+		withVideoGetById(authenticated, videoRoute)
+
+	s.withJobRoutes(authenticated)
 
 	r.GET("/health", s.HealthHandler)
 	return r

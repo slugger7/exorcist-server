@@ -49,6 +49,8 @@ const ErrVideoNotFound = "video not found"
 
 func (s *Server) GetVideo(c *gin.Context) {
 	idString := c.Param("id")
+	s.logger.Debugf("Getting video by id: %v", idString)
+
 	id, err := uuid.Parse(idString)
 	if err != nil {
 		s.logger.Errorf("Incorrect id format: %v", err.Error())
@@ -68,5 +70,6 @@ func (s *Server) GetVideo(c *gin.Context) {
 		return
 	}
 
-	c.File("./" + video.RelativePath)
+	// c.File("./" + video.RelativePath)
+	c.JSON(http.StatusOK, video)
 }
