@@ -9,12 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Server) withVideoGet(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withVideoGet(r *gin.RouterGroup, route Route) *Server {
 	r.GET(route, s.GetVideos)
 	return s
 }
 
-func (s *Server) withVideoGetById(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withVideoGetById(r *gin.RouterGroup, route Route) *Server {
 	r.GET(fmt.Sprintf("%s/:id", route), s.GetVideo)
 	return s
 }
@@ -70,6 +70,5 @@ func (s *Server) GetVideo(c *gin.Context) {
 		return
 	}
 
-	// c.File("./" + video.RelativePath)
 	c.JSON(http.StatusOK, video)
 }
