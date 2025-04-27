@@ -18,7 +18,10 @@ func (s *Server) withStaticFiles(r *gin.Engine) {
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.RequestURI
 		if !strings.HasPrefix(path, "/api") {
-			c.File(fmt.Sprintf("%v/index.html", s.env.Web))
+			indexHtml := fmt.Sprintf("%v/index.html", *s.env.Web)
+			s.logger.Debugf("Rerouting to frontend %v", indexHtml)
+
+			c.File(indexHtml)
 		}
 	})
 }
