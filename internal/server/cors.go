@@ -6,9 +6,9 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 )
 
-func (s *Server) withCors(r *gin.Engine) {
+func (s *Server) withCors(r *gin.Engine) *Server {
 	if s.env.AppEnv == environment.AppEnvEnum.Prod {
-		return
+		return s
 	}
 
 	config := cors.DefaultConfig()
@@ -19,4 +19,6 @@ func (s *Server) withCors(r *gin.Engine) {
 	config.AllowCredentials = true
 
 	r.Use(cors.New(config))
+
+	return s
 }

@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) withStaticFiles(r *gin.Engine) {
+func (s *Server) withStaticFiles(r *gin.Engine) *Server {
 	if s.env.Web == nil {
-		return
+		return s
 	}
 
 	r.Use(static.Serve("/", static.LocalFile(*s.env.Web, false)))
@@ -24,4 +24,5 @@ func (s *Server) withStaticFiles(r *gin.Engine) {
 			c.File(indexHtml)
 		}
 	})
+	return s
 }

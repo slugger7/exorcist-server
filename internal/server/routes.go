@@ -23,10 +23,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}
 	r := gin.Default()
 
-	s.withCors(r)
-
-	s.withStaticFiles(r)
-	s.withCookieStore(r)
+	s.withCors(r).
+		withStaticFiles(r).
+		withCookieStore(r)
 
 	// Register authentication routes
 	s.withAuthLogin(&r.RouterGroup, fmt.Sprintf("%v/api/login", root)).
@@ -47,7 +46,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	s.withLibraryPathCreate(authenticated, libraryPathRoute).
 		withLibraryPathGetAll(authenticated, libraryPathRoute)
 
-	s.WithJobRoutes(authenticated)
+	s.withJobRoutes(authenticated)
 
 	r.GET("/health", s.HealthHandler)
 	return r
