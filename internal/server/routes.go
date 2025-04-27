@@ -46,6 +46,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	s.withLibraryPathCreate(authenticated, libraryPathRoute).
 		withLibraryPathGetAll(authenticated, libraryPathRoute)
 
+	// Register video controller routes
+	s.withVideoGet(authenticated, videoRoute).
+		withVideoGetById(authenticated, videoRoute)
+
 	s.withJobRoutes(authenticated)
 
 	r.GET("/health", s.HealthHandler)
