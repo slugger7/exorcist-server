@@ -36,7 +36,7 @@ type CreateVideoDTO struct {
 }
 
 func (s *Server) GetVideos(c *gin.Context) {
-	vids, err := s.service.Video().GetAll()
+	vids, err := s.service.Video().GetOverview()
 	if err != nil {
 		s.logger.Errorf("could not fetch videos", err)
 	}

@@ -14,6 +14,7 @@ import (
 
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	models "github.com/slugger7/exorcist/internal/models"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -85,4 +86,19 @@ func (m *MockIVideoService) GetByIdWithLibraryPath(id uuid.UUID) (*videoReposito
 func (mr *MockIVideoServiceMockRecorder) GetByIdWithLibraryPath(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdWithLibraryPath", reflect.TypeOf((*MockIVideoService)(nil).GetByIdWithLibraryPath), id)
+}
+
+// GetOverview mocks base method.
+func (m *MockIVideoService) GetOverview() ([]models.VideoOverviewDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOverview")
+	ret0, _ := ret[0].([]models.VideoOverviewDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOverview indicates an expected call of GetOverview.
+func (mr *MockIVideoServiceMockRecorder) GetOverview() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOverview", reflect.TypeOf((*MockIVideoService)(nil).GetOverview))
 }

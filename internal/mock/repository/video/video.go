@@ -102,6 +102,21 @@ func (mr *MockIVideoRepositoryMockRecorder) GetByLibraryPathId(id any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLibraryPathId", reflect.TypeOf((*MockIVideoRepository)(nil).GetByLibraryPathId), id)
 }
 
+// GetOverview mocks base method.
+func (m *MockIVideoRepository) GetOverview() ([]videoRepository.VideoOverviewModel, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOverview")
+	ret0, _ := ret[0].([]videoRepository.VideoOverviewModel)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOverview indicates an expected call of GetOverview.
+func (mr *MockIVideoRepositoryMockRecorder) GetOverview() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOverview", reflect.TypeOf((*MockIVideoRepository)(nil).GetOverview))
+}
+
 // Insert mocks base method.
 func (m *MockIVideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	m.ctrl.T.Helper()

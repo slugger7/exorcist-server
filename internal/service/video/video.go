@@ -6,12 +6,14 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
 type IVideoService interface {
 	GetAll() ([]model.Video, error)
+	GetOverview() ([]models.VideoOverviewDTO, error)
 	GetById(id uuid.UUID) (*model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*videoRepository.VideoLibraryPathModel, error)
 }
@@ -35,6 +37,25 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) IVi
 		videoServiceInstance.logger.Info("VideoService instance created")
 	}
 	return videoServiceInstance
+}
+
+func (vs *VideoService) GetOverview() ([]models.VideoOverviewDTO, error) {
+	vids, err := vs.repo.Video().GetOverview()
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get videos for overview")
+	}
+
+	videos := make([]models.VideoOverviewDTO, len(vids))
+	for i, v := range vids {
+		videos[i] = models.VideoOverviewDTO{
+			Id:            v.Video.ID,
+			Title:         v.Video.Title,
+			Path:          v.LibraryPath.Path + v.Video.RelativePath,
+			ThumbnailPath: v.Image.Path,
+		}
+	}
+
+	return videos, nil
 }
 
 const ErrGetAllVideos = "could not get all videos"

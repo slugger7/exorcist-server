@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 )
@@ -12,6 +15,7 @@ import (
 type IImageRepository interface {
 	Create(m *model.Image) (*model.Image, error)
 	RelateVideo(m *model.VideoImage) (*model.VideoImage, error)
+	GetById(uuid.UUID) (*model.Image, error)
 }
 
 type ImageRepository struct {
@@ -55,4 +59,22 @@ func (i *ImageRepository) RelateVideo(m *model.VideoImage) (*model.VideoImage, e
 	}
 
 	return nil, fmt.Errorf("no video image relations were returned from query")
+}
+
+func (i *ImageRepository) GetById(id uuid.UUID) (*model.Image, error) {
+	var imgs []struct{ model.Image }
+	statement := table.Image.SELECT(table.Image.AllColumns).
+		FROM(table.Image).
+		WHERE(table.Image.ID.EQ(postgres.UUID(id))).
+		LIMIT(1)
+
+	if err := statement.Query(i.db, &imgs); err != nil {
+		return nil, errs.BuildError(err, "error getting image by id")
+	}
+
+	if len(imgs) == 1 {
+		return &imgs[len(imgs)-1].Image, nil
+	}
+
+	return nil, fmt.Errorf("no images were returned for id: %v", id)
 }
