@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/environment"
 )
@@ -24,14 +23,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}
 	r := gin.Default()
 
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:5173"}
-	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"}
-	config.AllowHeaders = []string{"Accept", "Authorization", "Content-Type", "Origin"}
-	config.ExposeHeaders = []string{"Content-Length"}
-	config.AllowCredentials = true
-
-	r.Use(cors.New(config))
+	s.withCors(r)
 
 	s.withStaticFiles(r)
 	s.withCookieStore(r)
