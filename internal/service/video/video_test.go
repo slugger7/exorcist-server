@@ -7,28 +7,49 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	mock_repository "github.com/slugger7/exorcist/internal/mock/repository"
 	mock_videoRepository "github.com/slugger7/exorcist/internal/mock/repository/video"
-	"github.com/slugger7/exorcist/internal/mocks/mrepository"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 	"go.uber.org/mock/gomock"
 )
 
-// Deprecated: this method will have to be rewritten to use mockgen instead
-func setup() (*VideoService, *mrepository.MockRepository) {
-	mockRepo := mrepository.SetupMockRespository()
+type testService struct {
+	svc       *VideoService
+	repo      *mock_repository.MockIRepository
+	videoRepo *mock_videoRepository.MockIVideoRepository
+}
+
+func setup(t *testing.T) *testService {
+	ctrl := gomock.NewController(t)
+
+	mockRepo := mock_repository.NewMockIRepository(ctrl)
+	mockVideoRepo := mock_videoRepository.NewMockIVideoRepository(ctrl)
+
+	mockRepo.EXPECT().
+		Video().
+		DoAndReturn(func() videoRepository.IVideoRepository {
+			return mockVideoRepo
+		}).
+		AnyTimes()
+
 	vs := &VideoService{repo: mockRepo}
-	return vs, mockRepo
+	return &testService{vs, mockRepo, mockVideoRepo}
 }
 
 func Test_GetAll_ErrorFromRepo(t *testing.T) {
-	vs, mr := setup()
+	s := setup(t)
 
-	mr.MockVideoRepo.MockError[0] = errors.New("error")
+	expectedErr := errors.New("error")
 
-	vids, err := vs.GetAll()
+	s.videoRepo.EXPECT().
+		GetAll().
+		DoAndReturn(func() ([]model.Video, error) {
+			return nil, expectedErr
+		}).
+		Times(1)
+
+	vids, err := s.svc.GetAll()
 	if err == nil {
 		t.Error("Expected error but got nil")
 	}
@@ -47,13 +68,19 @@ func Test_GetAll_ErrorFromRepo(t *testing.T) {
 }
 
 func Test_GetAll_Success(t *testing.T) {
-	vs, mr := setup()
+	s := setup(t)
 
 	id, _ := uuid.NewRandom()
 	videos := []model.Video{{ID: id}}
-	mr.MockVideoRepo.MockModels[0] = videos
 
-	vids, err := vs.GetAll()
+	s.videoRepo.EXPECT().
+		GetAll().
+		DoAndReturn(func() ([]model.Video, error) {
+			return videos, nil
+		}).
+		Times(1)
+
+	vids, err := s.svc.GetAll()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,13 +95,18 @@ func Test_GetAll_Success(t *testing.T) {
 }
 
 func Test_GetById_RepoReturnsError(t *testing.T) {
-	vs, mr := setup()
+	s := setup(t)
 
 	id, _ := uuid.NewRandom()
 
-	mr.MockVideoRepo.MockError[0] = fmt.Errorf("err")
+	s.videoRepo.EXPECT().
+		GetById(id).
+		DoAndReturn(func(uuid.UUID) (*model.Video, error) {
+			return nil, fmt.Errorf("err")
+		}).
+		Times(1)
 
-	vid, err := vs.GetById(id)
+	vid, err := s.svc.GetById(id)
 	if err == nil {
 		t.Error("Expected error but got nil")
 	}
@@ -94,13 +126,19 @@ func Test_GetById_RepoReturnsError(t *testing.T) {
 }
 
 func Test_GetById_RepoReturnsVideo(t *testing.T) {
-	vs, mr := setup()
+	s := setup(t)
 
 	id, _ := uuid.NewRandom()
 	video := model.Video{ID: id}
-	mr.MockVideoRepo.MockModel[0] = &video
 
-	vid, err := vs.GetById(id)
+	s.videoRepo.EXPECT().
+		GetById(id).
+		DoAndReturn(func(uuid.UUID) (*model.Video, error) {
+			return &video, nil
+		}).
+		Times(1)
+
+	vid, err := s.svc.GetById(id)
 	if err != nil {
 		t.Errorf("Expected nil but got %v", err.Error())
 	}
@@ -113,27 +151,18 @@ func Test_GetById_RepoReturnsVideo(t *testing.T) {
 }
 
 func Test_NewMocks(t *testing.T) {
-	ctrl := gomock.NewController(t)
-
-	m := mock_videoRepository.NewMockIVideoRepository(ctrl)
-
-	repo := mock_repository.NewMockIRepository(ctrl)
-	repo.EXPECT().
-		Video().
-		DoAndReturn(func() IVideoService { return m }).
-		AnyTimes()
+	s := setup(t)
 
 	id, _ := uuid.NewRandom()
 
-	m.EXPECT().
+	s.videoRepo.EXPECT().
 		GetByIdWithLibraryPath(gomock.Eq(id)).
 		DoAndReturn(func(_ uuid.UUID) (*videoRepository.VideoLibraryPathModel, error) {
 			return nil, nil
 		}).
 		AnyTimes()
 
-	vs := New(repo, &environment.EnvironmentVariables{LogLevel: "none"})
-	val, _ := vs.GetByIdWithLibraryPath(id)
+	val, _ := s.svc.GetByIdWithLibraryPath(id)
 
 	if val != nil {
 		t.Error("This is an example method on how to use the mocks")
