@@ -78,7 +78,7 @@ func Test_Create_ErrorWhileGettingLibraryByIdFromRepo(t *testing.T) {
 	libPathModel := &model.LibraryPath{LibraryID: id}
 
 	s.libRepo.EXPECT().
-		GetLibraryById(libPathModel.LibraryID).
+		GetById(libPathModel.LibraryID).
 		DoAndReturn(func(id uuid.UUID) (*model.Library, error) {
 			return nil, fmt.Errorf("error")
 		}).
@@ -111,7 +111,7 @@ func Test_Create_LibraryNilFromRepo(t *testing.T) {
 	libPathModel := &model.LibraryPath{LibraryID: id}
 
 	s.libRepo.EXPECT().
-		GetLibraryById(libPathModel.LibraryID).
+		GetById(libPathModel.LibraryID).
 		DoAndReturn(func(id uuid.UUID) (*model.Library, error) {
 			return nil, nil
 		}).
@@ -139,7 +139,7 @@ func Test_Create_LibraryExists_CreatingLibraryPathReturnsError(t *testing.T) {
 	library := &model.Library{ID: id}
 
 	s.libRepo.EXPECT().
-		GetLibraryById(id).
+		GetById(id).
 		DoAndReturn(func(id uuid.UUID) (*model.Library, error) {
 			return library, nil
 		}).
@@ -178,7 +178,7 @@ func Test_Create_Success(t *testing.T) {
 	library := &model.Library{ID: id}
 
 	s.libRepo.EXPECT().
-		GetLibraryById(id).
+		GetById(id).
 		DoAndReturn(func(id uuid.UUID) (*model.Library, error) {
 			return library, nil
 		}).

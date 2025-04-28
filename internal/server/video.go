@@ -9,12 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Server) withVideoGet(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withVideoGet(r *gin.RouterGroup, route Route) *Server {
 	r.GET(route, s.GetVideos)
 	return s
 }
 
-func (s *Server) withVideoGetById(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withVideoGetById(r *gin.RouterGroup, route Route) *Server {
 	r.GET(fmt.Sprintf("%s/:id", route), s.GetVideo)
 	return s
 }
@@ -36,7 +36,7 @@ type CreateVideoDTO struct {
 }
 
 func (s *Server) GetVideos(c *gin.Context) {
-	vids, err := s.service.Video().GetAll()
+	vids, err := s.service.Video().GetOverview()
 	if err != nil {
 		s.logger.Errorf("could not fetch videos", err)
 	}
@@ -70,6 +70,5 @@ func (s *Server) GetVideo(c *gin.Context) {
 		return
 	}
 
-	// c.File("./" + video.RelativePath)
 	c.JSON(http.StatusOK, video)
 }

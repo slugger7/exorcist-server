@@ -8,11 +8,14 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 )
 
+type Route = string
+
 const (
-	root         string = "/"
-	userRoute    string = "/users"
-	libraryRoute string = "/libraries"
-	videoRoute   string = "/videos"
+	root         Route = "/"
+	userRoute    Route = "/users"
+	libraryRoute Route = "/libraries"
+	videoRoute   Route = "/videos"
+	mediaRoute   Route = "/media"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -33,6 +36,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	authenticated := r.Group("/api")
 	authenticated.Use(s.AuthRequired)
+
 	// Register user controller routes
 	s.withUserCreate(authenticated, userRoute).
 		withUserUpdatePassword(authenticated, userRoute)
@@ -49,6 +53,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	// Register video controller routes
 	s.withVideoGet(authenticated, videoRoute).
 		withVideoGetById(authenticated, videoRoute)
+
+	// Register media controller routes
+	s.withMediaVideo(authenticated, mediaRoute).
+		withMediaImage(authenticated, mediaRoute)
 
 	s.withJobRoutes(authenticated)
 

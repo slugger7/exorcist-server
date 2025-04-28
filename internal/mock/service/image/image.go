@@ -10,6 +10,10 @@
 package mock_imageService
 
 import (
+	reflect "reflect"
+
+	uuid "github.com/google/uuid"
+	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,4 +39,19 @@ func NewMockIImageService(ctrl *gomock.Controller) *MockIImageService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIImageService) EXPECT() *MockIImageServiceMockRecorder {
 	return m.recorder
+}
+
+// GetById mocks base method.
+func (m *MockIImageService) GetById(arg0 uuid.UUID) (*model.Image, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetById", arg0)
+	ret0, _ := ret[0].(*model.Image)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetById indicates an expected call of GetById.
+func (mr *MockIImageServiceMockRecorder) GetById(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockIImageService)(nil).GetById), arg0)
 }

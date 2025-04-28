@@ -3,3 +3,6 @@ GET {{host}}:{{port}}/api/videos
 
 ### Get video by id
 GET {{host}}:{{port}}/api/videos/0b157e11-4ae9-44e6-965f-fdfda4d2dbe1
+
+### Get video media by id
+GET {{host}}:{{port}}/api/media/video/064eb817-2347-4648-9608-84a86f7b303d

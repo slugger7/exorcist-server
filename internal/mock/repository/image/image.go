@@ -12,6 +12,7 @@ package mock_imageRepository
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -53,6 +54,21 @@ func (m_2 *MockIImageRepository) Create(m *model.Image) (*model.Image, error) {
 func (mr *MockIImageRepositoryMockRecorder) Create(m any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIImageRepository)(nil).Create), m)
+}
+
+// GetById mocks base method.
+func (m *MockIImageRepository) GetById(arg0 uuid.UUID) (*model.Image, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetById", arg0)
+	ret0, _ := ret[0].(*model.Image)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetById indicates an expected call of GetById.
+func (mr *MockIImageRepositoryMockRecorder) GetById(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockIImageRepository)(nil).GetById), arg0)
 }
 
 // RelateVideo mocks base method.

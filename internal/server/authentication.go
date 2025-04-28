@@ -15,12 +15,12 @@ func (s *Server) withCookieStore(r *gin.Engine) *Server {
 	return s
 }
 
-func (s *Server) withAuthLogin(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withAuthLogin(r *gin.RouterGroup, route Route) *Server {
 	r.POST(route, s.Login)
 	return s
 }
 
-func (s *Server) withAuthLogout(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withAuthLogout(r *gin.RouterGroup, route Route) *Server {
 	r.GET(route, s.Logout)
 	return s
 }

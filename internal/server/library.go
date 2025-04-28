@@ -10,17 +10,17 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-func (s *Server) withLibraryGetAction(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withLibraryGetAction(r *gin.RouterGroup, route Route) *Server {
 	r.GET(fmt.Sprintf("%v/:id/*action", route), s.LibraryAction)
 	return s
 }
 
-func (s *Server) withLibraryPost(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withLibraryPost(r *gin.RouterGroup, route Route) *Server {
 	r.POST(route, s.CreateLibrary)
 	return s
 }
 
-func (s *Server) withLibraryGet(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withLibraryGet(r *gin.RouterGroup, route Route) *Server {
 	r.GET(route, s.GetLibraries)
 	return s
 }

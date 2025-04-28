@@ -9,12 +9,12 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-func (s *Server) withUserCreate(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withUserCreate(r *gin.RouterGroup, route Route) *Server {
 	r.POST(route, s.CreateUser)
 	return s
 }
 
-func (s *Server) withUserUpdatePassword(r *gin.RouterGroup, route string) *Server {
+func (s *Server) withUserUpdatePassword(r *gin.RouterGroup, route Route) *Server {
 	r.PUT(route, s.UpdatePassword)
 	return s
 }

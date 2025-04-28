@@ -4,12 +4,19 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/models"
 )
+
+type VideoLibraryPathModel struct {
+	model.Video
+	model.LibraryPath
+}
 
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
@@ -19,6 +26,7 @@ type IVideoRepository interface {
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
+	GetOverview() ([]models.VideoOverviewModel, error)
 }
 
 type VideoRepository struct {
@@ -116,11 +124,6 @@ func (ds *VideoRepository) GetById(id uuid.UUID) (*model.Video, error) {
 	return video, nil
 }
 
-type VideoLibraryPathModel struct {
-	model.Video
-	model.LibraryPath
-}
-
 func (ds *VideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error) {
 	var results []VideoLibraryPathModel
 	if err := ds.getByIdWithLibraryPathStatement(id).Query(&results); err != nil {
@@ -142,4 +145,35 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 	}
 
 	return nil
+}
+
+func (ds *VideoRepository) GetOverview() ([]models.VideoOverviewModel, error) {
+	statement := table.Video.SELECT(
+		table.Video.ID,
+		table.Video.RelativePath,
+		table.LibraryPath.Path,
+		table.Video.Title,
+		table.Image.Path,
+		table.VideoImage.VideoImageType,
+	).FROM(table.Video.
+		INNER_JOIN(
+			table.LibraryPath,
+			table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
+		INNER_JOIN(
+			table.VideoImage,
+			table.VideoImage.VideoID.EQ(table.Video.ID).
+				AND(table.VideoImage.VideoImageType.EQ(
+					postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
+		INNER_JOIN(
+			table.Image,
+			table.Image.ID.EQ(table.VideoImage.ImageID),
+		))
+
+	var vids []models.VideoOverviewModel
+
+	if err := statement.Query(ds.db, &vids); err != nil {
+		return nil, errs.BuildError(err, "could not query videos for overview")
+	}
+
+	return vids, nil
 }

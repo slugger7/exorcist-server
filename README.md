@@ -69,9 +69,6 @@ In order to generate diagrams you will need to install the cli tool
 
 ### Mocks
 
-Currently there is a [mocks](./internal/mocks) that have mocks in that have been made by us. This is *not* to be used any more as it is too much effort to manually update these mocks.
-As these are not being used any more the methods that are not being used any more should panic to prevent anyone else from using these mocks.
-
 We are using a mock generating library to prevent us having to create these mocks by hand. To get this working:
 
 - Install the cli tool [mockgen](https://github.com/uber-go/mock)

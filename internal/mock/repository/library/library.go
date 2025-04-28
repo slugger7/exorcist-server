@@ -41,62 +41,62 @@ func (m *MockILibraryRepository) EXPECT() *MockILibraryRepositoryMockRecorder {
 	return m.recorder
 }
 
-// CreateLibrary mocks base method.
-func (m *MockILibraryRepository) CreateLibrary(name string) (*model.Library, error) {
+// Create mocks base method.
+func (m *MockILibraryRepository) Create(name string) (*model.Library, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateLibrary", name)
+	ret := m.ctrl.Call(m, "Create", name)
 	ret0, _ := ret[0].(*model.Library)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateLibrary indicates an expected call of CreateLibrary.
-func (mr *MockILibraryRepositoryMockRecorder) CreateLibrary(name any) *gomock.Call {
+// Create indicates an expected call of Create.
+func (mr *MockILibraryRepositoryMockRecorder) Create(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLibrary", reflect.TypeOf((*MockILibraryRepository)(nil).CreateLibrary), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockILibraryRepository)(nil).Create), name)
 }
 
-// GetLibraries mocks base method.
-func (m *MockILibraryRepository) GetLibraries() ([]model.Library, error) {
+// GetAll mocks base method.
+func (m *MockILibraryRepository) GetAll() ([]model.Library, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLibraries")
+	ret := m.ctrl.Call(m, "GetAll")
 	ret0, _ := ret[0].([]model.Library)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLibraries indicates an expected call of GetLibraries.
-func (mr *MockILibraryRepositoryMockRecorder) GetLibraries() *gomock.Call {
+// GetAll indicates an expected call of GetAll.
+func (mr *MockILibraryRepositoryMockRecorder) GetAll() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLibraries", reflect.TypeOf((*MockILibraryRepository)(nil).GetLibraries))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockILibraryRepository)(nil).GetAll))
 }
 
-// GetLibraryById mocks base method.
-func (m *MockILibraryRepository) GetLibraryById(arg0 uuid.UUID) (*model.Library, error) {
+// GetById mocks base method.
+func (m *MockILibraryRepository) GetById(arg0 uuid.UUID) (*model.Library, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLibraryById", arg0)
+	ret := m.ctrl.Call(m, "GetById", arg0)
 	ret0, _ := ret[0].(*model.Library)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLibraryById indicates an expected call of GetLibraryById.
-func (mr *MockILibraryRepositoryMockRecorder) GetLibraryById(arg0 any) *gomock.Call {
+// GetById indicates an expected call of GetById.
+func (mr *MockILibraryRepositoryMockRecorder) GetById(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLibraryById", reflect.TypeOf((*MockILibraryRepository)(nil).GetLibraryById), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockILibraryRepository)(nil).GetById), arg0)
 }
 
-// GetLibraryByName mocks base method.
-func (m *MockILibraryRepository) GetLibraryByName(name string) (*model.Library, error) {
+// GetByName mocks base method.
+func (m *MockILibraryRepository) GetByName(name string) (*model.Library, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLibraryByName", name)
+	ret := m.ctrl.Call(m, "GetByName", name)
 	ret0, _ := ret[0].(*model.Library)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLibraryByName indicates an expected call of GetLibraryByName.
-func (mr *MockILibraryRepositoryMockRecorder) GetLibraryByName(name any) *gomock.Call {
+// GetByName indicates an expected call of GetByName.
+func (mr *MockILibraryRepositoryMockRecorder) GetByName(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLibraryByName", reflect.TypeOf((*MockILibraryRepository)(nil).GetLibraryByName), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockILibraryRepository)(nil).GetByName), name)
 }
