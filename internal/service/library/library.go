@@ -44,7 +44,10 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 	return libraryServiceInstance
 }
 
-const ErrLibraryByName = "Could not fetch library by name %v"
+const (
+	ErrLibraryByName string = "could not fetch library by name %v"
+	ErrLibraryExists string = "library named %v already exists"
+)
 
 func (i *LibraryService) Create(newLibrary *model.Library) (*model.Library, error) {
 	library, err := i.repo.Library().
@@ -53,7 +56,7 @@ func (i *LibraryService) Create(newLibrary *model.Library) (*model.Library, erro
 		return nil, errs.BuildError(err, ErrLibraryByName, newLibrary.Name)
 	}
 	if library != nil {
-		return nil, fmt.Errorf("library named %v already exists", newLibrary.Name)
+		return nil, fmt.Errorf(ErrLibraryExists, newLibrary.Name)
 	}
 
 	library, err = i.repo.Library().
