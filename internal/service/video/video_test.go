@@ -10,6 +10,7 @@ import (
 	errs "github.com/slugger7/exorcist/internal/errors"
 	mock_repository "github.com/slugger7/exorcist/internal/mock/repository"
 	mock_videoRepository "github.com/slugger7/exorcist/internal/mock/repository/video"
+	"github.com/slugger7/exorcist/internal/models"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 	"go.uber.org/mock/gomock"
 )
@@ -150,21 +151,28 @@ func Test_GetById_RepoReturnsVideo(t *testing.T) {
 	}
 }
 
-func Test_NewMocks(t *testing.T) {
+func Test_GetOverview_ErrorFromRepo(t *testing.T) {
 	s := setup(t)
 
-	id, _ := uuid.NewRandom()
-
 	s.videoRepo.EXPECT().
-		GetByIdWithLibraryPath(gomock.Eq(id)).
-		DoAndReturn(func(_ uuid.UUID) (*videoRepository.VideoLibraryPathModel, error) {
-			return nil, nil
-		}).
-		AnyTimes()
+		GetOverview().
+		DoAndReturn(func() ([]models.VideoOverviewModel, error) {
+			return nil, fmt.Errorf("expected error")
+		})
 
-	val, _ := s.svc.GetByIdWithLibraryPath(id)
+	vids, err := s.svc.GetOverview()
+	if err != nil {
+		var e errs.IError
+		if errors.As(err, &e) {
+			if e.Message() != ErrVideoRepoOverview {
+				t.Errorf("expected: %v\ngot: %v", ErrVideoRepoOverview, e.Message())
+			}
+		}
+	} else {
+		t.Error("expected error but was nil")
+	}
 
-	if val != nil {
-		t.Error("This is an example method on how to use the mocks")
+	if vids != nil {
+		t.Fatalf("expected error but videos were defined %v", vids)
 	}
 }

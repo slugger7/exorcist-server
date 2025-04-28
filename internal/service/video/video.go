@@ -39,10 +39,14 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) IVi
 	return videoServiceInstance
 }
 
+const (
+	ErrVideoRepoOverview string = "could not get videos for overview"
+)
+
 func (vs *VideoService) GetOverview() ([]models.VideoOverviewDTO, error) {
 	vids, err := vs.repo.Video().GetOverview()
 	if err != nil {
-		return nil, errs.BuildError(err, "could not get videos for overview")
+		return nil, errs.BuildError(err, ErrVideoRepoOverview)
 	}
 
 	videos := make([]models.VideoOverviewDTO, len(vids))
