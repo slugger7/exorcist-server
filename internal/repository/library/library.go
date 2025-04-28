@@ -10,10 +10,10 @@ import (
 )
 
 type ILibraryRepository interface {
-	CreateLibrary(name string) (*model.Library, error)
-	GetLibraryByName(name string) (*model.Library, error)
-	GetLibraries() ([]model.Library, error)
-	GetLibraryById(uuid.UUID) (*model.Library, error)
+	Create(name string) (*model.Library, error)
+	GetByName(name string) (*model.Library, error)
+	GetAll() ([]model.Library, error)
+	GetById(uuid.UUID) (*model.Library, error)
 }
 
 type LibraryRepository struct {
@@ -43,7 +43,7 @@ func (ls *LibraryStatement) Sql() string {
 	return sql
 }
 
-func (ls *LibraryRepository) CreateLibrary(name string) (*model.Library, error) {
+func (ls *LibraryRepository) Create(name string) (*model.Library, error) {
 	var library struct{ model.Library }
 	if err := ls.createLibraryStatement(name).Query(&library); err != nil {
 		return nil, errs.BuildError(err, "error while creating library")
@@ -51,7 +51,7 @@ func (ls *LibraryRepository) CreateLibrary(name string) (*model.Library, error) 
 	return &library.Library, nil
 }
 
-func (ls *LibraryRepository) GetLibraryByName(name string) (*model.Library, error) {
+func (ls *LibraryRepository) GetByName(name string) (*model.Library, error) {
 	var libraries []struct{ model.Library }
 	if err := ls.getLibraryByNameStatement(name).Query(&libraries); err != nil {
 		return nil, errs.BuildError(err, "could not get library by name '%v'", name)
@@ -63,7 +63,7 @@ func (ls *LibraryRepository) GetLibraryByName(name string) (*model.Library, erro
 	return library, nil
 }
 
-func (ls *LibraryRepository) GetLibraries() ([]model.Library, error) {
+func (ls *LibraryRepository) GetAll() ([]model.Library, error) {
 	var libraries []struct{ model.Library }
 	if err := ls.getLibrariesStatement().Query(&libraries); err != nil {
 		return nil, errs.BuildError(err, "could not get libraries")
@@ -76,7 +76,7 @@ func (ls *LibraryRepository) GetLibraries() ([]model.Library, error) {
 	return libs, nil
 }
 
-func (ls *LibraryRepository) GetLibraryById(id uuid.UUID) (*model.Library, error) {
+func (ls *LibraryRepository) GetById(id uuid.UUID) (*model.Library, error) {
 	var library struct{ model.Library }
 	if err := ls.getById(id).Query(&library); err != nil {
 		return nil, errs.BuildError(err, "could not get library by id: %v", id)

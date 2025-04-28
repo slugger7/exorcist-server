@@ -64,7 +64,7 @@ func Test_CreateLibrary_ProduceErrorWhileFetchingExistingLibraries(t *testing.T)
 
 	name := "someLibName"
 	s.libraryRepo.EXPECT().
-		GetLibraryByName(name).
+		GetByName(name).
 		DoAndReturn(func(string) (*model.Library, error) {
 			return nil, errors.New("error")
 		}).
@@ -95,7 +95,7 @@ func Test_CreateLibrary_WithExistingLibrary_ShouldThrowError(t *testing.T) {
 	name := "someName"
 
 	s.libraryRepo.EXPECT().
-		GetLibraryByName(name).
+		GetByName(name).
 		DoAndReturn(func(string) (*model.Library, error) {
 			return &model.Library{Name: name}, nil
 		})
@@ -121,7 +121,7 @@ func Test_GetAll_RepoReturnsError_ShouldReturnError(t *testing.T) {
 	s := setup(t)
 
 	s.libraryRepo.EXPECT().
-		GetLibraries().
+		GetAll().
 		DoAndReturn(func() ([]model.Library, error) {
 			return nil, fmt.Errorf("some error")
 		})
@@ -149,7 +149,7 @@ func Test_GetLibraries_ReturnsLibraries(t *testing.T) {
 	expectedName := "expected library name"
 
 	s.libraryRepo.EXPECT().
-		GetLibraries().
+		GetAll().
 		DoAndReturn(func() ([]model.Library, error) {
 			return []model.Library{{Name: expectedName}}, nil
 		})
@@ -188,7 +188,7 @@ func Test_Action_RepoErrorWhenGettingLibrary(t *testing.T) {
 	id, _ := uuid.NewRandom()
 
 	s.libraryRepo.EXPECT().
-		GetLibraryById(id).
+		GetById(id).
 		DoAndReturn(func(uuid.UUID) (*model.Library, error) {
 			return nil, fmt.Errorf("expected error")
 		})
