@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
 func (s *Server) withVideoGet(r *gin.RouterGroup, route Route) *Server {
@@ -32,14 +33,21 @@ func (s *Server) defaultInt(strVal string, def int) int {
 	return def
 }
 
+func (s *Server) defualtBool(strVal string, def bool) bool {
+	val, err := strconv.ParseBool(strVal)
+	if err != nil {
+		return def
+	}
+	return val
+}
+
 func (s *Server) GetVideos(c *gin.Context) {
-	limitString := c.Param("limit")
-	skipString := c.Param("skip")
+	limit := s.defaultInt(c.Query("limit"), 48)
+	skip := s.defaultInt(c.Query("skip"), 0)
+	orderBy := c.Query("orderBy")
+	asc := s.defualtBool(c.Query("asc"), true)
 
-	limit := s.defaultInt(limitString, 48)
-	skip := s.defaultInt(skipString, 0)
-
-	vids, err := s.service.Video().GetOverview(limit, skip)
+	vids, err := s.service.Video().GetOverview(limit, skip, (*videoRepository.VideoOrdinal)(&orderBy), asc)
 	if err != nil {
 		s.logger.Errorf("could not fetch videos", err)
 	}

@@ -104,18 +104,18 @@ func (mr *MockIVideoRepositoryMockRecorder) GetByLibraryPathId(id any) *gomock.C
 }
 
 // GetOverview mocks base method.
-func (m *MockIVideoRepository) GetOverview(limit, skip int) (*models.Page[models.VideoOverviewModel], error) {
+func (m *MockIVideoRepository) GetOverview(limit, skip int, ordinal *videoRepository.VideoOrdinal, asc *bool) (*models.Page[models.VideoOverviewModel], error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOverview", limit, skip)
+	ret := m.ctrl.Call(m, "GetOverview", limit, skip, ordinal, asc)
 	ret0, _ := ret[0].(*models.Page[models.VideoOverviewModel])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOverview indicates an expected call of GetOverview.
-func (mr *MockIVideoRepositoryMockRecorder) GetOverview(limit, skip any) *gomock.Call {
+func (mr *MockIVideoRepositoryMockRecorder) GetOverview(limit, skip, ordinal, asc any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOverview", reflect.TypeOf((*MockIVideoRepository)(nil).GetOverview), limit, skip)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOverview", reflect.TypeOf((*MockIVideoRepository)(nil).GetOverview), limit, skip, ordinal, asc)
 }
 
 // Insert mocks base method.

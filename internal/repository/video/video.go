@@ -27,7 +27,7 @@ type IVideoRepository interface {
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
-	GetOverview(limit, skip int) (*models.Page[models.VideoOverviewModel], error)
+	GetOverview(limit, skip int, ordinal *VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error)
 }
 
 type VideoRepository struct {
@@ -148,7 +148,16 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 	return nil
 }
 
-func (ds *VideoRepository) GetOverview(limit, skip int) (*models.Page[models.VideoOverviewModel], error) {
+func orderByDirectionColumn(asc bool, column postgres.Column, stmnt postgres.SelectStatement) postgres.SelectStatement {
+	if !asc {
+		return stmnt.ORDER_BY(column.DESC())
+	}
+
+	return stmnt.ORDER_BY(column.ASC())
+}
+
+func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error) {
+	orderByColumn := ordinalToColumn(ordinal)
 	selectStatement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
@@ -172,6 +181,8 @@ func (ds *VideoRepository) GetOverview(limit, skip int) (*models.Page[models.Vid
 			)).
 		LIMIT(int64(limit)).
 		OFFSET(int64(skip))
+
+	selectStatement = orderByDirectionColumn(asc, orderByColumn, selectStatement)
 
 	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total")).FROM(table.Video)
 
