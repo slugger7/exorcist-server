@@ -149,22 +149,6 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 }
 
 func (ds *VideoRepository) GetOverview(limit, skip int) (*models.Page[models.VideoOverviewModel], error) {
-	joins := func(stmnt postgres.SelectStatement) postgres.SelectStatement {
-		return stmnt.FROM(table.Video.
-			INNER_JOIN(
-				table.LibraryPath,
-				table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
-			INNER_JOIN(
-				table.VideoImage,
-				table.VideoImage.VideoID.EQ(table.Video.ID).
-					AND(table.VideoImage.VideoImageType.EQ(
-						postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
-			INNER_JOIN(
-				table.Image,
-				table.Image.ID.EQ(table.VideoImage.ImageID),
-			))
-	}
-
 	selectStatement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
@@ -172,25 +156,44 @@ func (ds *VideoRepository) GetOverview(limit, skip int) (*models.Page[models.Vid
 		table.Video.Title,
 		table.Image.Path,
 		table.VideoImage.VideoImageType,
-	)
-	// countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total"))
-	// countStatement = joins(countStatement)
-	selectStatement = joins(selectStatement).
+	).
+		FROM(table.Video.
+			INNER_JOIN(
+				table.LibraryPath,
+				table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
+			LEFT_JOIN(
+				table.VideoImage,
+				table.VideoImage.VideoID.EQ(table.Video.ID).
+					AND(table.VideoImage.VideoImageType.EQ(
+						postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
+			INNER_JOIN(
+				table.Image,
+				table.Image.ID.EQ(table.VideoImage.ImageID),
+			)).
 		LIMIT(int64(limit)).
 		OFFSET(int64(skip))
+
+	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total.total")).FROM(table.Video)
+
+	sql := countStatement.DebugSql()
 	var vids []models.VideoOverviewModel
 
-	sql := selectStatement.DebugSql()
 	fmt.Println(sql)
 
 	if err := selectStatement.Query(ds.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview")
 	}
 
-	// var total struct{ total int }
-	// if err := countStatement.Query(ds.db, &total); err != nil {
-	// 	return nil, errs.BuildError(err, "could not query videos for overview total")
-	// }
+	type Total struct {
+		total string
+	}
+	var res []Total
+
+	if err := countStatement.Query(ds.db, &res); err != nil {
+		return nil, errs.BuildError(err, "could not query videos for overview total")
+	}
+	total := res[0]
+	fmt.Println(total)
 	return &models.Page[models.VideoOverviewModel]{
 		Data:  vids,
 		Limit: limit,

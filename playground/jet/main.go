@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	. "github.com/go-jet/jet/v2/postgres"
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	. "github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	. "github.com/slugger7/exorcist/internal/errors"
 )
@@ -33,32 +32,18 @@ func main() {
 	err = db.Ping()
 	PanicError(err)
 
-	stmnt := SELECT(Library.AllColumns).FROM(Library)
+	stmnt := Video.SELECT(postgres.COUNT(Video.ID).AS("total")).FROM(Video)
 
-	query := stmnt.DebugSql()
+	sql, _ := stmnt.Sql()
+	fmt.Printf("SQL: %v\n", sql)
+	rows, _ := db.Query(sql)
 
-	fmt.Println(query)
+	defer rows.Close()
+	for rows.Next() {
+		var total int
 
-	var dest []struct {
-		model.Library
+		_ = rows.Scan(&total)
+
+		fmt.Println(total)
 	}
-
-	err = stmnt.Query(db, &dest)
-
-	fmt.Println(dest[len(dest)-1].Name)
-
-	newLib := model.Library{
-		Name: "new lib",
-	}
-
-	insertStatement := Library.INSERT(Library.Name).
-		MODEL(newLib).
-		RETURNING(Library.AllColumns)
-
-	query = stmnt.DebugSql()
-
-	fmt.Println(query)
-	err = insertStatement.Query(db, &dest)
-
-	fmt.Println(dest[len(dest)-1].Name)
 }
