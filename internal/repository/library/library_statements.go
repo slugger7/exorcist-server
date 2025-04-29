@@ -39,7 +39,7 @@ func (i *LibraryRepository) getLibraryByNameStatement(name string) *LibraryState
 }
 
 func (ls *LibraryRepository) getLibrariesStatement() *LibraryStatement {
-	statement := table.Library.SELECT(table.Library.ID, table.Library.Name).
+	statement := table.Library.SELECT(table.Library.AllColumns).
 		FROM(table.Library)
 
 	util.DebugCheck(ls.Env, statement)
