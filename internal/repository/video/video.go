@@ -2,6 +2,7 @@ package videoRepository
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -26,7 +27,7 @@ type IVideoRepository interface {
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
-	GetOverview() ([]models.VideoOverviewModel, error)
+	GetOverview(limit, skip int) (*models.Page[models.VideoOverviewModel], error)
 }
 
 type VideoRepository struct {
@@ -147,33 +148,53 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 	return nil
 }
 
-func (ds *VideoRepository) GetOverview() ([]models.VideoOverviewModel, error) {
-	statement := table.Video.SELECT(
+func (ds *VideoRepository) GetOverview(limit, skip int) (*models.Page[models.VideoOverviewModel], error) {
+	joins := func(stmnt postgres.SelectStatement) postgres.SelectStatement {
+		return stmnt.FROM(table.Video.
+			INNER_JOIN(
+				table.LibraryPath,
+				table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
+			INNER_JOIN(
+				table.VideoImage,
+				table.VideoImage.VideoID.EQ(table.Video.ID).
+					AND(table.VideoImage.VideoImageType.EQ(
+						postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
+			INNER_JOIN(
+				table.Image,
+				table.Image.ID.EQ(table.VideoImage.ImageID),
+			))
+	}
+
+	selectStatement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
 		table.LibraryPath.Path,
 		table.Video.Title,
 		table.Image.Path,
 		table.VideoImage.VideoImageType,
-	).FROM(table.Video.
-		INNER_JOIN(
-			table.LibraryPath,
-			table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
-		INNER_JOIN(
-			table.VideoImage,
-			table.VideoImage.VideoID.EQ(table.Video.ID).
-				AND(table.VideoImage.VideoImageType.EQ(
-					postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
-		INNER_JOIN(
-			table.Image,
-			table.Image.ID.EQ(table.VideoImage.ImageID),
-		))
-
+	)
+	// countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total"))
+	// countStatement = joins(countStatement)
+	selectStatement = joins(selectStatement).
+		LIMIT(int64(limit)).
+		OFFSET(int64(skip))
 	var vids []models.VideoOverviewModel
 
-	if err := statement.Query(ds.db, &vids); err != nil {
+	sql := selectStatement.DebugSql()
+	fmt.Println(sql)
+
+	if err := selectStatement.Query(ds.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview")
 	}
 
-	return vids, nil
+	// var total struct{ total int }
+	// if err := countStatement.Query(ds.db, &total); err != nil {
+	// 	return nil, errs.BuildError(err, "could not query videos for overview total")
+	// }
+	return &models.Page[models.VideoOverviewModel]{
+		Data:  vids,
+		Limit: limit,
+		Skip:  skip,
+		Total: 0,
+	}, nil
 }

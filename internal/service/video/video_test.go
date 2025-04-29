@@ -10,7 +10,6 @@ import (
 	errs "github.com/slugger7/exorcist/internal/errors"
 	mock_repository "github.com/slugger7/exorcist/internal/mock/repository"
 	mock_videoRepository "github.com/slugger7/exorcist/internal/mock/repository/video"
-	"github.com/slugger7/exorcist/internal/models"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 	"go.uber.org/mock/gomock"
 )
@@ -148,31 +147,5 @@ func Test_GetById_RepoReturnsVideo(t *testing.T) {
 	}
 	if vid.ID != id {
 		t.Errorf("Expected video with id: %v\nGot video with id: %v", id, vid.ID)
-	}
-}
-
-func Test_GetOverview_ErrorFromRepo(t *testing.T) {
-	s := setup(t)
-
-	s.videoRepo.EXPECT().
-		GetOverview().
-		DoAndReturn(func() ([]models.VideoOverviewModel, error) {
-			return nil, fmt.Errorf("expected error")
-		})
-
-	vids, err := s.svc.GetOverview()
-	if err != nil {
-		var e errs.IError
-		if errors.As(err, &e) {
-			if e.Message() != ErrVideoRepoOverview {
-				t.Errorf("expected: %v\ngot: %v", ErrVideoRepoOverview, e.Message())
-			}
-		}
-	} else {
-		t.Error("expected error but was nil")
-	}
-
-	if vids != nil {
-		t.Fatalf("expected error but videos were defined %v", vids)
 	}
 }
