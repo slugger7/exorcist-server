@@ -173,7 +173,7 @@ func (ds *VideoRepository) GetOverview(limit, skip int) (*models.Page[models.Vid
 		LIMIT(int64(limit)).
 		OFFSET(int64(skip))
 
-	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total.total")).FROM(table.Video)
+	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total")).FROM(table.Video)
 
 	sql := countStatement.DebugSql()
 	var vids []models.VideoOverviewModel
@@ -184,20 +184,17 @@ func (ds *VideoRepository) GetOverview(limit, skip int) (*models.Page[models.Vid
 		return nil, errs.BuildError(err, "could not query videos for overview")
 	}
 
-	type Total struct {
-		total string
+	var res struct {
+		Total int
 	}
-	var res []Total
 
 	if err := countStatement.Query(ds.db, &res); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview total")
 	}
-	total := res[0]
-	fmt.Println(total)
 	return &models.Page[models.VideoOverviewModel]{
 		Data:  vids,
 		Limit: limit,
 		Skip:  skip,
-		Total: 0,
+		Total: res.Total,
 	}, nil
 }

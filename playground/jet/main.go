@@ -36,14 +36,21 @@ func main() {
 
 	sql, _ := stmnt.Sql()
 	fmt.Printf("SQL: %v\n", sql)
-	rows, _ := db.Query(sql)
-
-	defer rows.Close()
-	for rows.Next() {
-		var total int
-
-		_ = rows.Scan(&total)
-
-		fmt.Println(total)
+	var dest struct {
+		Total int
 	}
+_:
+	stmnt.Query(db, &dest)
+
+	fmt.Println(dest)
+	// rows, _ := db.Query(sql)
+
+	// defer rows.Close()
+	// for rows.Next() {
+	// 	var total int
+
+	// 	_ = rows.Scan(&total)
+
+	// 	fmt.Println(total)
+	// }
 }
