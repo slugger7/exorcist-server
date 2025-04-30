@@ -2,6 +2,11 @@
 
 Similar to [ghost](https://github.com/slugger7/ghost-media) and [poltergeist](https://github.com/slugger7/poltergeist) this one is written in golang
 
+## Under construction
+
+This is your warning that this project is not in any state ready to be used (even by me) and is still under constant construction without a usable version at the moment
+
+
 ## Getting started
 
 - Install Go
