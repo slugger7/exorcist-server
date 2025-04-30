@@ -25,6 +25,37 @@ func (s *Server) withLibraryGet(r *gin.RouterGroup, route Route) *Server {
 	return s
 }
 
+func (s *Server) withLibraryGetPaths(r *gin.RouterGroup, route Route) *Server {
+	r.GET(fmt.Sprintf("%v/:id/libraryPaths", route), s.LibraryGetPaths)
+	return s
+}
+
+const ErrLibraryPathsForLibrary ApiError = "could not get library paths for library %v"
+
+func (s *Server) LibraryGetPaths(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		e := fmt.Sprintf(ErrIdParse, c.Param("id"))
+		s.logger.Error(e)
+		c.JSON(http.StatusBadRequest, createError(e))
+		return
+	}
+
+	libraryPaths, err := s.repo.LibraryPath().GetByLibraryId(id)
+	if err != nil {
+		s.logger.Errorf(ErrLibraryPathsForLibrary, id)
+		c.JSON(http.StatusInternalServerError, createError("could not get library paths for library"))
+		return
+	}
+
+	libPathModels := make([]models.LibraryPathModel, len(libraryPaths))
+	for i, m := range libraryPaths {
+		libPathModels[i] = *(&models.LibraryPathModel{}).FromModel(m)
+	}
+
+	c.JSON(http.StatusOK, libPathModels)
+}
+
 const ErrCreatingLibrary ApiError = "could not create new library"
 
 func (s *Server) CreateLibrary(c *gin.Context) {
