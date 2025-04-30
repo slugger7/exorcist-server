@@ -2,6 +2,7 @@ package videoRepository
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -11,6 +12,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/repository/helpers"
 )
 
 type VideoLibraryPathModel struct {
@@ -26,7 +28,7 @@ type IVideoRepository interface {
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
-	GetOverview() ([]models.VideoOverviewModel, error)
+	GetOverview(limit, skip int, ordinal *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error)
 }
 
 type VideoRepository struct {
@@ -147,33 +149,58 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 	return nil
 }
 
-func (ds *VideoRepository) GetOverview() ([]models.VideoOverviewModel, error) {
-	statement := table.Video.SELECT(
+func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error) {
+
+	selectStatement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
 		table.LibraryPath.Path,
 		table.Video.Title,
 		table.Image.Path,
 		table.VideoImage.VideoImageType,
-	).FROM(table.Video.
-		INNER_JOIN(
-			table.LibraryPath,
-			table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
-		INNER_JOIN(
-			table.VideoImage,
-			table.VideoImage.VideoID.EQ(table.Video.ID).
-				AND(table.VideoImage.VideoImageType.EQ(
-					postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
-		INNER_JOIN(
-			table.Image,
-			table.Image.ID.EQ(table.VideoImage.ImageID),
-		))
+	).
+		FROM(table.Video.
+			INNER_JOIN(
+				table.LibraryPath,
+				table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
+			LEFT_JOIN(
+				table.VideoImage,
+				table.VideoImage.VideoID.EQ(table.Video.ID).
+					AND(table.VideoImage.VideoImageType.EQ(
+						postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
+			INNER_JOIN(
+				table.Image,
+				table.Image.ID.EQ(table.VideoImage.ImageID),
+			)).
+		LIMIT(int64(limit)).
+		OFFSET(int64(skip))
 
+	if ordinal != nil {
+		selectStatement = helpers.OrderByDirectionColumn(asc, ordinal.ToColumn(), selectStatement)
+	}
+
+	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total")).FROM(table.Video)
+
+	sql := countStatement.DebugSql()
 	var vids []models.VideoOverviewModel
 
-	if err := statement.Query(ds.db, &vids); err != nil {
+	fmt.Println(sql)
+
+	if err := selectStatement.Query(ds.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview")
 	}
 
-	return vids, nil
+	var res struct {
+		Total int
+	}
+
+	if err := countStatement.Query(ds.db, &res); err != nil {
+		return nil, errs.BuildError(err, "could not query videos for overview total")
+	}
+	return &models.Page[models.VideoOverviewModel]{
+		Data:  vids,
+		Limit: limit,
+		Skip:  skip,
+		Total: res.Total,
+	}, nil
 }

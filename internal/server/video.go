@@ -3,10 +3,11 @@ package server
 import (
 	"fmt"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 func (s *Server) withVideoGet(r *gin.RouterGroup, route Route) *Server {
@@ -19,24 +20,34 @@ func (s *Server) withVideoGetById(r *gin.RouterGroup, route Route) *Server {
 	return s
 }
 
-type CreateVideoDTO struct {
-	LibraryPathId uuid.UUID `binding:"required,uuid4"`
-	RelativePath  string    `binding:"required,unix_addr"`
-	Title         string    `binding:"required"`
-	FileName      string    `binding:"required"`
-	Height        int32     `binding:"required"`
-	Width         int32     `binding:"required"`
-	Runtime       int64     `binding:"required"`
-	Size          int64     `binding:"required"`
-	Checksum      *string
-	Deleted       *bool
-	Exists        *bool
-	Created       time.Time
-	Modified      time.Time
+func (s *Server) defaultInt(strVal string, def int) int {
+	if strVal != "" {
+		val, err := strconv.Atoi(strVal)
+		if err != nil {
+			s.logger.Warningf("could not parse %v to int", strVal)
+		}
+
+		return val
+	}
+
+	return def
+}
+
+func (s *Server) defualtBool(strVal string, def bool) bool {
+	val, err := strconv.ParseBool(strVal)
+	if err != nil {
+		return def
+	}
+	return val
 }
 
 func (s *Server) GetVideos(c *gin.Context) {
-	vids, err := s.service.Video().GetOverview()
+	limit := s.defaultInt(c.Query("limit"), 48)
+	skip := s.defaultInt(c.Query("skip"), 0)
+	orderBy := c.Query("orderBy")
+	asc := s.defualtBool(c.Query("asc"), true)
+
+	vids, err := s.service.Video().GetOverview(limit, skip, (*models.VideoOrdinal)(&orderBy), asc)
 	if err != nil {
 		s.logger.Errorf("could not fetch videos", err)
 	}

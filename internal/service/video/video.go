@@ -13,7 +13,7 @@ import (
 
 type IVideoService interface {
 	GetAll() ([]model.Video, error)
-	GetOverview() ([]models.VideoOverviewDTO, error)
+	GetOverview(limit, skip int, orderBy *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewDTO], error)
 	GetById(id uuid.UUID) (*model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*videoRepository.VideoLibraryPathModel, error)
 }
@@ -43,18 +43,23 @@ const (
 	ErrVideoRepoOverview string = "could not get videos for overview"
 )
 
-func (vs *VideoService) GetOverview() ([]models.VideoOverviewDTO, error) {
-	vids, err := vs.repo.Video().GetOverview()
+func (vs *VideoService) GetOverview(limit, skip int, orderBy *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewDTO], error) {
+	vidsPage, err := vs.repo.Video().GetOverview(limit, skip, orderBy, asc)
 	if err != nil {
 		return nil, errs.BuildError(err, ErrVideoRepoOverview)
 	}
 
-	videos := make([]models.VideoOverviewDTO, len(vids))
-	for i, v := range vids {
+	videos := make([]models.VideoOverviewDTO, len(vidsPage.Data))
+	for i, v := range vidsPage.Data {
 		videos[i] = v.ToDTO()
 	}
 
-	return videos, nil
+	return &models.Page[models.VideoOverviewDTO]{
+		Data:  videos,
+		Limit: vidsPage.Limit,
+		Skip:  vidsPage.Skip,
+		Total: vidsPage.Total,
+	}, nil
 }
 
 const ErrGetAllVideos = "could not get all videos"
