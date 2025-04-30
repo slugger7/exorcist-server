@@ -1,4 +1,4 @@
-package videoRepository
+package models
 
 import (
 	"github.com/go-jet/jet/v2/postgres"
@@ -16,8 +16,8 @@ const (
 	Added    VideoOrdinal = "added"
 )
 
-func ordinalToColumn(ordinal *VideoOrdinal) postgres.Column {
-	switch *ordinal {
+func (o VideoOrdinal) ToColumn() postgres.Column {
+	switch o {
 	case Created:
 		return table.Video.Created
 	case Modified:

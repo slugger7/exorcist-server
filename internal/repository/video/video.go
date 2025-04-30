@@ -12,6 +12,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/repository/helpers"
 )
 
 type VideoLibraryPathModel struct {
@@ -27,7 +28,7 @@ type IVideoRepository interface {
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
-	GetOverview(limit, skip int, ordinal *VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error)
+	GetOverview(limit, skip int, ordinal *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error)
 }
 
 type VideoRepository struct {
@@ -148,16 +149,8 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 	return nil
 }
 
-func orderByDirectionColumn(asc bool, column postgres.Column, stmnt postgres.SelectStatement) postgres.SelectStatement {
-	if !asc {
-		return stmnt.ORDER_BY(column.DESC())
-	}
+func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error) {
 
-	return stmnt.ORDER_BY(column.ASC())
-}
-
-func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error) {
-	orderByColumn := ordinalToColumn(ordinal)
 	selectStatement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
@@ -182,7 +175,9 @@ func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *VideoOrdinal, a
 		LIMIT(int64(limit)).
 		OFFSET(int64(skip))
 
-	selectStatement = orderByDirectionColumn(asc, orderByColumn, selectStatement)
+	if ordinal != nil {
+		selectStatement = helpers.OrderByDirectionColumn(asc, ordinal.ToColumn(), selectStatement)
+	}
 
 	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total")).FROM(table.Video)
 

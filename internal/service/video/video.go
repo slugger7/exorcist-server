@@ -13,7 +13,7 @@ import (
 
 type IVideoService interface {
 	GetAll() ([]model.Video, error)
-	GetOverview(limit, skip int, orderBy *videoRepository.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewDTO], error)
+	GetOverview(limit, skip int, orderBy *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewDTO], error)
 	GetById(id uuid.UUID) (*model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*videoRepository.VideoLibraryPathModel, error)
 }
@@ -43,7 +43,7 @@ const (
 	ErrVideoRepoOverview string = "could not get videos for overview"
 )
 
-func (vs *VideoService) GetOverview(limit, skip int, orderBy *videoRepository.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewDTO], error) {
+func (vs *VideoService) GetOverview(limit, skip int, orderBy *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewDTO], error) {
 	vidsPage, err := vs.repo.Video().GetOverview(limit, skip, orderBy, asc)
 	if err != nil {
 		return nil, errs.BuildError(err, ErrVideoRepoOverview)
