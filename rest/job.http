@@ -7,7 +7,5 @@ Content-Type: application/json
 
 {
   "type": "scan_path",
-  "data": {
-    "libraryPathId": "3a75e001-d602-4ddc-b4cc-3e9d2735deea"
-  }
+  "data": "{\"libraryPathId\": \"3a75e001-d602-4ddc-b4cc-3e9d2735deea\"}"
 }
