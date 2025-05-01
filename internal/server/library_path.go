@@ -1,14 +1,14 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/models"
 )
-
-const libraryPathRoute string = "/libraryPaths"
 
 func (s *Server) withLibraryPathCreate(r *gin.RouterGroup, route Route) *Server {
 	r.POST(route, s.CreateLibraryPath)
@@ -17,6 +17,30 @@ func (s *Server) withLibraryPathCreate(r *gin.RouterGroup, route Route) *Server 
 func (s *Server) withLibraryPathGetAll(r *gin.RouterGroup, route Route) *Server {
 	r.GET(route, s.GetAllLibraryPaths)
 	return s
+}
+
+func (s *Server) withLibraryPathGet(r *gin.RouterGroup, route Route) *Server {
+	r.GET(fmt.Sprintf("%v/:id", route), s.GetLibraryPath)
+	return s
+}
+
+func (s *Server) GetLibraryPath(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		e := fmt.Sprintf(ErrIdParse, c.Param("id"))
+		s.logger.Error(e)
+		c.JSON(http.StatusBadRequest, createError(e))
+		return
+	}
+
+	libraryPath, err := s.repo.LibraryPath().GetById(id)
+	if err != nil {
+		s.logger.Errorf("error fetching library path by id: %v", id)
+		c.JSON(http.StatusInternalServerError, createError("could not get libray path by id"))
+		return
+	}
+
+	c.JSON(http.StatusOK, libraryPath)
 }
 
 const ErrCreatingLibraryPath string = "colud not create new library path"

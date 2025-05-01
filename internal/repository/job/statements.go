@@ -20,7 +20,7 @@ func (js JobStatement) Exec() (sql.Result, error) {
 func (jb *JobRepository) createAllStatement(jobs []model.Job) JobStatement {
 	statement := table.JobTable.INSERT(*table.Job, table.Job.JobType, table.Job.Status, table.Job.Data).
 		MODELS(jobs).
-		RETURNING(table.Job.ID)
+		RETURNING(table.Job.AllColumns)
 
 	util.DebugCheck(jb.Env, statement)
 
