@@ -156,7 +156,7 @@ func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrd
 		table.Video.RelativePath,
 		table.LibraryPath.Path,
 		table.Video.Title,
-		table.Image.Path,
+		table.Image.ID,
 		table.VideoImage.VideoImageType,
 	).
 		FROM(table.Video.
