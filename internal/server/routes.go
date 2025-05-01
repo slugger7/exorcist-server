@@ -11,12 +11,13 @@ import (
 type Route = string
 
 const (
-	root      Route = "/"
-	users     Route = "/users"
-	libraries Route = "/libraries"
-	videos    Route = "/videos"
-	media     Route = "/media"
-	jobs      Route = "/jobs"
+	root        Route = "/"
+	users       Route = "/users"
+	libraries   Route = "/libraries"
+	videos      Route = "/videos"
+	media       Route = "/media"
+	jobs        Route = "/jobs"
+	libraryPath Route = "/libraryPaths"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -49,8 +50,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		withLibraryGetPaths(authenticated, libraries)
 
 	// Register library path controller routes
-	s.withLibraryPathCreate(authenticated, libraryPathRoute).
-		withLibraryPathGetAll(authenticated, libraryPathRoute)
+	s.withLibraryPathCreate(authenticated, libraryPath).
+		withLibraryPathGetAll(authenticated, libraryPath).
+		withLibraryPathGet(authenticated, libraryPath)
 
 	// Register video controller routes
 	s.withVideoGet(authenticated, videos).
