@@ -40,9 +40,14 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 }
 
 func (s *JobService) Create(m models.CreateJob) (*model.Job, error) {
+	data, err := json.Marshal(m.Data)
+	strData := string(data)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not marhsal data field")
+	}
 	switch m.Type {
 	case model.JobTypeEnum_ScanPath:
-		return s.scanPath(m.Data)
+		return s.scanPath(strData)
 	default:
 		return nil, fmt.Errorf("job type not implemented: %v", m.Type)
 	}
@@ -51,10 +56,10 @@ func (s *JobService) Create(m models.CreateJob) (*model.Job, error) {
 const ErrActionScanGetLibraryPaths = "could not get library paths in scan action"
 const ErrCreatingJobs = "error creating jobs"
 
-func (i *JobService) scanPath(data *string) (*model.Job, error) {
+func (i *JobService) scanPath(data string) (*model.Job, error) {
 	var scanPathData models.ScanPathData
 
-	if err := json.Unmarshal([]byte(*data), &scanPathData); err != nil {
+	if err := json.Unmarshal([]byte(data), &scanPathData); err != nil {
 		return nil, errs.BuildError(err, "could not unmarshall data for job %v", data)
 	}
 
@@ -67,7 +72,7 @@ func (i *JobService) scanPath(data *string) (*model.Job, error) {
 	job := model.Job{
 		JobType: model.JobTypeEnum_ScanPath,
 		Status:  model.JobStatusEnum_NotStarted,
-		Data:    data,
+		Data:    &data,
 	}
 
 	jobs, err := i.repo.Job().CreateAll([]model.Job{job})
