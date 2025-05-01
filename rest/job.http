@@ -1,2 +1,13 @@
 ### Start job runner manually
 GET {{host}}:{{port}}/api/jobs/start-runner
+
+### Create scan path job
+POST {{host}}:{{port}}/api/jobs
+Content-Type: application/json
+
+{
+  "type": "scan_path",
+  "data": {
+    "libraryPathId": "3a75e001-d602-4ddc-b4cc-3e9d2735deea"
+  }
+}

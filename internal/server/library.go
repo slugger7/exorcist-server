@@ -10,11 +10,6 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-func (s *Server) withLibraryGetAction(r *gin.RouterGroup, route Route) *Server {
-	r.GET(fmt.Sprintf("%v/:id/*action", route), s.LibraryAction)
-	return s
-}
-
 func (s *Server) withLibraryPost(r *gin.RouterGroup, route Route) *Server {
 	r.POST(route, s.CreateLibrary)
 	return s
@@ -30,7 +25,10 @@ func (s *Server) withLibraryGetPaths(r *gin.RouterGroup, route Route) *Server {
 	return s
 }
 
-const ErrLibraryPathsForLibrary ApiError = "could not get library paths for library %v"
+const (
+	ErrLibraryPathsForLibrary ApiError = "could not get library paths for library %v"
+	ErrIdParse                ApiError = "could not parse id in path: %v"
+)
 
 func (s *Server) LibraryGetPaths(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
@@ -97,31 +95,4 @@ func (s *Server) GetLibraries(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, ms)
-}
-
-const (
-	ErrIdParse       ApiError = "Could not parse id in path: %v"
-	ErrLibraryAction ApiError = "could not perform %v on %v"
-)
-
-func (s *Server) LibraryAction(c *gin.Context) {
-	id := c.Param("id")
-	action := c.Param("action")
-
-	libraryId, err := uuid.Parse(id)
-	if err != nil {
-		e := fmt.Sprintf(ErrIdParse, id)
-		s.logger.Error(e)
-		c.JSON(http.StatusBadRequest, createError(e))
-		return
-	}
-
-	err = s.service.Library().Action(libraryId, action)
-	if err != nil {
-		s.logger.Errorf("Could not perform action %v on %v: %v", action, libraryId, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf(ErrLibraryAction, action, libraryId)})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "started"})
 }

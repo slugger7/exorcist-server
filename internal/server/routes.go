@@ -11,11 +11,12 @@ import (
 type Route = string
 
 const (
-	root         Route = "/"
-	userRoute    Route = "/users"
-	libraryRoute Route = "/libraries"
-	videoRoute   Route = "/videos"
-	mediaRoute   Route = "/media"
+	root      Route = "/"
+	users     Route = "/users"
+	libraries Route = "/libraries"
+	videos    Route = "/videos"
+	media     Route = "/media"
+	jobs      Route = "/jobs"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -38,28 +39,30 @@ func (s *Server) RegisterRoutes() http.Handler {
 	authenticated.Use(s.AuthRequired)
 
 	// Register user controller routes
-	s.withUserCreate(authenticated, userRoute).
-		withUserUpdatePassword(authenticated, userRoute)
+	s.withUserCreate(authenticated, users).
+		withUserUpdatePassword(authenticated, users)
 
 	// Register library controller routes
-	s.withLibraryGet(authenticated, libraryRoute).
+	s.withLibraryGet(authenticated, libraries).
 		//withLibraryGetAction(authenticated, libraryRoute).
-		withLibraryPost(authenticated, libraryRoute).
-		withLibraryGetPaths(authenticated, libraryRoute)
+		withLibraryPost(authenticated, libraries).
+		withLibraryGetPaths(authenticated, libraries)
 
 	// Register library path controller routes
 	s.withLibraryPathCreate(authenticated, libraryPathRoute).
 		withLibraryPathGetAll(authenticated, libraryPathRoute)
 
 	// Register video controller routes
-	s.withVideoGet(authenticated, videoRoute).
-		withVideoGetById(authenticated, videoRoute)
+	s.withVideoGet(authenticated, videos).
+		withVideoGetById(authenticated, videos)
 
 	// Register media controller routes
-	s.withMediaVideo(authenticated, mediaRoute).
-		withMediaImage(authenticated, mediaRoute)
+	s.withMediaVideo(authenticated, media).
+		withMediaImage(authenticated, media)
 
-	s.withJobRoutes(authenticated)
+	// Register job controller routes
+	s.withJobRoutes(authenticated, jobs).
+		withJobCreate(authenticated, jobs)
 
 	r.GET("/health", s.HealthHandler)
 	return r

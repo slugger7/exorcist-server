@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	imageService "github.com/slugger7/exorcist/internal/service/image"
+	jobService "github.com/slugger7/exorcist/internal/service/job"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
 	userService "github.com/slugger7/exorcist/internal/service/user"
@@ -56,6 +57,20 @@ func (m *MockIService) Image() imageService.IImageService {
 func (mr *MockIServiceMockRecorder) Image() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Image", reflect.TypeOf((*MockIService)(nil).Image))
+}
+
+// Job mocks base method.
+func (m *MockIService) Job() jobService.IJobService {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Job")
+	ret0, _ := ret[0].(jobService.IJobService)
+	return ret0
+}
+
+// Job indicates an expected call of Job.
+func (mr *MockIServiceMockRecorder) Job() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockIService)(nil).Job))
 }
 
 // Library mocks base method.

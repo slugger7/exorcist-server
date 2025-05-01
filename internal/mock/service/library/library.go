@@ -12,7 +12,6 @@ package mock_libraryService
 import (
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -39,20 +38,6 @@ func NewMockILibraryService(ctrl *gomock.Controller) *MockILibraryService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockILibraryService) EXPECT() *MockILibraryServiceMockRecorder {
 	return m.recorder
-}
-
-// Action mocks base method.
-func (m *MockILibraryService) Action(id uuid.UUID, action string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Action", id, action)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Action indicates an expected call of Action.
-func (mr *MockILibraryServiceMockRecorder) Action(id, action any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Action", reflect.TypeOf((*MockILibraryService)(nil).Action), id, action)
 }
 
 // Create mocks base method.
