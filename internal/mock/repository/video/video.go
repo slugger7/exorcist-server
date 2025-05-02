@@ -59,10 +59,10 @@ func (mr *MockIVideoRepositoryMockRecorder) GetAll() *gomock.Call {
 }
 
 // GetById mocks base method.
-func (m *MockIVideoRepository) GetById(id uuid.UUID) (*model.Video, error) {
+func (m *MockIVideoRepository) GetById(id uuid.UUID) (*models.VideoOverviewModel, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", id)
-	ret0, _ := ret[0].(*model.Video)
+	ret0, _ := ret[0].(*models.VideoOverviewModel)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

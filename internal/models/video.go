@@ -18,8 +18,8 @@ type VideoOverviewDTO struct {
 	ThumbnailId uuid.UUID `json:"thumbnailId"`
 }
 
-func (v *VideoOverviewModel) ToDTO() VideoOverviewDTO {
-	return VideoOverviewDTO{
+func (v *VideoOverviewModel) ToDTO() *VideoOverviewDTO {
+	return &VideoOverviewDTO{
 		Id:          v.Video.ID,
 		Title:       v.Video.Title,
 		Path:        v.LibraryPath.Path + v.Video.RelativePath,

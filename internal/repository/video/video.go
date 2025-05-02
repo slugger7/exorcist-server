@@ -23,7 +23,7 @@ type VideoLibraryPathModel struct {
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
-	GetById(id uuid.UUID) (*model.Video, error)
+	GetById(id uuid.UUID) (*models.VideoOverviewModel, error)
 	UpdateExists(video *model.Video) error
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
@@ -114,18 +114,37 @@ func (ds *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	return vidModels, nil
 }
 
-func (ds *VideoRepository) GetById(id uuid.UUID) (*model.Video, error) {
-	var vids []struct{ model.Video }
-	if err := ds.getByIdStatement(id).Query(&vids); err != nil {
+func (ds *VideoRepository) GetById(id uuid.UUID) (*models.VideoOverviewModel, error) {
+	var vid models.VideoOverviewModel
+
+	statement := table.Video.SELECT(
+		table.Video.ID,
+		table.Video.RelativePath,
+		table.LibraryPath.Path,
+		table.Video.Title,
+		table.Image.ID,
+		table.VideoImage.VideoImageType).
+		FROM(table.Video.
+			INNER_JOIN(
+				table.LibraryPath,
+				table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
+			LEFT_JOIN(
+				table.VideoImage,
+				table.Video.ID.EQ(table.VideoImage.VideoID).
+					AND(table.VideoImage.VideoImageType.EQ(
+						postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
+			LEFT_JOIN(
+				table.Image,
+				table.Image.ID.EQ(table.VideoImage.ImageID),
+			)).
+		WHERE(table.Video.ID.EQ(postgres.UUID(id))).
+		LIMIT(1)
+
+	if err := statement.Query(ds.db, &vid); err != nil {
 		return nil, errs.BuildError(err, "error getting video from db for id %v", id)
 	}
 
-	var video *model.Video
-	if len(vids) == 1 {
-		video = &vids[len(vids)-1].Video
-	}
-
-	return video, nil
+	return &vid, nil
 }
 
 func (ds *VideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error) {

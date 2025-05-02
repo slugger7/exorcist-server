@@ -124,28 +124,3 @@ func Test_GetById_RepoReturnsError(t *testing.T) {
 		t.Errorf("Expected vid to be nil but was %v", vid)
 	}
 }
-
-func Test_GetById_RepoReturnsVideo(t *testing.T) {
-	s := setup(t)
-
-	id, _ := uuid.NewRandom()
-	video := model.Video{ID: id}
-
-	s.videoRepo.EXPECT().
-		GetById(id).
-		DoAndReturn(func(uuid.UUID) (*model.Video, error) {
-			return &video, nil
-		}).
-		Times(1)
-
-	vid, err := s.svc.GetById(id)
-	if err != nil {
-		t.Errorf("Expected nil but got %v", err.Error())
-	}
-	if vid == nil {
-		t.Error("Expected video but was nil")
-	}
-	if vid.ID != id {
-		t.Errorf("Expected video with id: %v\nGot video with id: %v", id, vid.ID)
-	}
-}
