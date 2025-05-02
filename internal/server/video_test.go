@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/models"
 	"go.uber.org/mock/gomock"
 )
 
@@ -71,11 +72,11 @@ func Test_GetVideo_Success(t *testing.T) {
 		withVideoService()
 
 	id, _ := uuid.NewRandom()
-	video := &model.Video{ID: id}
+	video := &models.VideoOverviewDTO{Id: id}
 
 	s.mockVideoService.EXPECT().
 		GetById(gomock.Eq(id)).
-		DoAndReturn(func(uuid.UUID) (*model.Video, error) {
+		DoAndReturn(func(uuid.UUID) (*models.VideoOverviewDTO, error) {
 			return video, nil
 		}).
 		Times(1)

@@ -105,17 +105,6 @@ func Test_InsertVideosStatement_WithVideos_ShouldReturnStatement(t *testing.T) {
 	}
 }
 
-func Test_GetByIdStatement(t *testing.T) {
-	id, _ := uuid.NewRandom()
-
-	sql, _ := ds.getByIdStatement(id).Sql()
-
-	expectedSql := "\nSELECT video.id AS \"video.id\",\n     video.library_path_id AS \"video.library_path_id\",\n     video.relative_path AS \"video.relative_path\",\n     video.title AS \"video.title\",\n     video.file_name AS \"video.file_name\",\n     video.height AS \"video.height\",\n     video.width AS \"video.width\",\n     video.runtime AS \"video.runtime\",\n     video.size AS \"video.size\",\n     video.checksum AS \"video.checksum\",\n     video.added AS \"video.added\",\n     video.deleted AS \"video.deleted\",\n     video.exists AS \"video.exists\",\n     video.created AS \"video.created\",\n     video.modified AS \"video.modified\"\nFROM public.video\nWHERE video.id = $1\nLIMIT $2;\n"
-	if expectedSql != sql {
-		t.Errorf("Expected sql: %v\nGot sql: %v", expectedSql, sql)
-	}
-}
-
 func Test_GetByIdWithLibraryPath(t *testing.T) {
 	id, _ := uuid.NewRandom()
 

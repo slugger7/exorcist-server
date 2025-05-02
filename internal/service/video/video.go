@@ -14,7 +14,7 @@ import (
 type IVideoService interface {
 	GetAll() ([]model.Video, error)
 	GetOverview(limit, skip int, orderBy *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewDTO], error)
-	GetById(id uuid.UUID) (*model.Video, error)
+	GetById(id uuid.UUID) (*models.VideoOverviewDTO, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*videoRepository.VideoLibraryPathModel, error)
 }
 
@@ -51,7 +51,7 @@ func (vs *VideoService) GetOverview(limit, skip int, orderBy *models.VideoOrdina
 
 	videos := make([]models.VideoOverviewDTO, len(vidsPage.Data))
 	for i, v := range vidsPage.Data {
-		videos[i] = v.ToDTO()
+		videos[i] = *v.ToDTO()
 	}
 
 	return &models.Page[models.VideoOverviewDTO]{
@@ -75,13 +75,13 @@ func (vs *VideoService) GetAll() ([]model.Video, error) {
 
 const ErrVideoById = "error getting video by id %v"
 
-func (vs *VideoService) GetById(id uuid.UUID) (*model.Video, error) {
+func (vs *VideoService) GetById(id uuid.UUID) (*models.VideoOverviewDTO, error) {
 	video, err := vs.repo.Video().GetById(id)
 	if err != nil {
 		return nil, errs.BuildError(err, ErrVideoById, id)
 	}
 
-	return video, nil
+	return video.ToDTO(), nil
 }
 
 func (vs *VideoService) GetByIdWithLibraryPath(id uuid.UUID) (*videoRepository.VideoLibraryPathModel, error) {

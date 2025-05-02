@@ -85,17 +85,6 @@ func (ds *VideoRepository) insertStatement(videos []model.Video) *VideoStatement
 	return &VideoStatement{statement, ds.db}
 }
 
-func (ds *VideoRepository) getByIdStatement(id uuid.UUID) *VideoStatement {
-	statement := table.Video.SELECT(table.Video.AllColumns).
-		FROM(table.Video).
-		WHERE(table.Video.ID.EQ(postgres.UUID(id))).
-		LIMIT(1)
-
-	util.DebugCheck(ds.Env, statement)
-
-	return &VideoStatement{statement, ds.db}
-}
-
 func (ds *VideoRepository) getByIdWithLibraryPathStatement(id uuid.UUID) *VideoStatement {
 	statement := table.Video.SELECT(table.Video.AllColumns, table.LibraryPath.AllColumns).
 		FROM(table.Video.INNER_JOIN(table.LibraryPath, table.Video.LibraryPathID.EQ(table.LibraryPath.ID))).

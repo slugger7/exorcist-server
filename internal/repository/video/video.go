@@ -2,7 +2,6 @@ package videoRepository
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -11,6 +10,7 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository/helpers"
 )
@@ -23,7 +23,7 @@ type VideoLibraryPathModel struct {
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
-	GetById(id uuid.UUID) (*model.Video, error)
+	GetById(id uuid.UUID) (*models.VideoOverviewModel, error)
 	UpdateExists(video *model.Video) error
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
@@ -32,8 +32,9 @@ type IVideoRepository interface {
 }
 
 type VideoRepository struct {
-	db  *sql.DB
-	Env *environment.EnvironmentVariables
+	db     *sql.DB
+	Env    *environment.EnvironmentVariables
+	logger logger.ILogger
 }
 
 var videoRepoInstance *VideoRepository
@@ -43,8 +44,9 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IVideoRepository {
 		return videoRepoInstance
 	}
 	videoRepoInstance = &VideoRepository{
-		db:  db,
-		Env: env,
+		db:     db,
+		Env:    env,
+		logger: logger.New(env),
 	}
 	return videoRepoInstance
 }
@@ -112,18 +114,37 @@ func (ds *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	return vidModels, nil
 }
 
-func (ds *VideoRepository) GetById(id uuid.UUID) (*model.Video, error) {
-	var vids []struct{ model.Video }
-	if err := ds.getByIdStatement(id).Query(&vids); err != nil {
+func (ds *VideoRepository) GetById(id uuid.UUID) (*models.VideoOverviewModel, error) {
+	var vid models.VideoOverviewModel
+
+	statement := table.Video.SELECT(
+		table.Video.ID,
+		table.Video.RelativePath,
+		table.LibraryPath.Path,
+		table.Video.Title,
+		table.Image.ID,
+		table.VideoImage.VideoImageType).
+		FROM(table.Video.
+			INNER_JOIN(
+				table.LibraryPath,
+				table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
+			LEFT_JOIN(
+				table.VideoImage,
+				table.Video.ID.EQ(table.VideoImage.VideoID).
+					AND(table.VideoImage.VideoImageType.EQ(
+						postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
+			LEFT_JOIN(
+				table.Image,
+				table.Image.ID.EQ(table.VideoImage.ImageID),
+			)).
+		WHERE(table.Video.ID.EQ(postgres.UUID(id))).
+		LIMIT(1)
+
+	if err := statement.Query(ds.db, &vid); err != nil {
 		return nil, errs.BuildError(err, "error getting video from db for id %v", id)
 	}
 
-	var video *model.Video
-	if len(vids) == 1 {
-		video = &vids[len(vids)-1].Video
-	}
-
-	return video, nil
+	return &vid, nil
 }
 
 func (ds *VideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error) {
@@ -156,7 +177,7 @@ func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrd
 		table.Video.RelativePath,
 		table.LibraryPath.Path,
 		table.Video.Title,
-		table.Image.Path,
+		table.Image.ID,
 		table.VideoImage.VideoImageType,
 	).
 		FROM(table.Video.
@@ -165,10 +186,10 @@ func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrd
 				table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
 			LEFT_JOIN(
 				table.VideoImage,
-				table.VideoImage.VideoID.EQ(table.Video.ID).
+				table.Video.ID.EQ(table.VideoImage.VideoID).
 					AND(table.VideoImage.VideoImageType.EQ(
 						postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
-			INNER_JOIN(
+			LEFT_JOIN(
 				table.Image,
 				table.Image.ID.EQ(table.VideoImage.ImageID),
 			)).
@@ -181,11 +202,12 @@ func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrd
 
 	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total")).FROM(table.Video)
 
-	sql := countStatement.DebugSql()
+	if ds.Env.DebugSql {
+		ds.logger.Debugf("Select statement: %v", selectStatement.DebugSql())
+		ds.logger.Debugf("Count satatement: %v", countStatement.DebugSql())
+	}
+
 	var vids []models.VideoOverviewModel
-
-	fmt.Println(sql)
-
 	if err := selectStatement.Query(ds.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview")
 	}
@@ -193,7 +215,6 @@ func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrd
 	var res struct {
 		Total int
 	}
-
 	if err := countStatement.Query(ds.db, &res); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview total")
 	}
