@@ -40,11 +40,9 @@ func DefualtBool(strVal string, def bool) bool {
 func DefaultInt(strVal string, def int) int {
 	if strVal != "" {
 		val, err := strconv.Atoi(strVal)
-		if err != nil {
-			return def
+		if err == nil {
+			return val
 		}
-
-		return val
 	}
 
 	return def
