@@ -15,9 +15,6 @@ GET {{host}}:{{port}}/api/libraries
 
 @libraryId = {{getLibraries.response.body.0.id}}
 
-### Scan library
-GET {{host}}:{{port}}/api/libraries/{{libraryId}}/scan
-
 ### Create Library path
 POST {{host}}:{{port}}/api/libraryPaths
 Content-Type: application/json
