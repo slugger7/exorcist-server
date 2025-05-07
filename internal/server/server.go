@@ -42,7 +42,9 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 		logger: lg,
 	}
 
-	newServer.withJobRunner(shutdownCtx, wg)
+	if env.JobRunner {
+		newServer.withJobRunner(shutdownCtx, wg)
+	}
 	newServer.service = service.New(repo, env, newServer.jobCh)
 
 	server := &http.Server{

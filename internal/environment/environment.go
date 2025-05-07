@@ -32,6 +32,7 @@ type EnvironmentVariables struct {
 	LogLevel         string
 	Assets           string
 	Web              *string
+	JobRunner        bool
 }
 
 type OsEnv = string
@@ -50,6 +51,7 @@ const (
 	LOG_LEVEL         OsEnv = "LOG_LEVEL"
 	ASSETS            OsEnv = "ASSETS"
 	WEB               OsEnv = "WEB"
+	JOB_RUNNER        OsEnv = "JOB_RUNNER"
 )
 
 var env *EnvironmentVariables
@@ -78,6 +80,7 @@ func RefreshEnvironmentVariables() {
 		LogLevel:         getValueOrDefault(LOG_LEVEL, "debug"),
 		Assets:           os.Getenv(ASSETS),
 		Web:              getValueOrNil(WEB),
+		JobRunner:        getBoolValue(JOB_RUNNER, true),
 	}
 }
 
