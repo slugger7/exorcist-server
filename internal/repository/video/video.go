@@ -173,7 +173,6 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 }
 
 func (ds *VideoRepository) GetOverview(search models.VideoSearch) (*models.Page[models.VideoOverviewModel], error) {
-
 	selectStatement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
@@ -206,6 +205,7 @@ func (ds *VideoRepository) GetOverview(search models.VideoSearch) (*models.Page[
 		likeExpression := fmt.Sprintf("%%%v%%", search.Search)
 		query := table.Video.Title.LIKE(postgres.String(likeExpression)).
 			OR(table.Video.RelativePath.LIKE(postgres.String(likeExpression)))
+
 		selectStatement = selectStatement.WHERE(query)
 		countStatement = countStatement.WHERE(query)
 	}
