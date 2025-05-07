@@ -2,6 +2,7 @@ package videoRepository
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -13,6 +14,7 @@ import (
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository/helpers"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
 type VideoLibraryPathModel struct {
@@ -28,7 +30,7 @@ type IVideoRepository interface {
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
-	GetOverview(limit, skip int, ordinal *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error)
+	GetOverview(models.VideoSearch) (*models.Page[models.VideoOverviewModel], error)
 }
 
 type VideoRepository struct {
@@ -170,7 +172,7 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 	return nil
 }
 
-func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error) {
+func (ds *VideoRepository) GetOverview(search models.VideoSearch) (*models.Page[models.VideoOverviewModel], error) {
 
 	selectStatement := table.Video.SELECT(
 		table.Video.ID,
@@ -193,21 +195,26 @@ func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrd
 				table.Image,
 				table.Image.ID.EQ(table.VideoImage.ImageID),
 			)).
-		LIMIT(int64(limit)).
-		OFFSET(int64(skip))
+		LIMIT(int64(search.Limit)).
+		OFFSET(int64(search.Skip))
 
-	if ordinal != nil {
-		selectStatement = helpers.OrderByDirectionColumn(asc, ordinal.ToColumn(), selectStatement)
-	}
+	selectStatement = helpers.OrderByDirectionColumn(search.Asc, search.OrderBy.ToColumn(), selectStatement)
 
 	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total")).FROM(table.Video)
 
-	if ds.Env.DebugSql {
-		ds.logger.Debugf("Select statement: %v", selectStatement.DebugSql())
-		ds.logger.Debugf("Count satatement: %v", countStatement.DebugSql())
+	if search.Search != "" {
+		likeExpression := fmt.Sprintf("%%%v%%", search.Search)
+		query := table.Video.Title.LIKE(postgres.String(likeExpression)).
+			OR(table.Video.RelativePath.LIKE(postgres.String(likeExpression)))
+		selectStatement = selectStatement.WHERE(query)
+		countStatement = countStatement.WHERE(query)
 	}
 
+	util.DebugCheck(ds.Env, countStatement)
+	util.DebugCheck(ds.Env, selectStatement)
+
 	var vids []models.VideoOverviewModel
+
 	if err := selectStatement.Query(ds.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview")
 	}
@@ -220,8 +227,8 @@ func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrd
 	}
 	return &models.Page[models.VideoOverviewModel]{
 		Data:  vids,
-		Limit: limit,
-		Skip:  skip,
+		Limit: search.Limit,
+		Skip:  search.Skip,
 		Total: res.Total,
 	}, nil
 }
