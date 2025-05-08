@@ -40,8 +40,9 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 }
 
 func (s *JobService) Create(m models.CreateJobDTO) (*model.Job, error) {
+	defaultJobPriority := models.JobPriority_Medium
 	if m.Priority == nil {
-		*m.Priority = 1
+		m.Priority = &(defaultJobPriority)
 	}
 	data, err := json.Marshal(m.Data)
 	strData := string(data)

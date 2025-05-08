@@ -4,7 +4,7 @@ POST {{host}}:{{port}}/api/libraries
 Content-Type: application/json
 
 {
-  "name": "new library name"
+  "name": "main"
 }
 
 @libraryId = {{createLibrary.response.body.id}}
