@@ -1,7 +1,9 @@
 package videoRepository
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -13,6 +15,7 @@ import (
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository/helpers"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
 type VideoLibraryPathModel struct {
@@ -28,24 +31,26 @@ type IVideoRepository interface {
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
-	GetOverview(limit, skip int, ordinal *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error)
+	GetOverview(models.VideoSearch) (*models.Page[models.VideoOverviewModel], error)
 }
 
 type VideoRepository struct {
 	db     *sql.DB
 	Env    *environment.EnvironmentVariables
 	logger logger.ILogger
+	ctx    context.Context
 }
 
 var videoRepoInstance *VideoRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables) IVideoRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IVideoRepository {
 	if videoRepoInstance != nil {
 		return videoRepoInstance
 	}
 	videoRepoInstance = &VideoRepository{
 		db:     db,
 		Env:    env,
+		ctx:    context,
 		logger: logger.New(env),
 	}
 	return videoRepoInstance
@@ -56,7 +61,7 @@ func (vr *VideoRepository) GetAll() ([]model.Video, error) {
 		FROM(table.Video)
 
 	var vids []struct{ model.Video }
-	if err := statement.Query(vr.db, &vids); err != nil {
+	if err := statement.QueryContext(vr.ctx, vr.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not get all videos")
 	}
 
@@ -140,7 +145,7 @@ func (ds *VideoRepository) GetById(id uuid.UUID) (*models.VideoOverviewModel, er
 		WHERE(table.Video.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
 
-	if err := statement.Query(ds.db, &vid); err != nil {
+	if err := statement.QueryContext(ds.ctx, ds.db, &vid); err != nil {
 		return nil, errs.BuildError(err, "error getting video from db for id %v", id)
 	}
 
@@ -170,8 +175,7 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 	return nil
 }
 
-func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrdinal, asc bool) (*models.Page[models.VideoOverviewModel], error) {
-
+func (ds *VideoRepository) GetOverview(search models.VideoSearch) (*models.Page[models.VideoOverviewModel], error) {
 	selectStatement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
@@ -193,35 +197,41 @@ func (ds *VideoRepository) GetOverview(limit, skip int, ordinal *models.VideoOrd
 				table.Image,
 				table.Image.ID.EQ(table.VideoImage.ImageID),
 			)).
-		LIMIT(int64(limit)).
-		OFFSET(int64(skip))
+		LIMIT(int64(search.Limit)).
+		OFFSET(int64(search.Skip))
 
-	if ordinal != nil {
-		selectStatement = helpers.OrderByDirectionColumn(asc, ordinal.ToColumn(), selectStatement)
-	}
+	selectStatement = helpers.OrderByDirectionColumn(search.Asc, search.OrderBy.ToColumn(), selectStatement)
 
 	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total")).FROM(table.Video)
 
-	if ds.Env.DebugSql {
-		ds.logger.Debugf("Select statement: %v", selectStatement.DebugSql())
-		ds.logger.Debugf("Count satatement: %v", countStatement.DebugSql())
+	if search.Search != "" {
+		likeExpression := fmt.Sprintf("%%%v%%", search.Search)
+		query := table.Video.Title.LIKE(postgres.String(likeExpression)).
+			OR(table.Video.RelativePath.LIKE(postgres.String(likeExpression)))
+
+		selectStatement = selectStatement.WHERE(query)
+		countStatement = countStatement.WHERE(query)
 	}
 
+	util.DebugCheck(ds.Env, countStatement)
+	util.DebugCheck(ds.Env, selectStatement)
+
 	var vids []models.VideoOverviewModel
-	if err := selectStatement.Query(ds.db, &vids); err != nil {
+
+	if err := selectStatement.QueryContext(ds.ctx, ds.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview")
 	}
 
 	var res struct {
 		Total int
 	}
-	if err := countStatement.Query(ds.db, &res); err != nil {
+	if err := countStatement.QueryContext(ds.ctx, ds.db, &res); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview total")
 	}
 	return &models.Page[models.VideoOverviewModel]{
 		Data:  vids,
-		Limit: limit,
-		Skip:  skip,
+		Limit: search.Limit,
+		Skip:  search.Skip,
 		Total: res.Total,
 	}, nil
 }

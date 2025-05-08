@@ -13,11 +13,13 @@ import (
 )
 
 type Job struct {
-	ID       uuid.UUID `sql:"primary_key"`
-	JobType  JobTypeEnum
-	Status   JobStatusEnum
-	Data     *string
-	Outcome  *string
-	Created  time.Time
-	Modified time.Time
+	ID        uuid.UUID `sql:"primary_key"`
+	JobParent *uuid.UUID
+	Priority  int16
+	JobType   JobTypeEnum
+	Status    JobStatusEnum
+	Data      *string
+	Outcome   *string
+	Created   time.Time
+	Modified  time.Time
 }

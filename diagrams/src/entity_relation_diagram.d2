@@ -81,8 +81,13 @@ image {
   shape: sql_table
 
   id: uuid {constraint: primary_key}
-  name: string not null
+  title: string not null
   path: string not null {constraint: unique}
+  file_name: string not null
+  height_: int not null
+  width_: int not null
+  size: bigint not null
+  checksum: string
   created: timestamp not null
   modified: timestamp not null
 }
@@ -106,7 +111,7 @@ video_image -- video_image_type_enum
 video_image.video_id -> video.id
 video_image.image_id -> image.id
 
-genre {
+tag {
   shape: sql_table
 
   id: uuid {constraint: primary_key}
@@ -115,27 +120,27 @@ genre {
   modified: timestamp not null
 }
 
-video_genre {
+video_tag {
   shape: sql_table
 
   video_id: uuid {constraint: foreign_key}
-  genre_id: uuid {constraint: foreign_key}
+  tag_id: uuid {constraint: foreign_key}
   created: timestamp not null
   modified: timestamp not null
 }
-video_genre.video_id -> video.id
-video_genre.genre_id -> genre.id
+video_tag.video_id -> video.id
+video_tag.tag_id -> tag.id
 
-genre_alias {
+tag_alias {
   shape: sql_table
   
   id: uuid {constraint: primary_key}
-  genre_id: uuid {constraint: foreign_key}
+  tag_id: uuid {constraint: foreign_key}
   alias: string not null
   created: timestamp not null
   modified: timestamp not null
 }
-genre_alias.genre_id -> genre.id
+tag_alias.tag_id -> tag.id
 
 user: {
   shape: sql_table
@@ -214,8 +219,10 @@ job: {
   shape: sql_table
 
   id: uuid {constraint: primary_key}
+  priority: smallint not null default 2
+  job_parent: uuid null
   job_type: job_type_enum not null
-  job_status: job_status_enum not null
+  status: job_status_enum not null
   data: json
   created: timestamp not null
   modified: timestamp not null

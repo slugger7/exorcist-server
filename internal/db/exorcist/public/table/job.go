@@ -17,13 +17,15 @@ type jobTable struct {
 	postgres.Table
 
 	// Columns
-	ID       postgres.ColumnString
-	JobType  postgres.ColumnString
-	Status   postgres.ColumnString
-	Data     postgres.ColumnString
-	Outcome  postgres.ColumnString
-	Created  postgres.ColumnTimestamp
-	Modified postgres.ColumnTimestamp
+	ID        postgres.ColumnString
+	JobParent postgres.ColumnString
+	Priority  postgres.ColumnInteger
+	JobType   postgres.ColumnString
+	Status    postgres.ColumnString
+	Data      postgres.ColumnString
+	Outcome   postgres.ColumnString
+	Created   postgres.ColumnTimestamp
+	Modified  postgres.ColumnTimestamp
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -64,28 +66,32 @@ func newJobTable(schemaName, tableName, alias string) *JobTable {
 
 func newJobTableImpl(schemaName, tableName, alias string) jobTable {
 	var (
-		IDColumn       = postgres.StringColumn("id")
-		JobTypeColumn  = postgres.StringColumn("job_type")
-		StatusColumn   = postgres.StringColumn("status")
-		DataColumn     = postgres.StringColumn("data")
-		OutcomeColumn  = postgres.StringColumn("outcome")
-		CreatedColumn  = postgres.TimestampColumn("created")
-		ModifiedColumn = postgres.TimestampColumn("modified")
-		allColumns     = postgres.ColumnList{IDColumn, JobTypeColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns = postgres.ColumnList{JobTypeColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn}
+		IDColumn        = postgres.StringColumn("id")
+		JobParentColumn = postgres.StringColumn("job_parent")
+		PriorityColumn  = postgres.IntegerColumn("priority")
+		JobTypeColumn   = postgres.StringColumn("job_type")
+		StatusColumn    = postgres.StringColumn("status")
+		DataColumn      = postgres.StringColumn("data")
+		OutcomeColumn   = postgres.StringColumn("outcome")
+		CreatedColumn   = postgres.TimestampColumn("created")
+		ModifiedColumn  = postgres.TimestampColumn("modified")
+		allColumns      = postgres.ColumnList{IDColumn, JobParentColumn, PriorityColumn, JobTypeColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn}
+		mutableColumns  = postgres.ColumnList{JobParentColumn, PriorityColumn, JobTypeColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return jobTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:       IDColumn,
-		JobType:  JobTypeColumn,
-		Status:   StatusColumn,
-		Data:     DataColumn,
-		Outcome:  OutcomeColumn,
-		Created:  CreatedColumn,
-		Modified: ModifiedColumn,
+		ID:        IDColumn,
+		JobParent: JobParentColumn,
+		Priority:  PriorityColumn,
+		JobType:   JobTypeColumn,
+		Status:    StatusColumn,
+		Data:      DataColumn,
+		Outcome:   OutcomeColumn,
+		Created:   CreatedColumn,
+		Modified:  ModifiedColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

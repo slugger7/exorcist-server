@@ -18,7 +18,7 @@ func (ur *UserRepository) getUserByUsernameAndPasswordStatement(username, passwo
 			AND(table.User.Active.IS_TRUE()))
 
 	util.DebugCheck(ur.Env, statement)
-	return &UserStatement{statement, ur.db}
+	return &UserStatement{statement, ur.db, ur.ctx}
 }
 
 func (ur *UserRepository) getUserByUsernameStatement(username string, columns ...postgres.Projection) *UserStatement {
@@ -31,7 +31,7 @@ func (ur *UserRepository) getUserByUsernameStatement(username string, columns ..
 			AND(table.User.Active.IS_TRUE()))
 
 	util.DebugCheck(ur.Env, statement)
-	return &UserStatement{statement, ur.db}
+	return &UserStatement{statement, ur.db, ur.ctx}
 }
 
 func (ur *UserRepository) createStatement(user model.User) *UserStatement {
@@ -40,7 +40,7 @@ func (ur *UserRepository) createStatement(user model.User) *UserStatement {
 		RETURNING(table.User.ID, table.User.Username, table.User.Active, table.User.Created, table.User.Modified)
 
 	util.DebugCheck(ur.Env, statement)
-	return &UserStatement{statement, ur.db}
+	return &UserStatement{statement, ur.db, ur.ctx}
 }
 
 func (ur *UserRepository) getByIdStatement(id uuid.UUID) *UserStatement {
@@ -51,7 +51,7 @@ func (ur *UserRepository) getByIdStatement(id uuid.UUID) *UserStatement {
 
 	util.DebugCheck(ur.Env, statement)
 
-	return &UserStatement{statement, ur.db}
+	return &UserStatement{statement, ur.db, ur.ctx}
 }
 
 func (ur *UserRepository) updatePasswordStatement(user *model.User) *UserStatement {
@@ -62,5 +62,5 @@ func (ur *UserRepository) updatePasswordStatement(user *model.User) *UserStateme
 
 	util.DebugCheck(ur.Env, statement)
 
-	return &UserStatement{statement, ur.db}
+	return &UserStatement{statement, ur.db, ur.ctx}
 }

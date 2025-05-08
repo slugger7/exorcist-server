@@ -1,6 +1,7 @@
 package jobRepository
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -12,7 +13,8 @@ import (
 
 type JobStatement struct {
 	postgres.Statement
-	db *sql.DB
+	db  *sql.DB
+	ctx context.Context
 }
 
 type IJobRepository interface {
@@ -24,17 +26,19 @@ type IJobRepository interface {
 type JobRepository struct {
 	db  *sql.DB
 	Env *environment.EnvironmentVariables
+	ctx context.Context
 }
 
 var jobRepoInstance *JobRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables) IJobRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IJobRepository {
 	if jobRepoInstance != nil {
 		return jobRepoInstance
 	}
 	jobRepoInstance = &JobRepository{
 		db:  db,
 		Env: env,
+		ctx: context,
 	}
 	return jobRepoInstance
 }

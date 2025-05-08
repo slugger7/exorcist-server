@@ -3,12 +3,23 @@ package server
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/models"
 )
+
+func createSearch(c *gin.Context) *models.VideoSearch {
+	search := models.VideoSearch{
+		Limit:   models.DefaultInt(c.Query("limit"), 48),
+		Skip:    models.DefaultInt(c.Query("skip"), 0),
+		OrderBy: models.VideoOrdinal(c.Query("orderBy")),
+		Asc:     models.DefualtBool(c.Query("asc"), true),
+		Search:  c.Query("search"),
+	}
+
+	return &search
+}
 
 func (s *Server) withVideoGet(r *gin.RouterGroup, route Route) *Server {
 	r.GET(route, s.GetVideos)
@@ -20,34 +31,9 @@ func (s *Server) withVideoGetById(r *gin.RouterGroup, route Route) *Server {
 	return s
 }
 
-func (s *Server) defaultInt(strVal string, def int) int {
-	if strVal != "" {
-		val, err := strconv.Atoi(strVal)
-		if err != nil {
-			s.logger.Warningf("could not parse %v to int", strVal)
-		}
-
-		return val
-	}
-
-	return def
-}
-
-func (s *Server) defualtBool(strVal string, def bool) bool {
-	val, err := strconv.ParseBool(strVal)
-	if err != nil {
-		return def
-	}
-	return val
-}
-
 func (s *Server) GetVideos(c *gin.Context) {
-	limit := s.defaultInt(c.Query("limit"), 48)
-	skip := s.defaultInt(c.Query("skip"), 0)
-	orderBy := c.Query("orderBy")
-	asc := s.defualtBool(c.Query("asc"), true)
-
-	vids, err := s.service.Video().GetOverview(limit, skip, (*models.VideoOrdinal)(&orderBy), asc)
+	search := createSearch(c)
+	vids, err := s.service.Video().GetOverview(*search)
 	if err != nil {
 		s.logger.Errorf("could not fetch videos", err)
 	}

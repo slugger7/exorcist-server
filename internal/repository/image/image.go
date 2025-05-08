@@ -1,6 +1,7 @@
 package imageRepository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -21,15 +22,17 @@ type IImageRepository interface {
 type ImageRepository struct {
 	db  *sql.DB
 	Env *environment.EnvironmentVariables
+	ctx context.Context
 }
 
 var imageRepoInstance *ImageRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables) IImageRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IImageRepository {
 	if imageRepoInstance == nil {
 		imageRepoInstance = &ImageRepository{
 			db:  db,
 			Env: env,
+			ctx: context,
 		}
 	}
 	return imageRepoInstance

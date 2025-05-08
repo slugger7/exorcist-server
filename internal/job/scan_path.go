@@ -40,6 +40,9 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 	if err != nil {
 		return errs.BuildError(err, "could not get library by id: %v", data.LibraryPathId)
 	}
+	if libPath == nil {
+		return fmt.Errorf("library path not found: %v", data.LibraryPathId)
+	}
 
 	mediaChan := make(chan []media.File)
 	jr.wg.Add(1)

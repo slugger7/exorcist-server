@@ -1,6 +1,7 @@
 package userRepository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -14,7 +15,8 @@ import (
 
 type UserStatement struct {
 	postgres.Statement
-	db *sql.DB
+	db  *sql.DB
+	ctx context.Context
 }
 
 type IUserRepository interface {
@@ -28,15 +30,17 @@ type IUserRepository interface {
 type UserRepository struct {
 	db  *sql.DB
 	Env *environment.EnvironmentVariables
+	ctx context.Context
 }
 
 var userRepositoryInstance *UserRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IUserRepository {
 	if userRepositoryInstance == nil {
 		userRepositoryInstance = &UserRepository{
 			db:  db,
 			Env: env,
+			ctx: context,
 		}
 	}
 
@@ -44,11 +48,11 @@ func New(db *sql.DB, env *environment.EnvironmentVariables) IUserRepository {
 }
 
 func (us *UserStatement) Query(destination interface{}) error {
-	return us.Statement.Query(us.db, destination)
+	return us.Statement.QueryContext(us.ctx, us.db, destination)
 }
 
 func (us *UserStatement) Exec() (sql.Result, error) {
-	return us.Statement.Exec(us.db)
+	return us.Statement.ExecContext(us.ctx, us.db)
 }
 
 func (ur *UserRepository) CreateUser(user model.User) (*model.User, error) {

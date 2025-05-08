@@ -1,6 +1,7 @@
 package videoRepository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -12,15 +13,16 @@ import (
 
 type VideoStatement struct {
 	postgres.Statement
-	db *sql.DB
+	db  *sql.DB
+	ctx context.Context
 }
 
 func (vs *VideoStatement) Query(destination interface{}) error {
-	return vs.Statement.Query(vs.db, destination)
+	return vs.Statement.QueryContext(vs.ctx, vs.db, destination)
 }
 
 func (vs *VideoStatement) Exec() (sql.Result, error) {
-	return vs.Statement.Exec(vs.db)
+	return vs.Statement.ExecContext(vs.ctx, vs.db)
 }
 
 func (ds *VideoRepository) updateChecksumStatement(video model.Video) *VideoStatement {
@@ -34,7 +36,7 @@ func (ds *VideoRepository) updateChecksumStatement(video model.Video) *VideoStat
 
 	util.DebugCheck(ds.Env, statement)
 
-	return &VideoStatement{statement, ds.db}
+	return &VideoStatement{statement, ds.db, ds.ctx}
 }
 
 func (ds *VideoRepository) updateVideoExistsStatement(video model.Video) *VideoStatement {
@@ -48,7 +50,7 @@ func (ds *VideoRepository) updateVideoExistsStatement(video model.Video) *VideoS
 
 	util.DebugCheck(ds.Env, statement)
 
-	return &VideoStatement{statement, ds.db}
+	return &VideoStatement{statement, ds.db, ds.ctx}
 }
 
 func (ds *VideoRepository) getByLibraryPathIdStatement(libraryPathId uuid.UUID) *VideoStatement {
@@ -60,7 +62,7 @@ func (ds *VideoRepository) getByLibraryPathIdStatement(libraryPathId uuid.UUID) 
 
 	util.DebugCheck(ds.Env, statement)
 
-	return &VideoStatement{statement, ds.db}
+	return &VideoStatement{statement, ds.db, ds.ctx}
 }
 
 func (ds *VideoRepository) insertStatement(videos []model.Video) *VideoStatement {
@@ -82,7 +84,7 @@ func (ds *VideoRepository) insertStatement(videos []model.Video) *VideoStatement
 
 	util.DebugCheck(ds.Env, statement)
 
-	return &VideoStatement{statement, ds.db}
+	return &VideoStatement{statement, ds.db, ds.ctx}
 }
 
 func (ds *VideoRepository) getByIdWithLibraryPathStatement(id uuid.UUID) *VideoStatement {
@@ -94,5 +96,5 @@ func (ds *VideoRepository) getByIdWithLibraryPathStatement(id uuid.UUID) *VideoS
 
 	util.DebugCheck(ds.Env, statement)
 
-	return &VideoStatement{statement, ds.db}
+	return &VideoStatement{statement, ds.db, ds.ctx}
 }
