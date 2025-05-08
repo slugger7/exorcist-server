@@ -95,7 +95,7 @@ create table video
   create table job
   (
     id uuid primary key default gen_random_uuid(),
-    job_parent uuid,
+    parent uuid,
     priority smallint default 2 not null,
     job_type job_type_enum not null,
     status job_status_enum not null,
