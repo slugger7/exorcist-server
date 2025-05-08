@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_CreateGenerateChecksumJob(t *testing.T) {
@@ -14,18 +15,20 @@ func Test_CreateGenerateChecksumJob(t *testing.T) {
 	id, _ := uuid.NewRandom()
 
 	actual, err := CreateGenerateChecksumJob(id, jobId)
-	assert.ErrorNil(t, err)
+	assert.Nil(t, err)
 
 	actualData := *actual.Data
 	actual.Data = nil
 
 	expectedData := fmt.Sprintf(`{"videoId":"%v"}`, id)
 	expected := model.Job{
-		JobType: model.JobTypeEnum_GenerateChecksum,
-		Status:  model.JobStatusEnum_NotStarted,
-		Data:    nil,
+		JobType:  model.JobTypeEnum_GenerateChecksum,
+		Status:   model.JobStatusEnum_NotStarted,
+		Data:     nil,
+		Priority: models.JobPriority_Low,
+		Parent:   &jobId,
 	}
 
-	assert.Eq(t, expected, *actual)
-	assert.Eq(t, expectedData, actualData)
+	assert.Equal(t, expected, *actual)
+	assert.Equal(t, expectedData, actualData)
 }
