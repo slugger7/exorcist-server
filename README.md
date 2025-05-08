@@ -16,13 +16,14 @@ This is your warning that this project is not in any state ready to be used (eve
     - `brew install libpq`
     - `brew link --force libpq`
 - Install ffmpeg
-- Copy `templte.env` -> `.env` and fill in the details
+- Copy `.env.example` -> `.env` and fill in the details
 - `docker compose up -d` to start the database
 - `make run` to start the application
 
 ## Frontend
 
-The server will serve any files that are in the [www](./www) directory if it exists.
+The server will serve any files that are in the [www](./www) directory if it exists. This directory can be changed by an environment variable in [.env](.env) but it is an optional field. 
+If the variable is not set it will not serve any static files.
 
 The [web](https://github.com/slugger7/exorcist-web) project can be built and all of the files in its `dist` directory can be added to the [www](./www) directory.
 

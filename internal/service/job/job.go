@@ -13,7 +13,7 @@ import (
 )
 
 type IJobService interface {
-	Create(models.CreateJob) (*model.Job, error)
+	Create(models.CreateJobDTO) (*model.Job, error)
 }
 
 type JobService struct {
@@ -39,7 +39,11 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 	return jobServiceInstance
 }
 
-func (s *JobService) Create(m models.CreateJob) (*model.Job, error) {
+func (s *JobService) Create(m models.CreateJobDTO) (*model.Job, error) {
+	defaultJobPriority := models.JobPriority_Medium
+	if m.Priority == nil {
+		m.Priority = &(defaultJobPriority)
+	}
 	data, err := json.Marshal(m.Data)
 	strData := string(data)
 	if err != nil {
@@ -47,7 +51,7 @@ func (s *JobService) Create(m models.CreateJob) (*model.Job, error) {
 	}
 	switch m.Type {
 	case model.JobTypeEnum_ScanPath:
-		return s.scanPath(strData)
+		return s.scanPath(strData, *m.Priority)
 	default:
 		return nil, fmt.Errorf("job type not implemented: %v", m.Type)
 	}
@@ -56,7 +60,7 @@ func (s *JobService) Create(m models.CreateJob) (*model.Job, error) {
 const ErrActionScanGetLibraryPaths = "could not get library paths in scan action"
 const ErrCreatingJobs = "error creating jobs"
 
-func (i *JobService) scanPath(data string) (*model.Job, error) {
+func (i *JobService) scanPath(data string, priority int16) (*model.Job, error) {
 	var scanPathData models.ScanPathData
 
 	if err := json.Unmarshal([]byte(data), &scanPathData); err != nil {
@@ -70,9 +74,10 @@ func (i *JobService) scanPath(data string) (*model.Job, error) {
 	}
 
 	job := model.Job{
-		JobType: model.JobTypeEnum_ScanPath,
-		Status:  model.JobStatusEnum_NotStarted,
-		Data:    &data,
+		JobType:  model.JobTypeEnum_ScanPath,
+		Status:   model.JobStatusEnum_NotStarted,
+		Data:     &data,
+		Priority: priority,
 	}
 
 	jobs, err := i.repo.Job().CreateAll([]model.Job{job})

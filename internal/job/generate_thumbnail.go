@@ -10,6 +10,7 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/ffmpeg"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 type GenerateThumbnailData struct {
@@ -23,7 +24,7 @@ type GenerateThumbnailData struct {
 	Width int `json:"width"`
 }
 
-func CreateGenerateThumbnailJob(videoId uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
+func CreateGenerateThumbnailJob(videoId, jobId uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
 	d := GenerateThumbnailData{
 		VideoId:   videoId,
 		Path:      imagePath,
@@ -38,9 +39,11 @@ func CreateGenerateThumbnailJob(videoId uuid.UUID, imagePath string, timestamp, 
 	}
 	data := string(js)
 	job := &model.Job{
-		JobType: model.JobTypeEnum_GenerateThumbnail,
-		Status:  model.JobStatusEnum_NotStarted,
-		Data:    &data,
+		JobType:  model.JobTypeEnum_GenerateThumbnail,
+		Status:   model.JobStatusEnum_NotStarted,
+		Data:     &data,
+		Parent:   &jobId,
+		Priority: models.JobPriority_MediumHigh,
 	}
 
 	return job, nil

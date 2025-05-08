@@ -30,7 +30,7 @@ const (
 )
 
 func (s *Server) CreateJob(c *gin.Context) {
-	var cm models.CreateJob
+	var cm models.CreateJobDTO
 	if err := c.ShouldBindBodyWithJSON(&cm); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err})
 		return

@@ -18,7 +18,7 @@ func (js JobStatement) Exec() (sql.Result, error) {
 }
 
 func (jb *JobRepository) createAllStatement(jobs []model.Job) JobStatement {
-	statement := table.JobTable.INSERT(*table.Job, table.Job.JobType, table.Job.Status, table.Job.Data).
+	statement := table.JobTable.INSERT(*table.Job, table.Job.JobType, table.Job.Status, table.Job.Data, table.Job.Parent, table.Job.Priority).
 		MODELS(jobs).
 		RETURNING(table.Job.AllColumns)
 
@@ -31,7 +31,7 @@ func (jb *JobRepository) getNextJobStatement() JobStatement {
 	statement := table.Job.SELECT(table.Job.AllColumns).
 		FROM(table.Job).
 		WHERE(table.Job.Status.EQ(postgres.NewEnumValue(string(model.JobStatusEnum_NotStarted)))).
-		ORDER_BY(table.Job.Created.ASC()).
+		ORDER_BY(table.Job.Priority.ASC(), table.Job.Created.ASC()).
 		LIMIT(1)
 
 	util.DebugCheck(jb.Env, statement)
