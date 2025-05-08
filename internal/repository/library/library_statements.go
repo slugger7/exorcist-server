@@ -1,6 +1,7 @@
 package libraryRepository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -12,7 +13,8 @@ import (
 
 type LibraryStatement struct {
 	postgres.Statement
-	db *sql.DB
+	db  *sql.DB
+	ctx context.Context
 }
 
 func (ls *LibraryRepository) createLibraryStatement(name string) *LibraryStatement {
@@ -26,7 +28,7 @@ func (ls *LibraryRepository) createLibraryStatement(name string) *LibraryStateme
 
 	util.DebugCheck(ls.Env, insertStatement)
 
-	return &LibraryStatement{insertStatement, ls.db}
+	return &LibraryStatement{insertStatement, ls.db, ls.ctx}
 }
 
 func (i *LibraryRepository) getLibraryByNameStatement(name string) *LibraryStatement {
@@ -35,7 +37,7 @@ func (i *LibraryRepository) getLibraryByNameStatement(name string) *LibraryState
 		WHERE(table.Library.Name.EQ(postgres.String(name)))
 
 	util.DebugCheck(i.Env, statement)
-	return &LibraryStatement{statement, i.db}
+	return &LibraryStatement{statement, i.db, i.ctx}
 }
 
 func (ls *LibraryRepository) getLibrariesStatement() *LibraryStatement {
@@ -44,7 +46,7 @@ func (ls *LibraryRepository) getLibrariesStatement() *LibraryStatement {
 
 	util.DebugCheck(ls.Env, statement)
 
-	return &LibraryStatement{statement, ls.db}
+	return &LibraryStatement{statement, ls.db, ls.ctx}
 }
 
 func (ls *LibraryRepository) getById(id uuid.UUID) *LibraryStatement {
@@ -54,5 +56,5 @@ func (ls *LibraryRepository) getById(id uuid.UUID) *LibraryStatement {
 
 	util.DebugCheck(ls.Env, statement)
 
-	return &LibraryStatement{statement, ls.db}
+	return &LibraryStatement{statement, ls.db, ls.ctx}
 }

@@ -14,7 +14,7 @@ func (ds *LibraryPathRepository) getLibraryPathsSelect() LibraryPathStatement {
 		FROM(table.LibraryPath)
 
 	util.DebugCheck(ds.Env, selectQuery)
-	return LibraryPathStatement{selectQuery, ds.db}
+	return LibraryPathStatement{selectQuery, ds.db, ds.ctx}
 }
 
 func (ds *LibraryPathRepository) create(libPath *model.LibraryPath) LibraryPathStatement {
@@ -28,7 +28,7 @@ func (ds *LibraryPathRepository) create(libPath *model.LibraryPath) LibraryPathS
 
 	util.DebugCheck(ds.Env, insertStatement)
 
-	return LibraryPathStatement{insertStatement, ds.db}
+	return LibraryPathStatement{insertStatement, ds.db, ds.ctx}
 }
 
 func (lps *LibraryPathRepository) getByLibraryIdStatement(libraryId uuid.UUID) LibraryPathStatement {
@@ -38,7 +38,7 @@ func (lps *LibraryPathRepository) getByLibraryIdStatement(libraryId uuid.UUID) L
 
 	util.DebugCheck(lps.Env, statement)
 
-	return LibraryPathStatement{statement, lps.db}
+	return LibraryPathStatement{statement, lps.db, lps.ctx}
 }
 
 func (lps *LibraryPathRepository) getByIdStatement(id uuid.UUID) LibraryPathStatement {
@@ -49,5 +49,5 @@ func (lps *LibraryPathRepository) getByIdStatement(id uuid.UUID) LibraryPathStat
 
 	util.DebugCheck(lps.Env, statement)
 
-	return LibraryPathStatement{statement, lps.db}
+	return LibraryPathStatement{statement, lps.db, lps.ctx}
 }

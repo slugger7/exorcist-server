@@ -1,6 +1,7 @@
 package libraryRepository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/google/uuid"
@@ -19,23 +20,25 @@ type ILibraryRepository interface {
 type LibraryRepository struct {
 	db  *sql.DB
 	Env *environment.EnvironmentVariables
+	ctx context.Context
 }
 
 var libraryRepoInstance *LibraryRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) ILibraryRepository {
 	if libraryRepoInstance != nil {
 		return libraryRepoInstance
 	}
 	libraryRepoInstance = &LibraryRepository{
 		db:  db,
 		Env: env,
+		ctx: context,
 	}
 	return libraryRepoInstance
 }
 
 func (ls *LibraryStatement) Query(destination interface{}) error {
-	return ls.Statement.Query(ls.db, destination)
+	return ls.Statement.QueryContext(ls.ctx, ls.db, destination)
 }
 
 func (ls *LibraryStatement) Sql() string {

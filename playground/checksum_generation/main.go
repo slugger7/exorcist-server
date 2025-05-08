@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/slugger7/exorcist/internal/environment"
@@ -14,7 +16,7 @@ func main() {
 
 	env := environment.GetEnvironmentVariables()
 
-	db := repository.New(env)
+	db := repository.New(env, context.Background())
 	_ = db
 	//job.GenerateChecksums(db)
 }

@@ -1,6 +1,7 @@
 package videoRepository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -37,17 +38,19 @@ type VideoRepository struct {
 	db     *sql.DB
 	Env    *environment.EnvironmentVariables
 	logger logger.ILogger
+	ctx    context.Context
 }
 
 var videoRepoInstance *VideoRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables) IVideoRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IVideoRepository {
 	if videoRepoInstance != nil {
 		return videoRepoInstance
 	}
 	videoRepoInstance = &VideoRepository{
 		db:     db,
 		Env:    env,
+		ctx:    context,
 		logger: logger.New(env),
 	}
 	return videoRepoInstance
@@ -58,7 +61,7 @@ func (vr *VideoRepository) GetAll() ([]model.Video, error) {
 		FROM(table.Video)
 
 	var vids []struct{ model.Video }
-	if err := statement.Query(vr.db, &vids); err != nil {
+	if err := statement.QueryContext(vr.ctx, vr.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not get all videos")
 	}
 
@@ -142,7 +145,7 @@ func (ds *VideoRepository) GetById(id uuid.UUID) (*models.VideoOverviewModel, er
 		WHERE(table.Video.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
 
-	if err := statement.Query(ds.db, &vid); err != nil {
+	if err := statement.QueryContext(ds.ctx, ds.db, &vid); err != nil {
 		return nil, errs.BuildError(err, "error getting video from db for id %v", id)
 	}
 
@@ -215,14 +218,14 @@ func (ds *VideoRepository) GetOverview(search models.VideoSearch) (*models.Page[
 
 	var vids []models.VideoOverviewModel
 
-	if err := selectStatement.Query(ds.db, &vids); err != nil {
+	if err := selectStatement.QueryContext(ds.ctx, ds.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview")
 	}
 
 	var res struct {
 		Total int
 	}
-	if err := countStatement.Query(ds.db, &res); err != nil {
+	if err := countStatement.QueryContext(ds.ctx, ds.db, &res); err != nil {
 		return nil, errs.BuildError(err, "could not query videos for overview total")
 	}
 	return &models.Page[models.VideoOverviewModel]{

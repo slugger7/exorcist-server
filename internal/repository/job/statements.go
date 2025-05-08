@@ -10,11 +10,11 @@ import (
 )
 
 func (js JobStatement) Query(destination interface{}) error {
-	return js.Statement.Query(js.db, destination)
+	return js.Statement.QueryContext(js.ctx, js.db, destination)
 }
 
 func (js JobStatement) Exec() (sql.Result, error) {
-	return js.Statement.Exec(js.db)
+	return js.Statement.ExecContext(js.ctx, js.db)
 }
 
 func (jb *JobRepository) createAllStatement(jobs []model.Job) JobStatement {
@@ -36,7 +36,7 @@ func (jb *JobRepository) getNextJobStatement() JobStatement {
 
 	util.DebugCheck(jb.Env, statement)
 
-	return JobStatement{statement, jb.db}
+	return JobStatement{statement, jb.db, jb.ctx}
 }
 
 func (jb *JobRepository) updateJobStatusStatement(model *model.Job) JobStatement {
@@ -46,5 +46,5 @@ func (jb *JobRepository) updateJobStatusStatement(model *model.Job) JobStatement
 
 	util.DebugCheck(jb.Env, statement)
 
-	return JobStatement{statement, jb.db}
+	return JobStatement{statement, jb.db, jb.ctx}
 }

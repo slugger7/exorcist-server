@@ -1,6 +1,7 @@
 package libraryPathRepository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -20,29 +21,32 @@ type ILibraryPathRepository interface {
 type LibraryPathRepository struct {
 	db  *sql.DB
 	Env *environment.EnvironmentVariables
+	ctx context.Context
 }
 
 var libraryPathRepoInstance *LibraryPathRepository
 
 type LibraryPathStatement struct {
 	postgres.Statement
-	db *sql.DB
+	db  *sql.DB
+	ctx context.Context
 }
 
-func New(db *sql.DB, env *environment.EnvironmentVariables) ILibraryPathRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) ILibraryPathRepository {
 	if libraryPathRepoInstance != nil {
 		return libraryPathRepoInstance
 	}
 	libraryPathRepoInstance = &LibraryPathRepository{
 		db:  db,
 		Env: env,
+		ctx: context,
 	}
 
 	return libraryPathRepoInstance
 }
 
 func (lps LibraryPathStatement) Query(destination interface{}) error {
-	return lps.Statement.Query(lps.db, destination)
+	return lps.Statement.QueryContext(lps.ctx, lps.db, destination)
 }
 
 func (lps *LibraryPathRepository) Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error) {

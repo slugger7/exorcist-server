@@ -50,7 +50,7 @@ type Repository struct {
 
 var dbInstance *Repository
 
-func New(env *environment.EnvironmentVariables) IRepository {
+func New(env *environment.EnvironmentVariables, context context.Context) IRepository {
 	if dbInstance == nil {
 		psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 			env.DatabaseHost,
@@ -68,12 +68,12 @@ func New(env *environment.EnvironmentVariables) IRepository {
 			db:              db,
 			Env:             env,
 			logger:          logger.New(env),
-			jobRepo:         jobRepository.New(db, env),
-			libraryRepo:     libraryRepository.New(db, env),
-			libraryPathRepo: libraryPathRepository.New(db, env),
-			videoRepo:       videoRepository.New(db, env),
-			userRepo:        userRepository.New(db, env),
-			imageRepo:       imageRepository.New(db, env),
+			jobRepo:         jobRepository.New(db, env, context),
+			libraryRepo:     libraryRepository.New(db, env, context),
+			libraryPathRepo: libraryPathRepository.New(db, env, context),
+			videoRepo:       videoRepository.New(db, env, context),
+			userRepo:        userRepository.New(db, env, context),
+			imageRepo:       imageRepository.New(db, env, context),
 		}
 
 		err = dbInstance.runMigrations()

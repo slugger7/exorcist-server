@@ -32,10 +32,10 @@ func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup) *Server 
 }
 
 func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server {
-	repo := repository.New(env)
 	lg := logger.New(env)
 	shutdownCtx, cancel := context.WithCancel(context.Background())
 
+	repo := repository.New(env, shutdownCtx)
 	newServer := &Server{
 		repo:   repo,
 		env:    env,

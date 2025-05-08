@@ -14,7 +14,7 @@ type ImageStatment struct {
 
 func (is *ImageStatment) Query(destination interface{}) error {
 	util.DebugCheck(is.ImageRepository.Env, is.Statement)
-	return is.Statement.Query(is.db, destination)
+	return is.Statement.QueryContext(is.ctx, is.db, destination)
 }
 
 func (ir *ImageRepository) createStatement(m *model.Image) *ImageStatment {
