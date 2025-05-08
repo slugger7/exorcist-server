@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/ffmpeg"
@@ -114,7 +115,7 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 					batch := int(i / batchSize)
 					batches := int(len(videosOnDisk) / batchSize)
 					jr.logger.Infof("Writing batch %v/%v", batch, batches)
-					if err := jr.writeNewVideoBatch(videoModels); err != nil {
+					if err := jr.writeNewVideoBatch(videoModels, job.ID); err != nil {
 						jr.logger.Errorf("Error writing batch %v to database: %v", batch, err)
 					}
 
@@ -124,7 +125,7 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 
 		}
 
-		if err := jr.writeNewVideoBatch(videoModels); err != nil {
+		if err := jr.writeNewVideoBatch(videoModels, job.ID); err != nil {
 			jr.logger.Errorf("Error writing last batch of videos to database: %v", err)
 		}
 
@@ -136,7 +137,7 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 	}
 }
 
-func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
+func (jr *JobRunner) writeNewVideoBatch(models []model.Video, jobId uuid.UUID) error {
 	if len(models) == 0 {
 		return nil
 	}
@@ -152,7 +153,7 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video) error {
 		case <-jr.shutdownCtx.Done():
 			return fmt.Errorf("shutdown signal received")
 		default:
-			checksumJob, err := CreateGenerateChecksumJob(v.ID)
+			checksumJob, err := CreateGenerateChecksumJob(v.ID, jobId)
 			if err != nil {
 				return errs.BuildError(err, "could not create checksum job")
 			}

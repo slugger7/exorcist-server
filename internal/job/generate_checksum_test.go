@@ -10,9 +10,10 @@ import (
 )
 
 func Test_CreateGenerateChecksumJob(t *testing.T) {
+	jobId, _ := uuid.NewRandom()
 	id, _ := uuid.NewRandom()
 
-	actual, err := CreateGenerateChecksumJob(id)
+	actual, err := CreateGenerateChecksumJob(id, jobId)
 	assert.ErrorNil(t, err)
 
 	actualData := *actual.Data

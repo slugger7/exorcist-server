@@ -8,13 +8,14 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/media"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 type GenerateChecksumData struct {
 	VideoId uuid.UUID `json:"videoId"`
 }
 
-func CreateGenerateChecksumJob(videoId uuid.UUID) (*model.Job, error) {
+func CreateGenerateChecksumJob(videoId, jobId uuid.UUID) (*model.Job, error) {
 	d := GenerateChecksumData{
 		VideoId: videoId,
 	}
@@ -24,9 +25,11 @@ func CreateGenerateChecksumJob(videoId uuid.UUID) (*model.Job, error) {
 	}
 	data := string(js)
 	job := model.Job{
-		JobType: model.JobTypeEnum_GenerateChecksum,
-		Status:  model.JobStatusEnum_NotStarted,
-		Data:    &data,
+		JobType:  model.JobTypeEnum_GenerateChecksum,
+		Status:   model.JobStatusEnum_NotStarted,
+		Data:     &data,
+		Parent:   &jobId,
+		Priority: models.JobPriority_Low,
 	}
 
 	return &job, nil
