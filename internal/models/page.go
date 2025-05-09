@@ -6,3 +6,12 @@ type Page[T any] struct {
 	Limit int `json:"limit"`
 	Skip  int `json:"skip"`
 }
+
+func DataToPage[T any, S any](data []T, o Page[S]) Page[T] {
+	return Page[T]{
+		Limit: o.Limit,
+		Skip:  o.Skip,
+		Total: o.Total,
+		Data:  data,
+	}
+}
