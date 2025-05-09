@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -53,6 +54,21 @@ func (m *MockIJobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
 func (mr *MockIJobRepositoryMockRecorder) CreateAll(jobs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAll", reflect.TypeOf((*MockIJobRepository)(nil).CreateAll), jobs)
+}
+
+// GetAll mocks base method.
+func (m *MockIJobRepository) GetAll(arg0 models.JobSearchDTO) (*models.Page[model.Job], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll", arg0)
+	ret0, _ := ret[0].(*models.Page[model.Job])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockIJobRepositoryMockRecorder) GetAll(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockIJobRepository)(nil).GetAll), arg0)
 }
 
 // GetNextJob mocks base method.
