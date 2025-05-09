@@ -27,7 +27,7 @@ func (s *Server) withLibraryGetPaths(r *gin.RouterGroup, route Route) *Server {
 
 const (
 	ErrLibraryPathsForLibrary ApiError = "could not get library paths for library %v"
-	ErrIdParse                ApiError = "could not parse id in path: %v"
+	ErrIdParse                ApiError = "could not parse id: %v"
 )
 
 func (s *Server) LibraryGetPaths(c *gin.Context) {

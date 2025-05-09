@@ -64,7 +64,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	// Register job controller routes
 	s.withJobRoutes(authenticated, jobs).
-		withJobCreate(authenticated, jobs)
+		withJobCreate(authenticated, jobs).
+		withJobGetAll(authenticated, jobs)
 
 	r.GET("/health", s.HealthHandler)
 	return r

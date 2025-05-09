@@ -31,7 +31,7 @@ type IVideoRepository interface {
 	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
-	GetOverview(models.VideoSearch) (*models.Page[models.VideoOverviewModel], error)
+	GetOverview(models.VideoSearchDTO) (*models.Page[models.VideoOverviewModel], error)
 }
 
 type VideoRepository struct {
@@ -175,7 +175,7 @@ func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
 	return nil
 }
 
-func (ds *VideoRepository) GetOverview(search models.VideoSearch) (*models.Page[models.VideoOverviewModel], error) {
+func (ds *VideoRepository) GetOverview(search models.VideoSearchDTO) (*models.Page[models.VideoOverviewModel], error) {
 	selectStatement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
