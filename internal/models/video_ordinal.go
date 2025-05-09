@@ -9,11 +9,11 @@ type VideoOrdinal string
 
 const (
 	VideoOrdinal_Created  VideoOrdinal = "created"
-	VideoOrdinal_Modified              = "modified"
-	VideoOrdinal_Title                 = "title"
-	VideoOrdinal_Size                  = "size"
-	VideoOrdinal_Runtime               = "runtime"
-	VideoOrdinal_Added                 = "added"
+	VideoOrdinal_Modified VideoOrdinal = "modified"
+	VideoOrdinal_Title    VideoOrdinal = "title"
+	VideoOrdinal_Size     VideoOrdinal = "size"
+	VideoOrdinal_Runtime  VideoOrdinal = "runtime"
+	VideoOrdinal_Added    VideoOrdinal = "added"
 )
 
 func (o VideoOrdinal) ToColumn() postgres.Column {
