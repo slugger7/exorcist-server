@@ -30,7 +30,6 @@ var jobRunnerInstance *JobRunner
 func New(
 	env *environment.EnvironmentVariables,
 	serv service.IService,
-	repo repository.IRepository,
 	logger logger.ILogger,
 	shutdownCtx context.Context,
 	wg *sync.WaitGroup,
@@ -40,7 +39,7 @@ func New(
 		jobRunnerInstance = &JobRunner{
 			env:         env,
 			service:     serv,
-			repo:        repo,
+			repo:        repository.New(env, context.Background()),
 			logger:      logger,
 			ch:          ch,
 			wg:          wg,
