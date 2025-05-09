@@ -30,7 +30,7 @@ const (
 type JobSearchDTO struct {
 	Skip     int                   `form:"skip"`
 	Limit    int                   `form:"limit"`
-	Statuses []model.JobStatusEnum `form:"statuses[]"`
+	Statuses []model.JobStatusEnum `form:"status"`
 	Parent   *string               `form:"parent" binding:"omitempty,uuid"`
 	OrderBy  JobOrdinal            `form:"orderBy"`
 }
@@ -39,8 +39,8 @@ type JobOrdinal string
 
 const (
 	JobOrdinal_Created  JobOrdinal = "created"
-	JobOrdinal_Modified            = "modified"
-	JobOrdinal_Priority            = "priority"
+	JobOrdinal_Modified JobOrdinal = "modified"
+	JobOrdinal_Priority JobOrdinal = "priority"
 )
 
 func (o JobOrdinal) ToColumn() postgres.Column {
