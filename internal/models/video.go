@@ -48,7 +48,7 @@ func DefaultInt(strVal string, def int) int {
 	return def
 }
 
-type VideoSearch struct {
+type VideoSearchDTO struct {
 	Limit   int
 	Skip    int
 	OrderBy VideoOrdinal

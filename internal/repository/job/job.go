@@ -6,9 +6,13 @@ import (
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
 type JobStatement struct {
@@ -21,6 +25,7 @@ type IJobRepository interface {
 	CreateAll(jobs []model.Job) ([]model.Job, error)
 	GetNextJob() (*model.Job, error)
 	UpdateJobStatus(model *model.Job) error
+	GetAll(models.JobSearchDTO) (*models.Page[model.Job], error)
 }
 
 type JobRepository struct {
@@ -79,4 +84,64 @@ func (j *JobRepository) UpdateJobStatus(model *model.Job) error {
 	}
 
 	return nil
+}
+
+func (r *JobRepository) GetAll(m models.JobSearchDTO) (*models.Page[model.Job], error) {
+	if m.Limit == 0 {
+		m.Limit = 100
+	}
+
+	statement := table.Job.SELECT(table.Job.AllColumns).
+		FROM(table.Job).
+		ORDER_BY(m.OrderBy.ToColumn()).
+		LIMIT(int64(m.Limit)).
+		OFFSET(int64(m.Skip))
+
+	countStatement := table.Job.SELECT(postgres.COUNT(table.Job.ID).AS("total")).FROM(table.Job)
+
+	var whereExpression postgres.BoolExpression
+	if m.Parent == nil {
+		whereExpression = table.Job.Parent.IS_NULL()
+	} else {
+		id, _ := uuid.Parse(*m.Parent)
+		whereExpression = table.Job.Parent.EQ(postgres.UUID(id))
+	}
+
+	statusExpressions := make([]postgres.Expression, len(m.Statuses))
+	for i, s := range m.Statuses {
+		statusExpressions[i] = postgres.NewEnumValue(string(s))
+	}
+	if len(statusExpressions) > 0 {
+		whereExpression = whereExpression.AND(table.Job.Status.IN(statusExpressions...))
+	}
+
+	statement = statement.WHERE(whereExpression)
+	countStatement = countStatement.WHERE(whereExpression)
+
+	util.DebugCheck(r.Env, statement)
+	util.DebugCheck(r.Env, countStatement)
+
+	var totalStruct struct {
+		Total int
+	}
+	if err := countStatement.QueryContext(r.ctx, r.db, &totalStruct); err != nil {
+		return nil, errs.BuildError(err, "could not query jobs for total")
+	}
+
+	var jobsStruct []struct{ model.Job }
+	if err := statement.QueryContext(r.ctx, r.db, &jobsStruct); err != nil {
+		return nil, errs.BuildError(err, "could not get jobs with %v", m)
+	}
+
+	var jobs = make([]model.Job, len(jobsStruct))
+	for i, j := range jobsStruct {
+		jobs[i] = j.Job
+	}
+
+	return &models.Page[model.Job]{
+		Total: totalStruct.Total,
+		Limit: m.Limit,
+		Skip:  m.Skip,
+		Data:  jobs,
+	}, nil
 }

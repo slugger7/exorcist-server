@@ -8,27 +8,27 @@ import (
 type VideoOrdinal string
 
 const (
-	Created  VideoOrdinal = "created"
-	Modified VideoOrdinal = "modified"
-	Title    VideoOrdinal = "title"
-	Size     VideoOrdinal = "size"
-	Runtime  VideoOrdinal = "runtime"
-	Added    VideoOrdinal = "added"
+	VideoOrdinal_Created  VideoOrdinal = "created"
+	VideoOrdinal_Modified              = "modified"
+	VideoOrdinal_Title                 = "title"
+	VideoOrdinal_Size                  = "size"
+	VideoOrdinal_Runtime               = "runtime"
+	VideoOrdinal_Added                 = "added"
 )
 
 func (o VideoOrdinal) ToColumn() postgres.Column {
 	switch o {
-	case Created:
+	case VideoOrdinal_Created:
 		return table.Video.Created
-	case Modified:
+	case VideoOrdinal_Modified:
 		return table.Video.Modified
-	case Title:
+	case VideoOrdinal_Title:
 		return table.Video.Title
-	case Size:
+	case VideoOrdinal_Size:
 		return table.Video.Size
-	case Runtime:
+	case VideoOrdinal_Runtime:
 		return table.Video.Runtime
-	case Added:
+	case VideoOrdinal_Added:
 		return table.Video.Added
 	default:
 		return table.Video.Added

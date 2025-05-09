@@ -9,8 +9,8 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-func createSearch(c *gin.Context) *models.VideoSearch {
-	search := models.VideoSearch{
+func createSearch(c *gin.Context) *models.VideoSearchDTO {
+	search := models.VideoSearchDTO{
 		Limit:   models.DefaultInt(c.Query("limit"), 48),
 		Skip:    models.DefaultInt(c.Query("skip"), 0),
 		OrderBy: models.VideoOrdinal(c.Query("orderBy")),

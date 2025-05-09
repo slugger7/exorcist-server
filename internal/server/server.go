@@ -23,7 +23,7 @@ type Server struct {
 }
 
 func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup) *Server {
-	ch := job.New(s.env, s.service, s.repo, s.logger, ctx, wg)
+	ch := job.New(s.env, s.service, s.logger, ctx, wg)
 	s.jobCh = ch
 
 	ch <- true // start if any jobs exist

@@ -104,7 +104,7 @@ func (mr *MockIVideoRepositoryMockRecorder) GetByLibraryPathId(id any) *gomock.C
 }
 
 // GetOverview mocks base method.
-func (m *MockIVideoRepository) GetOverview(arg0 models.VideoSearch) (*models.Page[models.VideoOverviewModel], error) {
+func (m *MockIVideoRepository) GetOverview(arg0 models.VideoSearchDTO) (*models.Page[models.VideoOverviewModel], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOverview", arg0)
 	ret0, _ := ret[0].(*models.Page[models.VideoOverviewModel])
