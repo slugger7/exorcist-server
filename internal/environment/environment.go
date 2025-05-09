@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	errs "github.com/slugger7/exorcist/internal/errors"
 )
@@ -33,6 +34,7 @@ type EnvironmentVariables struct {
 	Assets           string
 	Web              *string
 	JobRunner        bool
+	CorsOrigins      []string
 }
 
 type OsEnv = string
@@ -52,6 +54,7 @@ const (
 	ASSETS            OsEnv = "ASSETS"
 	WEB               OsEnv = "WEB"
 	JOB_RUNNER        OsEnv = "JOB_RUNNER"
+	CORS_ORIGINS      OsEnv = "CORS_ORIGINS"
 )
 
 var env *EnvironmentVariables
@@ -81,6 +84,7 @@ func RefreshEnvironmentVariables() {
 		Assets:           os.Getenv(ASSETS),
 		Web:              getValueOrNil(WEB),
 		JobRunner:        getBoolValue(JOB_RUNNER, true),
+		CorsOrigins:      strings.Split(os.Getenv(CORS_ORIGINS), ";"),
 	}
 }
 
