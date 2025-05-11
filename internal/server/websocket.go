@@ -1,16 +1,52 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 )
+
+func (s *Server) pongDuration() time.Duration {
+	return time.Duration(s.env.WebsocketHeartbeatInterval * int(time.Millisecond))
+}
+
+func (s *Server) pingDuration() time.Duration {
+	val := (s.env.WebsocketHeartbeatInterval * 9) / 10
+	return time.Duration(val * int(time.Millisecond))
+}
+
+func (s *Server) webSocketHeartbeat() {
+	tickerDuration := s.pingDuration()
+	ticker := time.NewTicker(tickerDuration)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			for i, c := range s.websockets {
+				c.SetWriteDeadline(time.Now().Add(s.pongDuration()))
+				s.logger.Debug("protocol ping")
+				if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
+					s.logger.Warningf("could not write ping message to %v: %v", i, err.Error())
+					s.websocketMutex.Lock()
+					delete(s.websockets, i)
+					s.websocketMutex.Unlock()
+				}
+			}
+		}
+	}
+}
 
 func (s *Server) withWS(r *gin.RouterGroup, route Route) *Server {
 	r.GET(fmt.Sprintf("%v/ws", route), s.ws)
+
+	go s.webSocketHeartbeat()
 	return s
 }
 
@@ -32,11 +68,35 @@ func (s *Server) ws(c *gin.Context) {
 			return
 		}
 
+		conn.SetPongHandler(func(string) error {
+			conn.SetReadDeadline(time.Now().Add(s.pongDuration()))
+			s.logger.Debug("protocol pong")
+			return nil
+		})
+
 		s.websocketMutex.Lock()
-		defer s.websocketMutex.Unlock()
 		s.websockets[userId] = conn
+		s.websocketMutex.Unlock()
+
+		go s.wsReader(conn, userId)
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)
 	}
+}
 
+func (s *Server) wsReader(ws *websocket.Conn, id uuid.UUID) {
+	ws.SetReadDeadline(time.Now().Add(s.pongDuration()))
+	for {
+		_, message, err := ws.ReadMessage()
+		if err != nil {
+			s.logger.Errorf("could not read message: %v", err.Error())
+			break
+		}
+
+		message = bytes.TrimSpace(bytes.Replace(message, []byte{'\n'}, []byte{' '}, -1))
+		if string(message) == "ping" {
+			s.logger.Debug("application pong")
+			ws.WriteMessage(websocket.TextMessage, []byte("pong"))
+		}
+	}
 }

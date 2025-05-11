@@ -70,6 +70,7 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 		defer newServer.websocketMutex.Unlock()
 
 		for _, i := range newServer.websockets {
+			i.WriteMessage(websocket.CloseMessage, []byte{})
 			i.Close()
 		}
 
