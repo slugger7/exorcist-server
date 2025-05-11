@@ -3,10 +3,8 @@ package server
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"github.com/slugger7/exorcist/internal/models"
 )
 
@@ -24,11 +22,6 @@ func (s *Server) withJobCreate(r *gin.RouterGroup, route Route) *Server {
 
 func (s *Server) withJobGetAll(r *gin.RouterGroup, route Route) *Server {
 	r.GET(route, s.getAllJobs)
-	return s
-}
-
-func (s *Server) withJobWS(r *gin.RouterGroup, route Route) *Server {
-	r.GET(fmt.Sprintf("%v/ws", route), s.jobWs)
 	return s
 }
 
@@ -82,35 +75,4 @@ func (s *Server) getAllJobs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.DataToPage(jobDtos, *jobsPage))
-}
-
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		origin := r.Header.Get("Origin")
-		if origin == "https://localhost:5173" {
-			return true
-		}
-		if origin == "http://localhost:8181" {
-			return true
-		}
-		return false
-	},
-}
-
-func (s *Server) jobWs(c *gin.Context) {
-
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		s.logger.Infof("Origin: %v", c.Request.Host)
-		s.logger.Errorf("failed to upgrade connection to web socket: %v", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	defer conn.Close()
-
-	for {
-		conn.WriteMessage(websocket.TextMessage, []byte("Hello, WebSocket!"))
-		time.Sleep(time.Second)
-	}
 }

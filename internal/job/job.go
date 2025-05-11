@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -23,6 +25,7 @@ type JobRunner struct {
 	ch          chan bool
 	shutdownCtx context.Context
 	wg          *sync.WaitGroup
+	wss         map[uuid.UUID]*websocket.Conn
 }
 
 var jobRunnerInstance *JobRunner
@@ -33,6 +36,7 @@ func New(
 	logger logger.ILogger,
 	shutdownCtx context.Context,
 	wg *sync.WaitGroup,
+	wss map[uuid.UUID]*websocket.Conn,
 ) chan bool {
 	ch := make(chan bool)
 	if jobRunnerInstance == nil {
@@ -44,6 +48,7 @@ func New(
 			ch:          ch,
 			wg:          wg,
 			shutdownCtx: shutdownCtx,
+			wss:         wss,
 		}
 
 		wg.Add(1)
@@ -95,6 +100,11 @@ func (jr *JobRunner) processJobs() error {
 			job.Status = model.JobStatusEnum_InProgress
 			if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 				return errs.BuildError(err, "Failed to update job status")
+			}
+
+			for _, ws := range jr.wss {
+				jr.logger.Debug("Writing to a websocket")
+				ws.WriteJSON(job)
 			}
 
 			jobFunc, err := jr.jobFuncResolver(job.JobType)

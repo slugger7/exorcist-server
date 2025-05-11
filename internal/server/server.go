@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/job"
 	"github.com/slugger7/exorcist/internal/logger"
@@ -15,15 +17,17 @@ import (
 )
 
 type Server struct {
-	env     *environment.EnvironmentVariables
-	repo    repository.IRepository
-	service service.IService
-	logger  logger.ILogger
-	jobCh   chan bool
+	env            *environment.EnvironmentVariables
+	repo           repository.IRepository
+	service        service.IService
+	logger         logger.ILogger
+	jobCh          chan bool
+	websockets     map[uuid.UUID]*websocket.Conn
+	websocketMutex sync.Mutex
 }
 
-func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup) *Server {
-	ch := job.New(s.env, s.service, s.logger, ctx, wg)
+func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, wss map[uuid.UUID]*websocket.Conn) *Server {
+	ch := job.New(s.env, s.service, s.logger, ctx, wg, wss)
 	s.jobCh = ch
 
 	ch <- true // start if any jobs exist
@@ -36,14 +40,16 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 	shutdownCtx, cancel := context.WithCancel(context.Background())
 
 	repo := repository.New(env, shutdownCtx)
+
 	newServer := &Server{
-		repo:   repo,
-		env:    env,
-		logger: lg,
+		repo:       repo,
+		env:        env,
+		logger:     lg,
+		websockets: make(map[uuid.UUID]*websocket.Conn),
 	}
 
 	if env.JobRunner {
-		newServer.withJobRunner(shutdownCtx, wg)
+		newServer.withJobRunner(shutdownCtx, wg, newServer.websockets)
 	}
 	newServer.service = service.New(repo, env, newServer.jobCh)
 
@@ -59,6 +65,14 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 		newServer.logger.Info("Shutting down server. Stopping job runner.")
 		cancel()
 		close(newServer.jobCh)
+
+		newServer.websocketMutex.Lock()
+		defer newServer.websocketMutex.Unlock()
+
+		for _, i := range newServer.websockets {
+			i.Close()
+		}
+
 	})
 
 	return server
