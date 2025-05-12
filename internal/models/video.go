@@ -49,9 +49,9 @@ func DefaultInt(strVal string, def int) int {
 }
 
 type VideoSearchDTO struct {
-	Limit   int
-	Skip    int
-	OrderBy VideoOrdinal
-	Asc     bool
-	Search  string
+	Limit   int          `json:"limit"`
+	Skip    int          `json:"skip"`
+	OrderBy VideoOrdinal `json:"orderBy"`
+	Asc     bool         `json:"asc"`
+	Search  string       `json:"search"`
 }
