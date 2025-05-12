@@ -12,7 +12,7 @@ func (s *Server) withCors(r *gin.Engine) *Server {
 	}
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"https://localhost:5173"}
+	config.AllowOrigins = s.env.CorsOrigins
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"}
 	config.AllowHeaders = []string{"Accept", "Authorization", "Content-Type", "Origin"}
 	config.ExposeHeaders = []string{"Content-Length"}

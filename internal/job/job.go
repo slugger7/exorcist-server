@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -23,6 +25,7 @@ type JobRunner struct {
 	ch          chan bool
 	shutdownCtx context.Context
 	wg          *sync.WaitGroup
+	wss         map[uuid.UUID][]*websocket.Conn
 }
 
 var jobRunnerInstance *JobRunner
@@ -33,6 +36,7 @@ func New(
 	logger logger.ILogger,
 	shutdownCtx context.Context,
 	wg *sync.WaitGroup,
+	wss map[uuid.UUID][]*websocket.Conn,
 ) chan bool {
 	ch := make(chan bool)
 	if jobRunnerInstance == nil {
@@ -44,6 +48,7 @@ func New(
 			ch:          ch,
 			wg:          wg,
 			shutdownCtx: shutdownCtx,
+			wss:         wss,
 		}
 
 		wg.Add(1)
@@ -51,6 +56,23 @@ func New(
 	}
 
 	return ch
+}
+
+func (jr *JobRunner) wsUpdateJob(job model.Job) {
+	for _, ws := range jr.wss {
+		jr.logger.Debug("Writing to a websocket")
+		jobUpdate := models.WSMessage[models.JobDTO]{
+			Topic: models.WSTopic_JobUpdate,
+			Data:  *(&models.JobDTO{}).FromModel(job),
+		}
+		for _, s := range ws {
+			if err := s.WriteJSON(jobUpdate); err != nil {
+				jr.logger.Errorf("could not write json for a job update: %v", err)
+			}
+
+		}
+
+	}
 }
 
 func (jr *JobRunner) loop() {
@@ -97,6 +119,8 @@ func (jr *JobRunner) processJobs() error {
 				return errs.BuildError(err, "Failed to update job status")
 			}
 
+			jr.wsUpdateJob(*job)
+
 			jobFunc, err := jr.jobFuncResolver(job.JobType)
 			if err != nil {
 				job.Status = model.JobStatusEnum_Cancelled
@@ -105,6 +129,7 @@ func (jr *JobRunner) processJobs() error {
 				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 					return errs.BuildError(err, "Could not update not implemented job %v. Killing to prevent infinite loop", job.JobType)
 				}
+				jr.wsUpdateJob(*job)
 			}
 
 			if err := jobFunc(job); err != nil {
@@ -115,12 +140,15 @@ func (jr *JobRunner) processJobs() error {
 				if erro := jr.repo.Job().UpdateJobStatus(job); erro != nil {
 					return errs.BuildError(erro, "Could not update job status after error. Killing to prevent infinite loop")
 				}
+				jr.wsUpdateJob(*job)
+				continue
 			}
 
 			job.Status = model.JobStatusEnum_Completed
 			if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 				return errs.BuildError(err, "Could not update job status after success. Killing to prevent infinite loop")
 			}
+			jr.wsUpdateJob(*job)
 		}
 	}
 }

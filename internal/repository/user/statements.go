@@ -1,6 +1,7 @@
 package userRepository
 
 import (
+	"strings"
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -27,7 +28,7 @@ func (ur *UserRepository) getUserByUsernameStatement(username string, columns ..
 	}
 	statement := table.User.SELECT(columns[0], columns[1:]...).
 		FROM(table.User).
-		WHERE(table.User.Username.EQ(postgres.String(username)).
+		WHERE(postgres.LOWER(table.User.Username).EQ(postgres.String(strings.ToLower(username))).
 			AND(table.User.Active.IS_TRUE()))
 
 	util.DebugCheck(ur.Env, statement)

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	errs "github.com/slugger7/exorcist/internal/errors"
 )
@@ -19,39 +20,43 @@ var AppEnvEnum = &struct {
 }
 
 type EnvironmentVariables struct {
-	DatabaseHost     string
-	DatabasePort     string
-	DatabaseUser     string
-	DatabasePassword string
-	DatabaseName     string
-	DebugSql         bool
-	AppEnv           ApplicationEnvironment
-	MediaPath        string
-	Port             int
-	Secret           string
-	LogLevel         string
-	Assets           string
-	Web              *string
-	JobRunner        bool
+	DatabaseHost               string
+	DatabasePort               string
+	DatabaseUser               string
+	DatabasePassword           string
+	DatabaseName               string
+	DebugSql                   bool
+	AppEnv                     ApplicationEnvironment
+	MediaPath                  string
+	Port                       int
+	Secret                     string
+	LogLevel                   string
+	Assets                     string
+	Web                        *string
+	JobRunner                  bool
+	CorsOrigins                []string
+	WebsocketHeartbeatInterval int
 }
 
 type OsEnv = string
 
 const (
-	DATABASE_HOST     OsEnv = "DATABASE_HOST"
-	DATABASE_PORT     OsEnv = "DATABASE_PORT"
-	DATABASE_USER     OsEnv = "DATABASE_USER"
-	DATABASE_PASSWORD OsEnv = "DATABASE_PASSWORD"
-	DATABASE_NAME     OsEnv = "DATABASE_NAME"
-	DEBUG_SQL         OsEnv = "DEBUG_SQL"
-	MEDIUA_PATH       OsEnv = "MEDIA_PATH"
-	APP_ENV           OsEnv = "APP_ENV"
-	PORT              OsEnv = "PORT"
-	SECRET            OsEnv = "SECRET"
-	LOG_LEVEL         OsEnv = "LOG_LEVEL"
-	ASSETS            OsEnv = "ASSETS"
-	WEB               OsEnv = "WEB"
-	JOB_RUNNER        OsEnv = "JOB_RUNNER"
+	DATABASE_HOST                OsEnv = "DATABASE_HOST"
+	DATABASE_PORT                OsEnv = "DATABASE_PORT"
+	DATABASE_USER                OsEnv = "DATABASE_USER"
+	DATABASE_PASSWORD            OsEnv = "DATABASE_PASSWORD"
+	DATABASE_NAME                OsEnv = "DATABASE_NAME"
+	DEBUG_SQL                    OsEnv = "DEBUG_SQL"
+	MEDIUA_PATH                  OsEnv = "MEDIA_PATH"
+	APP_ENV                      OsEnv = "APP_ENV"
+	PORT                         OsEnv = "PORT"
+	SECRET                       OsEnv = "SECRET"
+	LOG_LEVEL                    OsEnv = "LOG_LEVEL"
+	ASSETS                       OsEnv = "ASSETS"
+	WEB                          OsEnv = "WEB"
+	JOB_RUNNER                   OsEnv = "JOB_RUNNER"
+	CORS_ORIGINS                 OsEnv = "CORS_ORIGINS"
+	WEBSOCKET_HEARTBEAT_INTERVAL       = "WEBSOCKET_HEARTBEAT_INTERVAL"
 )
 
 var env *EnvironmentVariables
@@ -67,20 +72,22 @@ func GetEnvironmentVariables() *EnvironmentVariables {
 
 func RefreshEnvironmentVariables() {
 	env = &EnvironmentVariables{
-		DatabaseHost:     os.Getenv(DATABASE_HOST),
-		DatabasePort:     os.Getenv(DATABASE_PORT),
-		DatabaseUser:     os.Getenv(DATABASE_USER),
-		DatabasePassword: os.Getenv(DATABASE_PASSWORD),
-		DatabaseName:     os.Getenv(DATABASE_NAME),
-		DebugSql:         getBoolValue(DEBUG_SQL, false),
-		MediaPath:        os.Getenv(MEDIUA_PATH),
-		AppEnv:           handleAppEnv(os.Getenv(APP_ENV)),
-		Port:             getIntValue(PORT),
-		Secret:           os.Getenv(SECRET),
-		LogLevel:         getValueOrDefault(LOG_LEVEL, "debug"),
-		Assets:           os.Getenv(ASSETS),
-		Web:              getValueOrNil(WEB),
-		JobRunner:        getBoolValue(JOB_RUNNER, true),
+		DatabaseHost:               os.Getenv(DATABASE_HOST),
+		DatabasePort:               os.Getenv(DATABASE_PORT),
+		DatabaseUser:               os.Getenv(DATABASE_USER),
+		DatabasePassword:           os.Getenv(DATABASE_PASSWORD),
+		DatabaseName:               os.Getenv(DATABASE_NAME),
+		DebugSql:                   getBoolValue(DEBUG_SQL, false),
+		MediaPath:                  os.Getenv(MEDIUA_PATH),
+		AppEnv:                     handleAppEnv(os.Getenv(APP_ENV)),
+		Port:                       getIntValue(PORT),
+		Secret:                     os.Getenv(SECRET),
+		LogLevel:                   getValueOrDefault(LOG_LEVEL, "debug"),
+		Assets:                     os.Getenv(ASSETS),
+		Web:                        getValueOrNil(WEB),
+		JobRunner:                  getBoolValue(JOB_RUNNER, true),
+		CorsOrigins:                strings.Split(os.Getenv(CORS_ORIGINS), ";"),
+		WebsocketHeartbeatInterval: getIntValue(WEBSOCKET_HEARTBEAT_INTERVAL),
 	}
 }
 

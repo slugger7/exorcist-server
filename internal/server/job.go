@@ -5,14 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-const jobRoute = "/jobs"
+// https://medium.com/@abhishekranjandev/building-a-production-grade-websocket-for-notifications-with-golang-and-gin-a-detailed-guide-5b676dcfbd5a
 
 func (s *Server) withJobRoutes(r *gin.RouterGroup, route Route) *Server {
-	r.GET(fmt.Sprintf("%v/start-runner", jobRoute), s.startJobRunner)
+	r.GET(fmt.Sprintf("%v/start-runner", route), s.startJobRunner)
 	return s
 }
 
@@ -49,6 +48,20 @@ func (s *Server) CreateJob(c *gin.Context) {
 		return
 	}
 
+	jobDto := (&models.JobDTO{}).FromModel(*job)
+
+	for _, ws := range s.websockets {
+		message := models.WSMessage[models.JobDTO]{
+			Topic: models.WSTopic_JobCreate,
+			Data:  *jobDto,
+		}
+		for _, x := range ws {
+			if err := x.WriteJSON(message); err != nil {
+				s.logger.Errorf("could not write to websocket for new job: %v", err.Error())
+			}
+		}
+	}
+
 	c.JSON(http.StatusOK, job)
 }
 
@@ -75,5 +88,5 @@ func (s *Server) getAllJobs(c *gin.Context) {
 		jobDtos[i] = *(&models.JobDTO{}).FromModel(j)
 	}
 
-	c.JSON(http.StatusOK, models.DataToPage[models.JobDTO, model.Job](jobDtos, *jobsPage))
+	c.JSON(http.StatusOK, models.DataToPage(jobDtos, *jobsPage))
 }

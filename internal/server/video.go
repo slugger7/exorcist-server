@@ -9,18 +9,6 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-func createSearch(c *gin.Context) *models.VideoSearchDTO {
-	search := models.VideoSearchDTO{
-		Limit:   models.DefaultInt(c.Query("limit"), 48),
-		Skip:    models.DefaultInt(c.Query("skip"), 0),
-		OrderBy: models.VideoOrdinal(c.Query("orderBy")),
-		Asc:     models.DefualtBool(c.Query("asc"), true),
-		Search:  c.Query("search"),
-	}
-
-	return &search
-}
-
 func (s *Server) withVideoGet(r *gin.RouterGroup, route Route) *Server {
 	r.GET(route, s.GetVideos)
 	return s
@@ -32,8 +20,18 @@ func (s *Server) withVideoGetById(r *gin.RouterGroup, route Route) *Server {
 }
 
 func (s *Server) GetVideos(c *gin.Context) {
-	search := createSearch(c)
-	vids, err := s.service.Video().GetOverview(*search)
+	var search models.VideoSearchDTO
+
+	if err := c.ShouldBindQuery(&search); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		return
+	}
+
+	if search.Limit == 0 {
+		search.Limit = 48
+	}
+
+	vids, err := s.service.Video().GetOverview(search)
 	if err != nil {
 		s.logger.Errorf("could not fetch videos", err)
 	}

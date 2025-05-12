@@ -92,5 +92,7 @@ func (i *JobService) scanPath(data string, priority int16) (*model.Job, error) {
 
 // We do this at the moment to stack a signal to the job runner if it is already running
 func (i *JobService) startScanPathJob() {
-	i.jobCh <- true
+	if i.Env.JobRunner {
+		i.jobCh <- true
+	}
 }
