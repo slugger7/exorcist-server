@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -205,9 +206,10 @@ func (ds *VideoRepository) GetOverview(search models.VideoSearchDTO) (*models.Pa
 	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total")).FROM(table.Video)
 
 	if search.Search != "" {
-		likeExpression := fmt.Sprintf("%%%v%%", search.Search)
-		query := table.Video.Title.LIKE(postgres.String(likeExpression)).
-			OR(table.Video.RelativePath.LIKE(postgres.String(likeExpression)))
+		caseInsensitive := strings.ToLower(search.Search)
+		likeExpression := fmt.Sprintf("%%%v%%", caseInsensitive)
+		query := postgres.LOWER(table.Video.Title).LIKE(postgres.String(likeExpression)).
+			OR(postgres.LOWER(table.Video.RelativePath).LIKE(postgres.String(likeExpression)))
 
 		selectStatement = selectStatement.WHERE(query)
 		countStatement = countStatement.WHERE(query)
