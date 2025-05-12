@@ -48,6 +48,20 @@ func (s *Server) CreateJob(c *gin.Context) {
 		return
 	}
 
+	jobDto := (&models.JobDTO{}).FromModel(*job)
+
+	for _, ws := range s.websockets {
+		message := models.WSMessage[models.JobDTO]{
+			Topic: models.WSTopic_JobCreate,
+			Data:  *jobDto,
+		}
+		for _, x := range ws {
+			if err := x.WriteJSON(message); err != nil {
+				s.logger.Errorf("could not write to websocket for new job: %v", err.Error())
+			}
+		}
+	}
+
 	c.JSON(http.StatusOK, job)
 }
 

@@ -29,14 +29,16 @@ func (s *Server) webSocketHeartbeat() {
 	for {
 		select {
 		case <-ticker.C:
-			for i, c := range s.websockets {
-				c.SetWriteDeadline(time.Now().Add(s.pongDuration()))
-				s.logger.Debug("protocol ping")
-				if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
-					s.logger.Warningf("could not write ping message to %v: %v", i, err.Error())
-					s.websocketMutex.Lock()
-					delete(s.websockets, i)
-					s.websocketMutex.Unlock()
+			for i, ws := range s.websockets {
+				for _, c := range ws {
+					c.SetWriteDeadline(time.Now().Add(s.pongDuration()))
+					s.logger.Debug("protocol ping")
+					if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
+						s.logger.Warningf("could not write ping message to %v: %v", i, err.Error())
+						s.websocketMutex.Lock()
+						delete(s.websockets, i)
+						s.websocketMutex.Unlock()
+					}
 				}
 			}
 		}
@@ -75,7 +77,7 @@ func (s *Server) ws(c *gin.Context) {
 		})
 
 		s.websocketMutex.Lock()
-		s.websockets[userId] = conn
+		s.websockets[userId] = append(s.websockets[userId], conn)
 		s.websocketMutex.Unlock()
 
 		go s.wsReader(conn, userId)
@@ -85,8 +87,8 @@ func (s *Server) ws(c *gin.Context) {
 }
 
 func (s *Server) wsReader(ws *websocket.Conn, id uuid.UUID) {
-	ws.SetReadDeadline(time.Now().Add(s.pongDuration()))
 	for {
+		ws.SetReadDeadline(time.Now().Add(s.pongDuration()))
 		_, message, err := ws.ReadMessage()
 		if err != nil {
 			s.logger.Errorf("could not read message: %v", err.Error())

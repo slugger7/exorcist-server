@@ -33,6 +33,7 @@ type JobSearchDTO struct {
 	Statuses []model.JobStatusEnum `form:"status"`
 	Parent   *string               `form:"parent" binding:"omitempty,uuid"`
 	OrderBy  JobOrdinal            `form:"orderBy"`
+	JobTypes []model.JobTypeEnum   `form:"type"`
 }
 
 type JobOrdinal string

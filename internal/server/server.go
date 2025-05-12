@@ -22,11 +22,11 @@ type Server struct {
 	service        service.IService
 	logger         logger.ILogger
 	jobCh          chan bool
-	websockets     map[uuid.UUID]*websocket.Conn
+	websockets     map[uuid.UUID][]*websocket.Conn
 	websocketMutex sync.Mutex
 }
 
-func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, wss map[uuid.UUID]*websocket.Conn) *Server {
+func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, wss map[uuid.UUID][]*websocket.Conn) *Server {
 	ch := job.New(s.env, s.service, s.logger, ctx, wg, wss)
 	s.jobCh = ch
 
@@ -45,7 +45,7 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 		repo:       repo,
 		env:        env,
 		logger:     lg,
-		websockets: make(map[uuid.UUID]*websocket.Conn),
+		websockets: make(map[uuid.UUID][]*websocket.Conn),
 	}
 
 	if env.JobRunner {
@@ -70,8 +70,11 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 		defer newServer.websocketMutex.Unlock()
 
 		for _, i := range newServer.websockets {
-			i.WriteMessage(websocket.CloseMessage, []byte{})
-			i.Close()
+			for _, s := range i {
+				s.WriteMessage(websocket.CloseMessage, []byte{})
+				s.Close()
+			}
+
 		}
 
 	})

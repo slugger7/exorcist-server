@@ -115,6 +115,14 @@ func (r *JobRepository) GetAll(m models.JobSearchDTO) (*models.Page[model.Job], 
 		whereExpression = whereExpression.AND(table.Job.Status.IN(statusExpressions...))
 	}
 
+	jobTypeExpression := make([]postgres.Expression, len(m.JobTypes))
+	for i, t := range m.JobTypes {
+		jobTypeExpression[i] = postgres.NewEnumValue(string(t))
+	}
+	if len(jobTypeExpression) > 0 {
+		whereExpression = whereExpression.AND(table.Job.JobType.IN(jobTypeExpression...))
+	}
+
 	statement = statement.WHERE(whereExpression)
 	countStatement = countStatement.WHERE(whereExpression)
 
