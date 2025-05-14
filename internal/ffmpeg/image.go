@@ -10,8 +10,16 @@ import (
 const (
 	ErrExtractingImage string = "error extracting image (%v) from video (%v) at (%v) with resolution %vx%v"
 	ErrNegativeWidth   string = "width cannot be negative or zero: %v"
-	ErrNegativeHeight  string = "height cannot be negative ro zero: %v"
+	ErrNegativeHeight  string = "height cannot be negative or zero: %v"
 )
+
+func ScaleWidthByHeight(currentHeight, currentWidth, wantedHeight int) int {
+	return int(float32(currentWidth) / float32(currentHeight) * float32(wantedHeight))
+}
+
+func ScaleHeightByWidth(currentHeight, currentWidth, wantedWidth int) int {
+	return int(float32(currentHeight) / float32(currentWidth) * float32(wantedWidth))
+}
 
 func ImageAt(vid string, time int, img string, width, height int) error {
 	if width <= 0 {

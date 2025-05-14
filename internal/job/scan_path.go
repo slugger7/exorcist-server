@@ -159,8 +159,20 @@ func (jr *JobRunner) writeNewVideoBatch(models []model.Video, jobId uuid.UUID) e
 			}
 			jobs = append(jobs, *checksumJob)
 
-			assetPath := filepath.Join(jr.env.Assets, v.ID.String(), fmt.Sprintf(`%v.png`, v.FileName))
-			thumbnailJob, err := CreateGenerateThumbnailJob(v.ID, jobId, assetPath, 0, 0, 0)
+			maxDimension := 400
+			width, height := int(v.Width), int(v.Height)
+			if v.Width > int32(maxDimension) {
+				height = ffmpeg.ScaleHeightByWidth(height, width, maxDimension)
+				width = maxDimension
+			}
+
+			if v.Height > int32(maxDimension) {
+				width = ffmpeg.ScaleWidthByHeight(height, width, maxDimension)
+				height = maxDimension
+			}
+
+			assetPath := filepath.Join(jr.env.Assets, v.ID.String(), fmt.Sprintf(`%v.webp`, v.FileName))
+			thumbnailJob, err := CreateGenerateThumbnailJob(v.ID, jobId, assetPath, 0, height, width)
 			if err != nil {
 				return errs.BuildError(err, "could not create generate thumbnail job")
 			}
