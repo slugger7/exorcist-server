@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	errs "github.com/slugger7/exorcist/internal/errors"
 )
 
@@ -34,6 +35,7 @@ type EnvironmentVariables struct {
 	Assets                     string
 	Web                        *string
 	JobRunner                  bool
+	DisableJobs                []model.JobTypeEnum
 	CorsOrigins                []string
 	WebsocketHeartbeatInterval int
 }
@@ -55,8 +57,9 @@ const (
 	ASSETS                       OsEnv = "ASSETS"
 	WEB                          OsEnv = "WEB"
 	JOB_RUNNER                   OsEnv = "JOB_RUNNER"
+	DISABLE_JOBS                 OsEnv = "DISABLE_JOBS"
 	CORS_ORIGINS                 OsEnv = "CORS_ORIGINS"
-	WEBSOCKET_HEARTBEAT_INTERVAL       = "WEBSOCKET_HEARTBEAT_INTERVAL"
+	WEBSOCKET_HEARTBEAT_INTERVAL OsEnv = "WEBSOCKET_HEARTBEAT_INTERVAL"
 )
 
 var env *EnvironmentVariables
@@ -86,9 +89,21 @@ func RefreshEnvironmentVariables() {
 		Assets:                     os.Getenv(ASSETS),
 		Web:                        getValueOrNil(WEB),
 		JobRunner:                  getBoolValue(JOB_RUNNER, true),
+		DisableJobs:                toJobTypes(strings.Split(os.Getenv(DISABLE_JOBS), ";")),
 		CorsOrigins:                strings.Split(os.Getenv(CORS_ORIGINS), ";"),
 		WebsocketHeartbeatInterval: getIntValue(WEBSOCKET_HEARTBEAT_INTERVAL),
 	}
+}
+
+func toJobTypes(strs []string) []model.JobTypeEnum {
+	types := make([]model.JobTypeEnum, len(strs))
+	for i, str := range strs {
+		if err := types[i].Scan(str); err != nil {
+			log.Printf("Could not convert %v to job type enum", str)
+		}
+	}
+
+	return types
 }
 
 func getValueOrNil(key OsEnv) *string {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/google/uuid"
@@ -99,6 +100,14 @@ func (jr *JobRunner) loop() {
 	}
 }
 
+func (jr *JobRunner) disableJobChecker(job *model.Job) error {
+	if slices.Contains(jr.env.DisableJobs, job.JobType) {
+		return fmt.Errorf("job of type %v is disabled", job.JobType.String())
+	}
+
+	return nil
+}
+
 func (jr *JobRunner) processJobs() error {
 	for {
 		select {
@@ -114,9 +123,21 @@ func (jr *JobRunner) processJobs() error {
 				return nil
 			}
 
+			if err := jr.disableJobChecker(job); err != nil {
+				job.Status = model.JobStatusEnum_Cancelled
+				errorMessage := jr.marshallJobError(err.Error())
+				job.Outcome = &errorMessage
+				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
+					return errs.BuildError(err, "Could not update not implemented job %v. Killing to prevent infinite loop", job.JobType)
+				}
+				jr.wsUpdateJob(*job)
+				continue
+			}
+
 			job.Status = model.JobStatusEnum_InProgress
 			if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 				return errs.BuildError(err, "Failed to update job status")
+				// this should probably stop the job runner
 			}
 
 			jr.wsUpdateJob(*job)
@@ -130,6 +151,7 @@ func (jr *JobRunner) processJobs() error {
 					return errs.BuildError(err, "Could not update not implemented job %v. Killing to prevent infinite loop", job.JobType)
 				}
 				jr.wsUpdateJob(*job)
+				continue
 			}
 
 			if err := jobFunc(job); err != nil {
