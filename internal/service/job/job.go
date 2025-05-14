@@ -52,9 +52,44 @@ func (s *JobService) Create(m models.CreateJobDTO) (*model.Job, error) {
 	switch m.Type {
 	case model.JobTypeEnum_ScanPath:
 		return s.scanPath(strData, *m.Priority)
+	case model.JobTypeEnum_GenerateThumbnail:
+		return s.generateThumbnail(strData, *m.Priority)
 	default:
 		return nil, fmt.Errorf("job type not implemented: %v", m.Type)
 	}
+}
+
+const ErrActionGenerateThumbnailVideoNotFound = "could not find video for generate thumbnail job: %v"
+
+func (i *JobService) generateThumbnail(data string, priority int16) (*model.Job, error) {
+	var generateThumbnailData models.GenerateThumbnailData
+
+	if err := json.Unmarshal([]byte(data), &generateThumbnailData); err != nil {
+		return nil, errs.BuildError(err, "could not unmarshal data for job %v", data)
+	}
+
+	if _, err := i.repo.Video().GetById(generateThumbnailData.VideoId); err != nil {
+		return nil, errs.BuildError(
+			err,
+			ErrActionGenerateThumbnailVideoNotFound,
+			generateThumbnailData.VideoId)
+	}
+
+	job := model.Job{
+		JobType:  model.JobTypeEnum_GenerateThumbnail,
+		Status:   model.JobStatusEnum_NotStarted,
+		Data:     &data,
+		Priority: priority,
+	}
+
+	jobs, err := i.repo.Job().CreateAll([]model.Job{job})
+	if err != nil {
+		return nil, errs.BuildError(err, ErrCreatingJobs)
+	}
+
+	go i.startJobRunner()
+
+	return &jobs[0], nil
 }
 
 const ErrActionScanGetLibraryPaths = "could not get library paths in scan action"
@@ -85,13 +120,13 @@ func (i *JobService) scanPath(data string, priority int16) (*model.Job, error) {
 		return nil, errs.BuildError(err, ErrCreatingJobs)
 	}
 
-	go i.startScanPathJob()
+	go i.startJobRunner()
 
 	return &jobs[0], nil
 }
 
 // We do this at the moment to stack a signal to the job runner if it is already running
-func (i *JobService) startScanPathJob() {
+func (i *JobService) startJobRunner() {
 	if i.Env.JobRunner {
 		i.jobCh <- true
 	}
