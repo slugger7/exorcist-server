@@ -13,19 +13,8 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-type GenerateThumbnailData struct {
-	VideoId uuid.UUID `json:"videoId"`
-	Path    string    `json:"path"`
-	// Optional: If set to 0, timestamp at 25% of video playback will be used
-	Timestamp int `json:"timestamp"`
-	// Optional: If set to 0, video height will be used
-	Height int `json:"height"`
-	// Optional: If set to 0, video widtch will be used
-	Width int `json:"width"`
-}
-
 func CreateGenerateThumbnailJob(videoId, jobId uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
-	d := GenerateThumbnailData{
+	d := models.GenerateThumbnailData{
 		VideoId:   videoId,
 		Path:      imagePath,
 		Height:    height,
@@ -55,7 +44,7 @@ func createAssetDirectory(path string) error {
 }
 
 func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
-	var jobData GenerateThumbnailData
+	var jobData models.GenerateThumbnailData
 	if err := json.Unmarshal([]byte(*job.Data), &jobData); err != nil {
 		return errs.BuildError(err, "error parsing job data: %v", job.Data)
 	}
