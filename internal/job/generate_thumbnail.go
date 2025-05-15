@@ -94,10 +94,16 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		VideoImageType: model.VideoImageTypeEnum_Thumbnail,
 	}
 
-	_, err = jr.repo.Image().RelateVideo(videoImage)
+	videoImage, err = jr.repo.Image().RelateVideo(videoImage)
 	if err != nil {
 		return errs.BuildError(err, "could not create video image relation")
 	}
+
+	vidUpdate := models.VideoOverviewDTO{
+		Id:          video.Video.ID,
+		ThumbnailId: videoImage.ImageID,
+	}
+	jr.wsUpdateVideo(vidUpdate)
 
 	return nil
 }

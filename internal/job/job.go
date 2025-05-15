@@ -60,19 +60,34 @@ func New(
 }
 
 func (jr *JobRunner) wsUpdateJob(job model.Job) {
+	jr.logger.Debug("ws - updating job")
+
+	jobUpdate := models.WSMessage[models.JobDTO]{
+		Topic: models.WSTopic_JobUpdate,
+		Data:  *(&models.JobDTO{}).FromModel(job),
+	}
 	for _, ws := range jr.wss {
-		jr.logger.Debug("Writing to a websocket")
-		jobUpdate := models.WSMessage[models.JobDTO]{
-			Topic: models.WSTopic_JobUpdate,
-			Data:  *(&models.JobDTO{}).FromModel(job),
-		}
 		for _, s := range ws {
 			if err := s.WriteJSON(jobUpdate); err != nil {
-				jr.logger.Errorf("could not write json for a job update: %v", err)
+				jr.logger.Errorf("could not write json for a job update: %v", err.Error())
 			}
-
 		}
+	}
+}
 
+func (jr *JobRunner) wsUpdateVideo(video models.VideoOverviewDTO) {
+	jr.logger.Debug("ws - updating video")
+
+	videoUpdate := models.WSMessage[models.VideoOverviewDTO]{
+		Topic: models.WSTopic_VideoUpdate,
+		Data:  video,
+	}
+	for _, ws := range jr.wss {
+		for _, s := range ws {
+			if err := s.WriteJSON(videoUpdate); err != nil {
+				jr.logger.Errorf("could not write json for video update: %v", err.Error())
+			}
+		}
 	}
 }
 

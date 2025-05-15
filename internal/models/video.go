@@ -15,8 +15,8 @@ type VideoOverviewModel struct {
 
 type VideoOverviewDTO struct {
 	Id          uuid.UUID `json:"id"`
-	Title       string    `json:"title"`
-	Path        string    `json:"path"`
+	Title       string    `json:"title,omitempty"`
+	Path        string    `json:"path,omitempty"`
 	ThumbnailId uuid.UUID `json:"thumbnailId,omitempty"`
 }
 
