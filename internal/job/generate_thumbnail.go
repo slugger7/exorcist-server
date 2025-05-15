@@ -103,7 +103,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		Id:          video.Video.ID,
 		ThumbnailId: videoImage.ImageID,
 	}
-	jr.wsUpdateVideo(vidUpdate)
+	jr.wsVideoUpdate(vidUpdate)
 
 	return nil
 }

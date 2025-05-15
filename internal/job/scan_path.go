@@ -137,18 +137,21 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 	}
 }
 
-func (jr *JobRunner) writeNewVideoBatch(models []model.Video, jobId uuid.UUID) error {
-	if len(models) == 0 {
+func (jr *JobRunner) writeNewVideoBatch(videoModels []model.Video, jobId uuid.UUID) error {
+	if len(videoModels) == 0 {
 		return nil
 	}
 
-	vids, err := jr.repo.Video().Insert(models)
+	vids, err := jr.repo.Video().Insert(videoModels)
 	if err != nil {
 		return errs.BuildError(err, "error writing batch of models to db")
 	}
 
 	jobs := []model.Job{}
 	for _, v := range vids {
+		dto := (&models.VideoOverviewDTO{}).FromModel(&v, nil)
+		jr.wsVideoCreate(*dto)
+
 		select {
 		case <-jr.shutdownCtx.Done():
 			return fmt.Errorf("shutdown signal received")
@@ -199,7 +202,7 @@ func (jr *JobRunner) removeVideos(nonExistentVideos []model.Video) {
 				jr.logger.Errorf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
 			}
 
-			jr.wsDeleteVideo(models.VideoOverviewDTO{Id: v.ID})
+			jr.wsVideoDelete(models.VideoOverviewDTO{Id: v.ID})
 		}
 	}
 }
