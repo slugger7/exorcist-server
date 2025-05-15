@@ -91,6 +91,23 @@ func (jr *JobRunner) wsUpdateVideo(video models.VideoOverviewDTO) {
 	}
 }
 
+// TODO: create more generic function to write to all WSs
+func (jr *JobRunner) wsDeleteVideo(video models.VideoOverviewDTO) {
+	jr.logger.Debug("ws - deleting video")
+
+	videoDelete := models.WSMessage[models.VideoOverviewDTO]{
+		Topic: models.WSTopic_VideoDelete,
+		Data:  video,
+	}
+	for _, ws := range jr.wss {
+		for _, s := range ws {
+			if err := s.WriteJSON(videoDelete); err != nil {
+				jr.logger.Errorf("could not write json for video delete: %v", err.Error())
+			}
+		}
+	}
+}
+
 func (jr *JobRunner) loop() {
 	defer jr.wg.Done()
 
