@@ -7,6 +7,7 @@ const (
 	WSTopic_JobCreate   WSTopic = "job_create"
 	WSTopic_VideoUpdate WSTopic = "video_update"
 	WSTopic_VideoCreate WSTopic = "video_create"
+	WSTopic_VideoDelete WSTopic = "video_delete"
 )
 
 type WSMessage[T any] struct {
