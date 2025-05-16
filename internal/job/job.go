@@ -93,7 +93,7 @@ func (jr *JobRunner) wsVideoCreate(video models.VideoOverviewDTO) {
 	jr.logger.Debug("ws - deleting video")
 
 	videoDelete := models.WSMessage[models.VideoOverviewDTO]{
-		Topic: models.WSTopic_VideoDelete,
+		Topic: models.WSTopic_VideoCreate,
 		Data:  video,
 	}
 	videoDelete.SendToAll(jr.wss)
