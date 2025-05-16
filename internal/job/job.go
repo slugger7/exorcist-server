@@ -26,7 +26,7 @@ type JobRunner struct {
 	ch          chan bool
 	shutdownCtx context.Context
 	wg          *sync.WaitGroup
-	wss         map[uuid.UUID][]*websocket.Conn
+	wss         models.WebSocketMap
 }
 
 var jobRunnerInstance *JobRunner
@@ -59,7 +59,6 @@ func New(
 	return ch
 }
 
-// TODO: create more generic function to write to all WSs
 func (jr *JobRunner) wsJobUpdate(job model.Job) {
 	jr.logger.Debug("ws - updating job")
 
@@ -67,16 +66,9 @@ func (jr *JobRunner) wsJobUpdate(job model.Job) {
 		Topic: models.WSTopic_JobUpdate,
 		Data:  *(&models.JobDTO{}).FromModel(job),
 	}
-	for _, ws := range jr.wss {
-		for _, s := range ws {
-			if err := s.WriteJSON(jobUpdate); err != nil {
-				jr.logger.Errorf("could not write json for a job update: %v", err.Error())
-			}
-		}
-	}
+	jobUpdate.SendToAll(jr.wss)
 }
 
-// TODO: create more generic function to write to all WSs
 func (jr *JobRunner) wsVideoUpdate(video models.VideoOverviewDTO) {
 	jr.logger.Debug("ws - updating video")
 
@@ -84,16 +76,9 @@ func (jr *JobRunner) wsVideoUpdate(video models.VideoOverviewDTO) {
 		Topic: models.WSTopic_VideoUpdate,
 		Data:  video,
 	}
-	for _, ws := range jr.wss {
-		for _, s := range ws {
-			if err := s.WriteJSON(videoUpdate); err != nil {
-				jr.logger.Errorf("could not write json for video update: %v", err.Error())
-			}
-		}
-	}
+	videoUpdate.SendToAll(jr.wss)
 }
 
-// TODO: create more generic function to write to all WSs
 func (jr *JobRunner) wsVideoDelete(video models.VideoOverviewDTO) {
 	jr.logger.Debug("ws - deleting video")
 
@@ -101,16 +86,9 @@ func (jr *JobRunner) wsVideoDelete(video models.VideoOverviewDTO) {
 		Topic: models.WSTopic_VideoDelete,
 		Data:  video,
 	}
-	for _, ws := range jr.wss {
-		for _, s := range ws {
-			if err := s.WriteJSON(videoDelete); err != nil {
-				jr.logger.Errorf("could not write json for video delete: %v", err.Error())
-			}
-		}
-	}
+	videoDelete.SendToAll(jr.wss)
 }
 
-// TODO: create more generic function to write to all WSs
 func (jr *JobRunner) wsVideoCreate(video models.VideoOverviewDTO) {
 	jr.logger.Debug("ws - deleting video")
 
@@ -118,13 +96,7 @@ func (jr *JobRunner) wsVideoCreate(video models.VideoOverviewDTO) {
 		Topic: models.WSTopic_VideoDelete,
 		Data:  video,
 	}
-	for _, ws := range jr.wss {
-		for _, s := range ws {
-			if err := s.WriteJSON(videoDelete); err != nil {
-				jr.logger.Errorf("could not write json for video delete: %v", err.Error())
-			}
-		}
-	}
+	videoDelete.SendToAll(jr.wss)
 }
 
 func (jr *JobRunner) loop() {

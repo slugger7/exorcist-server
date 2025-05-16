@@ -1,5 +1,11 @@
 package models
 
+import (
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+	errs "github.com/slugger7/exorcist/internal/errors"
+)
+
 type WSTopic = string
 
 const (
@@ -13,4 +19,18 @@ const (
 type WSMessage[T any] struct {
 	Topic WSTopic `json:"topic"`
 	Data  T       `json:"data,omitempty"`
+}
+
+type WebSocketMap = map[uuid.UUID][]*websocket.Conn
+
+func (msg *WSMessage[T]) SendToAll(wss WebSocketMap) error {
+	for _, ws := range wss {
+		for _, s := range ws {
+			if err := s.WriteJSON(msg); err != nil {
+				return errs.BuildError(err, "could not write json to websocket")
+			}
+		}
+	}
+
+	return nil
 }

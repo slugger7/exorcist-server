@@ -12,6 +12,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/job"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 	"github.com/slugger7/exorcist/internal/service"
 )
@@ -22,11 +23,11 @@ type Server struct {
 	service        service.IService
 	logger         logger.ILogger
 	jobCh          chan bool
-	websockets     map[uuid.UUID][]*websocket.Conn
+	websockets     models.WebSocketMap
 	websocketMutex sync.Mutex
 }
 
-func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, wss map[uuid.UUID][]*websocket.Conn) *Server {
+func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, wss models.WebSocketMap) *Server {
 	ch := job.New(s.env, s.service, s.logger, ctx, wg, wss)
 	s.jobCh = ch
 
