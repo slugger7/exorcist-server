@@ -180,15 +180,11 @@ func (ds *VideoRepository) GetOverview(search models.VideoSearchDTO) (*models.Pa
 	selectStatement := table.Video.SELECT(
 		table.Video.ID,
 		table.Video.RelativePath,
-		table.LibraryPath.Path,
 		table.Video.Title,
 		table.Image.ID,
 		table.VideoImage.VideoImageType,
 	).
 		FROM(table.Video.
-			INNER_JOIN(
-				table.LibraryPath,
-				table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
 			LEFT_JOIN(
 				table.VideoImage,
 				table.Video.ID.EQ(table.VideoImage.VideoID).

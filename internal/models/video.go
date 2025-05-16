@@ -10,14 +10,11 @@ import (
 type VideoOverviewModel struct {
 	model.Video
 	model.Image
-	model.LibraryPath
 }
 
 type VideoOverviewDTO struct {
-	Id    uuid.UUID `json:"id"`
-	Title string    `json:"title,omitempty"`
-	// Deprecated: this is useless on the frontend at the moment
-	Path        string    `json:"path,omitempty"`
+	Id          uuid.UUID `json:"id"`
+	Title       string    `json:"title,omitempty"`
 	ThumbnailId uuid.UUID `json:"thumbnailId,omitempty"`
 }
 
@@ -25,7 +22,6 @@ func (v *VideoOverviewModel) ToDTO() *VideoOverviewDTO {
 	return &VideoOverviewDTO{
 		Id:          v.Video.ID,
 		Title:       v.Video.Title,
-		Path:        v.LibraryPath.Path + v.Video.RelativePath,
 		ThumbnailId: v.Image.ID,
 	}
 }
