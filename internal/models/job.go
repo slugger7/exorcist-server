@@ -59,14 +59,14 @@ func (o JobOrdinal) ToColumn() postgres.Column {
 
 type JobDTO struct {
 	Id       uuid.UUID           `json:"id"`
-	Parent   *uuid.UUID          `json:"parent"`
-	Priority int16               `json:"priority"`
-	JobType  model.JobTypeEnum   `json:"jobType"`
-	Status   model.JobStatusEnum `json:"status"`
-	Data     *string             `json:"data"`
-	Outcome  *string             `json:"outcome"`
-	Created  time.Time           `json:"created"`
-	Modified time.Time           `json:"modified"`
+	Parent   *uuid.UUID          `json:"parent,omitempty"`
+	Priority int16               `json:"priority,omitempty"`
+	JobType  model.JobTypeEnum   `json:"jobType,omitempty"`
+	Status   model.JobStatusEnum `json:"status,omitempty"`
+	Data     *string             `json:"data,omitempty"`
+	Outcome  *string             `json:"outcome,omitempty"`
+	Created  time.Time           `json:"created,omitempty"`
+	Modified time.Time           `json:"modified,omitempty"`
 }
 
 func (j *JobDTO) FromModel(m model.Job) *JobDTO {

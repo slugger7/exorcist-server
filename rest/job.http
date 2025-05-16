@@ -17,12 +17,12 @@ Content-Type: application/json
 {
   "type": "generate_thumbnail",
   "data": {
-    "videoId": "b361be6c-e246-4789-af6c-63cef33f44dc",
+    "videoId": "9e829a17-dd55-4dd3-85fb-0f255231b03f",
     "priority": "0",
     "height": 480,
     "width": 720,
     "timestamp": 200,
-    "path": "./.temp/test.png"
+    "path": "./.temp/test2.png"
   }
 }
 

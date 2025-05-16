@@ -10,13 +10,11 @@ import (
 type VideoOverviewModel struct {
 	model.Video
 	model.Image
-	model.LibraryPath
 }
 
 type VideoOverviewDTO struct {
 	Id          uuid.UUID `json:"id"`
-	Title       string    `json:"title"`
-	Path        string    `json:"path"`
+	Title       string    `json:"title,omitempty"`
 	ThumbnailId uuid.UUID `json:"thumbnailId,omitempty"`
 }
 
@@ -24,9 +22,17 @@ func (v *VideoOverviewModel) ToDTO() *VideoOverviewDTO {
 	return &VideoOverviewDTO{
 		Id:          v.Video.ID,
 		Title:       v.Video.Title,
-		Path:        v.LibraryPath.Path + v.Video.RelativePath,
 		ThumbnailId: v.Image.ID,
 	}
+}
+
+func (v *VideoOverviewDTO) FromModel(m *model.Video, i *model.Image) *VideoOverviewDTO {
+	v.Id = m.ID
+	v.Title = m.Title
+	if i != nil {
+		v.ThumbnailId = i.ID
+	}
+	return v
 }
 
 func DefualtBool(strVal string, def bool) bool {

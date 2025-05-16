@@ -26,7 +26,7 @@ type JobRunner struct {
 	ch          chan bool
 	shutdownCtx context.Context
 	wg          *sync.WaitGroup
-	wss         map[uuid.UUID][]*websocket.Conn
+	wss         models.WebSocketMap
 }
 
 var jobRunnerInstance *JobRunner
@@ -59,21 +59,44 @@ func New(
 	return ch
 }
 
-func (jr *JobRunner) wsUpdateJob(job model.Job) {
-	for _, ws := range jr.wss {
-		jr.logger.Debug("Writing to a websocket")
-		jobUpdate := models.WSMessage[models.JobDTO]{
-			Topic: models.WSTopic_JobUpdate,
-			Data:  *(&models.JobDTO{}).FromModel(job),
-		}
-		for _, s := range ws {
-			if err := s.WriteJSON(jobUpdate); err != nil {
-				jr.logger.Errorf("could not write json for a job update: %v", err)
-			}
+func (jr *JobRunner) wsJobUpdate(job model.Job) {
+	jr.logger.Debug("ws - updating job")
 
-		}
-
+	jobUpdate := models.WSMessage[models.JobDTO]{
+		Topic: models.WSTopic_JobUpdate,
+		Data:  *(&models.JobDTO{}).FromModel(job),
 	}
+	jobUpdate.SendToAll(jr.wss)
+}
+
+func (jr *JobRunner) wsVideoUpdate(video models.VideoOverviewDTO) {
+	jr.logger.Debug("ws - updating video")
+
+	videoUpdate := models.WSMessage[models.VideoOverviewDTO]{
+		Topic: models.WSTopic_VideoUpdate,
+		Data:  video,
+	}
+	videoUpdate.SendToAll(jr.wss)
+}
+
+func (jr *JobRunner) wsVideoDelete(video models.VideoOverviewDTO) {
+	jr.logger.Debug("ws - deleting video")
+
+	videoDelete := models.WSMessage[models.VideoOverviewDTO]{
+		Topic: models.WSTopic_VideoDelete,
+		Data:  video,
+	}
+	videoDelete.SendToAll(jr.wss)
+}
+
+func (jr *JobRunner) wsVideoCreate(video models.VideoOverviewDTO) {
+	jr.logger.Debug("ws - deleting video")
+
+	videoDelete := models.WSMessage[models.VideoOverviewDTO]{
+		Topic: models.WSTopic_VideoCreate,
+		Data:  video,
+	}
+	videoDelete.SendToAll(jr.wss)
 }
 
 func (jr *JobRunner) loop() {
@@ -130,7 +153,7 @@ func (jr *JobRunner) processJobs() error {
 				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 					return errs.BuildError(err, "Could not update not implemented job %v. Killing to prevent infinite loop", job.JobType)
 				}
-				jr.wsUpdateJob(*job)
+				jr.wsJobUpdate(*job)
 				continue
 			}
 
@@ -140,7 +163,7 @@ func (jr *JobRunner) processJobs() error {
 				// this should probably stop the job runner
 			}
 
-			jr.wsUpdateJob(*job)
+			jr.wsJobUpdate(*job)
 
 			jobFunc, err := jr.jobFuncResolver(job.JobType)
 			if err != nil {
@@ -150,7 +173,7 @@ func (jr *JobRunner) processJobs() error {
 				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 					return errs.BuildError(err, "Could not update not implemented job %v. Killing to prevent infinite loop", job.JobType)
 				}
-				jr.wsUpdateJob(*job)
+				jr.wsJobUpdate(*job)
 				continue
 			}
 
@@ -162,7 +185,7 @@ func (jr *JobRunner) processJobs() error {
 				if erro := jr.repo.Job().UpdateJobStatus(job); erro != nil {
 					return errs.BuildError(erro, "Could not update job status after error. Killing to prevent infinite loop")
 				}
-				jr.wsUpdateJob(*job)
+				jr.wsJobUpdate(*job)
 				continue
 			}
 
@@ -170,7 +193,7 @@ func (jr *JobRunner) processJobs() error {
 			if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 				return errs.BuildError(err, "Could not update job status after success. Killing to prevent infinite loop")
 			}
-			jr.wsUpdateJob(*job)
+			jr.wsJobUpdate(*job)
 		}
 	}
 }
