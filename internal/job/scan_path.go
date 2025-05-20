@@ -202,7 +202,7 @@ func (jr *JobRunner) removeVideos(nonExistentVideos []model.Video) {
 				jr.logger.Errorf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
 			}
 
-			jr.wsVideoDelete(models.VideoOverviewDTO{Id: v.ID})
+			jr.wsVideoDelete(models.VideoOverviewDTO{Id: v.ID, Deleted: true})
 		}
 	}
 }
