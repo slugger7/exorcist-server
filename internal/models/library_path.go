@@ -12,7 +12,7 @@ type CreateLibraryPathModel struct {
 	Path      string    `json:"path" binding:"required"`
 }
 
-type LibraryPathModel struct {
+type LibraryPathDTO struct {
 	Id        uuid.UUID `json:"id,omitempty"`
 	LibraryId uuid.UUID `json:"libraryId,omitempty"`
 	Path      string    `json:"path,omitempty"`
@@ -20,7 +20,7 @@ type LibraryPathModel struct {
 	Modified  time.Time `json:"modified,omitempty"`
 }
 
-func (l *LibraryPathModel) FromModel(m model.LibraryPath) *LibraryPathModel {
+func (l *LibraryPathDTO) FromModel(m model.LibraryPath) *LibraryPathDTO {
 	l.Id = m.ID
 	l.LibraryId = m.LibraryID
 	l.Path = m.Path

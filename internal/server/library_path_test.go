@@ -71,7 +71,7 @@ func Test_CreateLibraryPath_Success(t *testing.T) {
 	rr := s.withPostRequest(bodyM(m)).
 		exec()
 
-	result := models.LibraryPathModel{
+	result := models.LibraryPathDTO{
 		Id:        id,
 		LibraryId: libId,
 		Path:      m.Path,
@@ -122,7 +122,7 @@ func Test_GetAllLibraryPaths_Success(t *testing.T) {
 	rr := s.withGetRequest("").
 		exec()
 
-	body, _ := json.Marshal([]models.LibraryPathModel{{Id: libPath.ID, LibraryId: libPath.LibraryID, Path: libPath.Path}})
+	body, _ := json.Marshal([]models.LibraryPathDTO{{Id: libPath.ID, LibraryId: libPath.LibraryID, Path: libPath.Path}})
 
 	assert.StatusCode(t, http.StatusOK, rr.Code)
 	assert.Body(t, string(body), rr.Body.String())

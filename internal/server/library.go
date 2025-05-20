@@ -46,9 +46,9 @@ func (s *Server) LibraryGetPaths(c *gin.Context) {
 		return
 	}
 
-	libPathModels := make([]models.LibraryPathModel, len(libraryPaths))
+	libPathModels := make([]models.LibraryPathDTO, len(libraryPaths))
 	for i, m := range libraryPaths {
-		libPathModels[i] = *(&models.LibraryPathModel{}).FromModel(m)
+		libPathModels[i] = *(&models.LibraryPathDTO{}).FromModel(m)
 	}
 
 	c.JSON(http.StatusOK, libPathModels)
