@@ -7,8 +7,6 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -37,7 +35,7 @@ func New(
 	logger logger.ILogger,
 	shutdownCtx context.Context,
 	wg *sync.WaitGroup,
-	wss map[uuid.UUID][]*websocket.Conn,
+	wss models.WebSocketMap,
 ) chan bool {
 	ch := make(chan bool)
 	if jobRunnerInstance == nil {
@@ -90,7 +88,7 @@ func (jr *JobRunner) wsVideoDelete(video models.VideoOverviewDTO) {
 }
 
 func (jr *JobRunner) wsVideoCreate(video models.VideoOverviewDTO) {
-	jr.logger.Debug("ws - deleting video")
+	jr.logger.Debug("ws - creating video")
 
 	videoDelete := models.WSMessage[models.VideoOverviewDTO]{
 		Topic: models.WSTopic_VideoCreate,

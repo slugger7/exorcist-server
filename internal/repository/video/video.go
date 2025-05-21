@@ -183,6 +183,7 @@ func (ds *VideoRepository) GetOverview(search models.VideoSearchDTO) (*models.Pa
 		table.Video.Title,
 		table.Image.ID,
 		table.VideoImage.VideoImageType,
+		table.Video.Deleted,
 	).
 		FROM(table.Video.
 			LEFT_JOIN(

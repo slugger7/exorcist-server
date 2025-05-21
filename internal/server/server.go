@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/job"
@@ -46,7 +45,7 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 		repo:       repo,
 		env:        env,
 		logger:     lg,
-		websockets: make(map[uuid.UUID][]*websocket.Conn),
+		websockets: make(models.WebSocketMap),
 	}
 
 	if env.JobRunner {
@@ -72,8 +71,10 @@ func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.
 
 		for _, i := range newServer.websockets {
 			for _, s := range i {
-				s.WriteMessage(websocket.CloseMessage, []byte{})
-				s.Close()
+				s.Mu.Lock()
+				defer s.Mu.Unlock()
+				s.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				s.Conn.Close()
 			}
 
 		}

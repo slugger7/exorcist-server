@@ -40,7 +40,9 @@ func (s *Server) GetLibraryPath(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, libraryPath)
+	libPathDto := *(&models.LibraryPathDTO{}).FromModel(*libraryPath)
+
+	c.JSON(http.StatusOK, libPathDto)
 }
 
 const ErrCreatingLibraryPath string = "colud not create new library path"
@@ -61,7 +63,7 @@ func (s *Server) CreateLibraryPath(c *gin.Context) {
 		return
 	}
 
-	result := (&models.LibraryPathModel{}).FromModel(*libPath)
+	result := (&models.LibraryPathDTO{}).FromModel(*libPath)
 
 	c.JSON(http.StatusCreated, result)
 }
@@ -76,9 +78,9 @@ func (s *Server) GetAllLibraryPaths(c *gin.Context) {
 		return
 	}
 
-	libPaths := []models.LibraryPathModel{}
+	libPaths := []models.LibraryPathDTO{}
 	for _, l := range libraryPaths {
-		libPaths = append(libPaths, *(&models.LibraryPathModel{}).FromModel(l))
+		libPaths = append(libPaths, *(&models.LibraryPathDTO{}).FromModel(l))
 	}
 
 	c.JSON(http.StatusOK, libPaths)

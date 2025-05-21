@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 func (s *Server) pongDuration() time.Duration {
@@ -31,14 +33,17 @@ func (s *Server) webSocketHeartbeat() {
 		case <-ticker.C:
 			for i, ws := range s.websockets {
 				for _, c := range ws {
-					c.SetWriteDeadline(time.Now().Add(s.pongDuration()))
+					c.Mu.Lock()
+
+					c.Conn.SetWriteDeadline(time.Now().Add(s.pongDuration()))
 					s.logger.Debug("protocol ping")
-					if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
+					if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 						s.logger.Warningf("could not write ping message to %v: %v", i, err.Error())
 						s.websocketMutex.Lock()
 						delete(s.websockets, i)
 						s.websocketMutex.Unlock()
 					}
+					c.Mu.Unlock()
 				}
 			}
 		}
@@ -76,8 +81,12 @@ func (s *Server) ws(c *gin.Context) {
 			return nil
 		})
 
+		wsConn := models.WSConn{
+			Conn: conn, Mu: sync.Mutex{},
+		}
+
 		s.websocketMutex.Lock()
-		s.websockets[userId] = append(s.websockets[userId], conn)
+		s.websockets[userId] = append(s.websockets[userId], &wsConn)
 		s.websocketMutex.Unlock()
 
 		go s.wsReader(conn, userId)

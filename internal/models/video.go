@@ -16,6 +16,7 @@ type VideoOverviewDTO struct {
 	Id          uuid.UUID `json:"id"`
 	Title       string    `json:"title,omitempty"`
 	ThumbnailId uuid.UUID `json:"thumbnailId,omitempty"`
+	Deleted     bool      `json:"deleted"`
 }
 
 func (v *VideoOverviewModel) ToDTO() *VideoOverviewDTO {
@@ -23,6 +24,7 @@ func (v *VideoOverviewModel) ToDTO() *VideoOverviewDTO {
 		Id:          v.Video.ID,
 		Title:       v.Video.Title,
 		ThumbnailId: v.Image.ID,
+		Deleted:     v.Deleted,
 	}
 }
 

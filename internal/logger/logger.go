@@ -30,11 +30,12 @@ type logger struct {
 }
 
 const (
-	debug = "debug"
-	info  = "info"
-	warn  = "warn"
-	err   = "error"
-	none  = "none"
+	debug   = "debug"
+	info    = "info"
+	warn    = "warn"
+	warning = "warning"
+	err     = "error"
+	none    = "none"
 )
 
 const (
@@ -51,7 +52,7 @@ func resolveLogLevel(level string) (logLevel int) {
 		logLevel = debugLevel
 	case info:
 		logLevel = infoLevel
-	case warn:
+	case warn, warning:
 		logLevel = warnLevel
 	case err:
 		logLevel = errorLevel

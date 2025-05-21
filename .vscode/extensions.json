@@ -3,5 +3,6 @@
         "golang.go",
         "editorconfig.editorconfig",
         "terrastruct.d2",
+        "ms-ossdata.vscode-pgsql"
     ],
 }
