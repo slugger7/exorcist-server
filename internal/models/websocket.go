@@ -1,6 +1,8 @@
 package models
 
 import (
+	"sync"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	errs "github.com/slugger7/exorcist/internal/errors"
@@ -21,14 +23,21 @@ type WSMessage[T any] struct {
 	Data  T       `json:"data,omitempty"`
 }
 
-type WebSocketMap = map[uuid.UUID][]*websocket.Conn
+type WSConn struct {
+	Conn *websocket.Conn
+	Mu   sync.Mutex
+}
+type WebSocketMap = map[uuid.UUID][]*WSConn
 
 func (msg *WSMessage[T]) SendToAll(wss WebSocketMap) error {
 	for _, ws := range wss {
 		for _, s := range ws {
-			if err := s.WriteJSON(msg); err != nil {
+			s.Mu.Lock()
+			if err := s.Conn.WriteJSON(msg); err != nil {
+				s.Mu.Unlock()
 				return errs.BuildError(err, "could not write json to websocket")
 			}
+			s.Mu.Unlock()
 		}
 	}
 
