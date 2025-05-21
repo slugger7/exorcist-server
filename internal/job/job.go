@@ -90,7 +90,7 @@ func (jr *JobRunner) wsVideoDelete(video models.VideoOverviewDTO) {
 }
 
 func (jr *JobRunner) wsVideoCreate(video models.VideoOverviewDTO) {
-	jr.logger.Debug("ws - deleting video")
+	jr.logger.Debug("ws - creating video")
 
 	videoDelete := models.WSMessage[models.VideoOverviewDTO]{
 		Topic: models.WSTopic_VideoCreate,
