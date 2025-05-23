@@ -7,8 +7,9 @@ type ScanPathData struct {
 }
 
 type GenerateThumbnailData struct {
-	VideoId uuid.UUID `json:"videoId"`
-	Path    string    `json:"path"`
+	VideoId       uuid.UUID `json:"videoId"`
+	LibraryPathId uuid.UUID `json:"libraryPathId"`
+	Path          string    `json:"path"`
 	// Optional: If set to 0, timestamp at 25% of video playback will be used
 	Timestamp int `json:"timestamp"`
 	// Optional: If set to 0, video height will be used

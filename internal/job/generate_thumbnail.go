@@ -13,13 +13,14 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-func CreateGenerateThumbnailJob(videoId, jobId uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
+func CreateGenerateThumbnailJob(video model.Video, jobId uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
 	d := models.GenerateThumbnailData{
-		VideoId:   videoId,
-		Path:      imagePath,
-		Height:    height,
-		Width:     width,
-		Timestamp: timestamp,
+		VideoId:       video.ID,
+		LibraryPathId: video.LibraryPathID,
+		Path:          imagePath,
+		Height:        height,
+		Width:         width,
+		Timestamp:     timestamp,
 	}
 
 	js, err := json.Marshal(d)

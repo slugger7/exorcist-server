@@ -83,6 +83,7 @@ image {
   id: uuid {constraint: primary_key}
   title: string not null
   path: string not null {constraint: unique}
+  library_path_id: uuid {constraint: foreign_key}
   file_name: string not null
   height_: int not null
   width_: int not null
@@ -91,6 +92,8 @@ image {
   created: timestamp not null
   modified: timestamp not null
 }
+
+image.library_path_id -> library_path.id
 
 video_image_type_enum {
   shape: sql_table

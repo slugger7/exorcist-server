@@ -175,7 +175,7 @@ func (jr *JobRunner) writeNewVideoBatch(videoModels []model.Video, jobId uuid.UU
 			}
 
 			assetPath := filepath.Join(jr.env.Assets, v.ID.String(), fmt.Sprintf(`%v.webp`, v.FileName))
-			thumbnailJob, err := CreateGenerateThumbnailJob(v.ID, jobId, assetPath, 0, height, width)
+			thumbnailJob, err := CreateGenerateThumbnailJob(v, jobId, assetPath, 0, height, width)
 			if err != nil {
 				return errs.BuildError(err, "could not create generate thumbnail job")
 			}
