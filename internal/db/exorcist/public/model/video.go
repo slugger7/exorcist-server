@@ -9,23 +9,12 @@ package model
 
 import (
 	"github.com/google/uuid"
-	"time"
 )
 
 type Video struct {
-	ID            uuid.UUID `sql:"primary_key"`
-	LibraryPathID uuid.UUID
-	RelativePath  string
-	Title         string
-	FileName      string
-	Height        int32
-	Width         int32
-	Runtime       float64
-	Size          int64
-	Checksum      *string
-	Added         time.Time
-	Deleted       bool
-	Exists        bool
-	Created       time.Time
-	Modified      time.Time
+	ID      uuid.UUID `sql:"primary_key"`
+	MediaID uuid.UUID
+	Height  int32
+	Width   int32
+	Runtime float64
 }

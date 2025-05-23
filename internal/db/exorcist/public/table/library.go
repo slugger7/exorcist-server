@@ -17,10 +17,11 @@ type libraryTable struct {
 	postgres.Table
 
 	// Columns
-	ID       postgres.ColumnString
-	Name     postgres.ColumnString
-	Created  postgres.ColumnTimestamp
-	Modified postgres.ColumnTimestamp
+	ID          postgres.ColumnString
+	Name        postgres.ColumnString
+	LibraryType postgres.ColumnString
+	Created     postgres.ColumnTimestamp
+	Modified    postgres.ColumnTimestamp
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -61,22 +62,24 @@ func newLibraryTable(schemaName, tableName, alias string) *LibraryTable {
 
 func newLibraryTableImpl(schemaName, tableName, alias string) libraryTable {
 	var (
-		IDColumn       = postgres.StringColumn("id")
-		NameColumn     = postgres.StringColumn("name")
-		CreatedColumn  = postgres.TimestampColumn("created")
-		ModifiedColumn = postgres.TimestampColumn("modified")
-		allColumns     = postgres.ColumnList{IDColumn, NameColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns = postgres.ColumnList{NameColumn, CreatedColumn, ModifiedColumn}
+		IDColumn          = postgres.StringColumn("id")
+		NameColumn        = postgres.StringColumn("name")
+		LibraryTypeColumn = postgres.StringColumn("library_type")
+		CreatedColumn     = postgres.TimestampColumn("created")
+		ModifiedColumn    = postgres.TimestampColumn("modified")
+		allColumns        = postgres.ColumnList{IDColumn, NameColumn, LibraryTypeColumn, CreatedColumn, ModifiedColumn}
+		mutableColumns    = postgres.ColumnList{NameColumn, LibraryTypeColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return libraryTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:       IDColumn,
-		Name:     NameColumn,
-		Created:  CreatedColumn,
-		Modified: ModifiedColumn,
+		ID:          IDColumn,
+		Name:        NameColumn,
+		LibraryType: LibraryTypeColumn,
+		Created:     CreatedColumn,
+		Modified:    ModifiedColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

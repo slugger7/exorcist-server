@@ -9,19 +9,19 @@ package model
 
 import "errors"
 
-type VideoImageTypeEnum string
+type VideoMediaTypeEnum string
 
 const (
-	VideoImageTypeEnum_Thumbnail VideoImageTypeEnum = "thumbnail"
-	VideoImageTypeEnum_Chapter   VideoImageTypeEnum = "chapter"
+	VideoMediaTypeEnum_Thumbnail VideoMediaTypeEnum = "thumbnail"
+	VideoMediaTypeEnum_Chapter   VideoMediaTypeEnum = "chapter"
 )
 
-var VideoImageTypeEnumAllValues = []VideoImageTypeEnum{
-	VideoImageTypeEnum_Thumbnail,
-	VideoImageTypeEnum_Chapter,
+var VideoMediaTypeEnumAllValues = []VideoMediaTypeEnum{
+	VideoMediaTypeEnum_Thumbnail,
+	VideoMediaTypeEnum_Chapter,
 }
 
-func (e *VideoImageTypeEnum) Scan(value interface{}) error {
+func (e *VideoMediaTypeEnum) Scan(value interface{}) error {
 	var enumValue string
 	switch val := value.(type) {
 	case string:
@@ -34,16 +34,16 @@ func (e *VideoImageTypeEnum) Scan(value interface{}) error {
 
 	switch enumValue {
 	case "thumbnail":
-		*e = VideoImageTypeEnum_Thumbnail
+		*e = VideoMediaTypeEnum_Thumbnail
 	case "chapter":
-		*e = VideoImageTypeEnum_Chapter
+		*e = VideoMediaTypeEnum_Chapter
 	default:
-		return errors.New("jet: Invalid scan value '" + enumValue + "' for VideoImageTypeEnum enum")
+		return errors.New("jet: Invalid scan value '" + enumValue + "' for VideoMediaTypeEnum enum")
 	}
 
 	return nil
 }
 
-func (e VideoImageTypeEnum) String() string {
+func (e VideoMediaTypeEnum) String() string {
 	return string(e)
 }

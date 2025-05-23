@@ -17,21 +17,11 @@ type videoTable struct {
 	postgres.Table
 
 	// Columns
-	ID            postgres.ColumnString
-	LibraryPathID postgres.ColumnString
-	RelativePath  postgres.ColumnString
-	Title         postgres.ColumnString
-	FileName      postgres.ColumnString
-	Height        postgres.ColumnInteger
-	Width         postgres.ColumnInteger
-	Runtime       postgres.ColumnFloat
-	Size          postgres.ColumnInteger
-	Checksum      postgres.ColumnString
-	Added         postgres.ColumnTimestamp
-	Deleted       postgres.ColumnBool
-	Exists        postgres.ColumnBool
-	Created       postgres.ColumnTimestamp
-	Modified      postgres.ColumnTimestamp
+	ID      postgres.ColumnString
+	MediaID postgres.ColumnString
+	Height  postgres.ColumnInteger
+	Width   postgres.ColumnInteger
+	Runtime postgres.ColumnFloat
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -72,44 +62,24 @@ func newVideoTable(schemaName, tableName, alias string) *VideoTable {
 
 func newVideoTableImpl(schemaName, tableName, alias string) videoTable {
 	var (
-		IDColumn            = postgres.StringColumn("id")
-		LibraryPathIDColumn = postgres.StringColumn("library_path_id")
-		RelativePathColumn  = postgres.StringColumn("relative_path")
-		TitleColumn         = postgres.StringColumn("title")
-		FileNameColumn      = postgres.StringColumn("file_name")
-		HeightColumn        = postgres.IntegerColumn("height")
-		WidthColumn         = postgres.IntegerColumn("width")
-		RuntimeColumn       = postgres.FloatColumn("runtime")
-		SizeColumn          = postgres.IntegerColumn("size")
-		ChecksumColumn      = postgres.StringColumn("checksum")
-		AddedColumn         = postgres.TimestampColumn("added")
-		DeletedColumn       = postgres.BoolColumn("deleted")
-		ExistsColumn        = postgres.BoolColumn("exists")
-		CreatedColumn       = postgres.TimestampColumn("created")
-		ModifiedColumn      = postgres.TimestampColumn("modified")
-		allColumns          = postgres.ColumnList{IDColumn, LibraryPathIDColumn, RelativePathColumn, TitleColumn, FileNameColumn, HeightColumn, WidthColumn, RuntimeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns      = postgres.ColumnList{LibraryPathIDColumn, RelativePathColumn, TitleColumn, FileNameColumn, HeightColumn, WidthColumn, RuntimeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
+		IDColumn       = postgres.StringColumn("id")
+		MediaIDColumn  = postgres.StringColumn("media_id")
+		HeightColumn   = postgres.IntegerColumn("height")
+		WidthColumn    = postgres.IntegerColumn("width")
+		RuntimeColumn  = postgres.FloatColumn("runtime")
+		allColumns     = postgres.ColumnList{IDColumn, MediaIDColumn, HeightColumn, WidthColumn, RuntimeColumn}
+		mutableColumns = postgres.ColumnList{MediaIDColumn, HeightColumn, WidthColumn, RuntimeColumn}
 	)
 
 	return videoTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:            IDColumn,
-		LibraryPathID: LibraryPathIDColumn,
-		RelativePath:  RelativePathColumn,
-		Title:         TitleColumn,
-		FileName:      FileNameColumn,
-		Height:        HeightColumn,
-		Width:         WidthColumn,
-		Runtime:       RuntimeColumn,
-		Size:          SizeColumn,
-		Checksum:      ChecksumColumn,
-		Added:         AddedColumn,
-		Deleted:       DeletedColumn,
-		Exists:        ExistsColumn,
-		Created:       CreatedColumn,
-		Modified:      ModifiedColumn,
+		ID:      IDColumn,
+		MediaID: MediaIDColumn,
+		Height:  HeightColumn,
+		Width:   WidthColumn,
+		Runtime: RuntimeColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

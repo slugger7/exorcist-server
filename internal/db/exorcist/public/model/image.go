@@ -9,14 +9,11 @@ package model
 
 import (
 	"github.com/google/uuid"
-	"time"
 )
 
 type Image struct {
-	ID            uuid.UUID `sql:"primary_key"`
-	LibraryPathID *uuid.UUID
-	Name          string
-	Path          string
-	Created       time.Time
-	Modified      time.Time
+	ID      uuid.UUID `sql:"primary_key"`
+	MediaID uuid.UUID
+	Height  int32
+	Width   int32
 }

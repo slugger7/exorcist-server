@@ -13,8 +13,9 @@ import (
 )
 
 type Library struct {
-	ID       uuid.UUID `sql:"primary_key"`
-	Name     string
-	Created  time.Time
-	Modified time.Time
+	ID          uuid.UUID `sql:"primary_key"`
+	Name        string
+	LibraryType LibraryTypeEnum
+	Created     time.Time
+	Modified    time.Time
 }
