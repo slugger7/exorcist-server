@@ -1,12 +1,11 @@
-alter table video_image drop constraint fk_video_image_video;
-alter table video_image drop constraint fk_video_image_image;
+alter table video_media drop constraint fk_video_media_video;
+alter table video_media drop constraint fk_video_media_media;
 
-drop table if exists video_image;
+drop table if exists video_media;
+drop type if exists video_media_type_enum;
 
 alter table image drop constraint fk_image_media;
 drop table if exists image;
-
-drop type if exists video_image_type_enum;
 
 alter table video drop constraint fk_video_media;
 drop table if exists video;
