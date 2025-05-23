@@ -101,23 +101,29 @@ func (i *VideoRepository) UpdateExists(v *model.Video) error {
 	return nil
 }
 
-func (ds *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
+func (r *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	if len(models) == 0 {
 		return nil, nil
 	}
 
-	var vids []struct{ model.Video }
+	statement := table.Video.INSERT(
+		table.Video.MediaID,
+		table.Video.Height,
+		table.Video.Width,
+		table.Video.Runtime,
+	).
+		MODELS(models).
+		RETURNING(table.Video.AllColumns)
 
-	if err := ds.insertStatement(models).Query(&vids); err != nil {
+	util.DebugCheck(r.Env, statement)
+
+	var vids []model.Video
+
+	if err := statement.Query(r.db, &vids); err != nil {
 		return nil, errs.BuildError(err, "could not insert video models to database")
 	}
 
-	var vidModels = []model.Video{}
-	for _, v := range vids {
-		vidModels = append(vidModels, v.Video)
-	}
-
-	return vidModels, nil
+	return vids, nil
 }
 
 func (ds *VideoRepository) GetById(id uuid.UUID) (*models.VideoOverviewModel, error) {

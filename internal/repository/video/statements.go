@@ -65,28 +65,6 @@ func (ds *VideoRepository) getByLibraryPathIdStatement(libraryPathId uuid.UUID) 
 	return &VideoStatement{statement, ds.db, ds.ctx}
 }
 
-func (ds *VideoRepository) insertStatement(videos []model.Video) *VideoStatement {
-	if len(videos) == 0 {
-		return nil
-	}
-	statement := table.Video.INSERT(
-		table.Video.LibraryPathID,
-		table.Video.RelativePath,
-		table.Video.Title,
-		table.Video.FileName,
-		table.Video.Height,
-		table.Video.Width,
-		table.Video.Runtime,
-		table.Video.Size,
-	).
-		MODELS(videos).
-		RETURNING(table.Video.AllColumns)
-
-	util.DebugCheck(ds.Env, statement)
-
-	return &VideoStatement{statement, ds.db, ds.ctx}
-}
-
 func (ds *VideoRepository) getByIdWithLibraryPathStatement(id uuid.UUID) *VideoStatement {
 	statement := table.Video.SELECT(table.Video.AllColumns, table.LibraryPath.AllColumns).
 		FROM(table.Video.INNER_JOIN(table.LibraryPath, table.Video.LibraryPathID.EQ(table.LibraryPath.ID))).
