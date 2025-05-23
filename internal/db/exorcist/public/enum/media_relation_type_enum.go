@@ -9,10 +9,12 @@ package enum
 
 import "github.com/go-jet/jet/v2/postgres"
 
-var VideoMediaTypeEnum = &struct {
+var MediaRelationTypeEnum = &struct {
 	Thumbnail postgres.StringExpression
 	Chapter   postgres.StringExpression
+	Media     postgres.StringExpression
 }{
 	Thumbnail: postgres.NewEnumValue("thumbnail"),
 	Chapter:   postgres.NewEnumValue("chapter"),
+	Media:     postgres.NewEnumValue("media"),
 }

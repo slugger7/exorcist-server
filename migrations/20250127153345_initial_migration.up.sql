@@ -70,23 +70,23 @@ begin;
       on delete cascade
   );
 
-  create type video_media_type_enum as enum
-  ('thumbnail', 'chapter');
+  create type media_relation_type_enum as enum
+  ('thumbnail', 'chapter', 'media');
 
-  create table video_media
+  create table media_relation
   (
     id uuid primary key default gen_random_uuid(),
-    video_id uuid not null,
     media_id uuid not null,
-    video_media_type video_media_type_enum not null,
+    related_to uuid not null, 
+    relation_type media_relation_type_enum not null,
     created timestamp default current_timestamp not null,
     modified timestamp default current_timestamp not null,
-    constraint fk_video_media_video 
-      foreign key(video_id) 
-      references "video"(id) 
-      on delete cascade,
-    constraint fk_video_media_media 
+    constraint fk_media_relation_media 
       foreign key(media_id) 
+      references "media"(id) 
+      on delete cascade,
+    constraint fk_media_relation_related_to 
+      foreign key(related_to) 
       references "media"(id) 
       on delete cascade
   );

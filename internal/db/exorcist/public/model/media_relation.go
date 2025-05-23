@@ -12,11 +12,11 @@ import (
 	"time"
 )
 
-type VideoMedia struct {
-	ID             uuid.UUID `sql:"primary_key"`
-	VideoID        uuid.UUID
-	MediaID        uuid.UUID
-	VideoMediaType VideoMediaTypeEnum
-	Created        time.Time
-	Modified       time.Time
+type MediaRelation struct {
+	ID           uuid.UUID `sql:"primary_key"`
+	MediaID      uuid.UUID
+	RelatedTo    uuid.UUID
+	RelationType MediaRelationTypeEnum
+	Created      time.Time
+	Modified     time.Time
 }

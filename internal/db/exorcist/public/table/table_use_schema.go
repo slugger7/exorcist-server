@@ -15,8 +15,8 @@ func UseSchema(schema string) {
 	Library = Library.FromSchema(schema)
 	LibraryPath = LibraryPath.FromSchema(schema)
 	Media = Media.FromSchema(schema)
+	MediaRelation = MediaRelation.FromSchema(schema)
 	SchemaMigrations = SchemaMigrations.FromSchema(schema)
 	User = User.FromSchema(schema)
 	Video = Video.FromSchema(schema)
-	VideoMedia = VideoMedia.FromSchema(schema)
 }
