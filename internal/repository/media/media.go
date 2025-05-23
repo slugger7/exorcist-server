@@ -9,6 +9,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
 type IMediaRepository interface {
@@ -24,7 +25,7 @@ type MediaRepository struct {
 
 var mediaRepositoryInstance *MediaRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IVideoRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IMediaRepository {
 	if mediaRepositoryInstance != nil {
 		return mediaRepositoryInstance
 	}
@@ -40,6 +41,9 @@ func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Cont
 }
 
 func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
+	if len(ms) == 0 {
+		return nil, nil
+	}
 	media := table.Media
 
 	statement := media.INSERT(
@@ -51,6 +55,8 @@ func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
 	).
 		MODELS(ms).
 		RETURNING(media.AllColumns)
+
+	util.DebugCheck(r.Env, statement)
 
 	models := []model.Media{}
 
