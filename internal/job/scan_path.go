@@ -39,10 +39,18 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 
 	libPath, err := jr.repo.LibraryPath().GetById(data.LibraryPathId)
 	if err != nil {
-		return errs.BuildError(err, "could not get library by id: %v", data.LibraryPathId)
+		return errs.BuildError(err, "could not get library path by id: %v", data.LibraryPathId)
 	}
 	if libPath == nil {
 		return fmt.Errorf("library path not found: %v", data.LibraryPathId)
+	}
+
+	lib, err := jr.repo.Library().GetById(libPath.LibraryID)
+	if err != nil {
+		return errs.BuildError(err, "could not get library by id: %v", libPath.LibraryID)
+	}
+	if lib == nil {
+		return fmt.Errorf("library not found: %v", libPath.LibraryID)
 	}
 
 	mediaChan := make(chan []media.File)
@@ -67,7 +75,7 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		}
 
 		accErrs := []error{}
-		videoModels := []model.Video{}
+		videoModels := []model.Media{}
 		for i, v := range videosOnDisk {
 			select {
 			case <-jr.shutdownCtx.Done():
