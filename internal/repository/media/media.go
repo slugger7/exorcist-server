@@ -3,7 +3,9 @@ package media
 import (
 	"context"
 	"database/sql"
+	"time"
 
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
@@ -14,6 +16,7 @@ import (
 
 type IMediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
+	UpdateExists(model.Media) error
 }
 
 type MediaRepository struct {
@@ -65,4 +68,43 @@ func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
 	}
 
 	return models, nil
+}
+
+func (r *MediaRepository) UpdateExists(m model.Media) error {
+	m.Modified = time.Now()
+
+	statement := table.Video.UPDATE().
+		SET(
+			table.Media.Exists.SET(postgres.Bool(m.Exists)),
+			table.Media.Modified.SET(postgres.TimestampT(m.Modified)),
+		).
+		MODEL(m).
+		WHERE(table.Video.ID.EQ(postgres.UUID(m.ID)))
+
+	util.DebugCheck(r.Env, statement)
+
+	if _, err := statement.Exec(r.db); err != nil {
+		return errs.BuildError(err, "could not update media exists: %v", m.ID)
+	}
+
+	return nil
+}
+
+func (r *MediaRepository) UpdateChecksum(m model.Media) error {
+	m.Modified = time.Now()
+	statement := table.Video.UPDATE().
+		SET(
+			table.Media.Checksum.SET(postgres.String(*m.Checksum)),
+			table.Media.Modified.SET(postgres.TimestampT(m.Modified)),
+		).
+		MODEL(m).
+		WHERE(table.Video.ID.EQ(postgres.UUID(m.ID)))
+
+	util.DebugCheck(r.Env, statement)
+
+	if _, err := statement.Exec(r.db); err != nil {
+		return errs.BuildError(err, "could not update checksum for video: %v", m.ID)
+	}
+
+	return nil
 }

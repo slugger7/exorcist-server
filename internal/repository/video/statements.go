@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
-	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
@@ -23,34 +22,6 @@ func (vs *VideoStatement) Query(destination interface{}) error {
 
 func (vs *VideoStatement) Exec() (sql.Result, error) {
 	return vs.Statement.ExecContext(vs.ctx, vs.db)
-}
-
-func (ds *VideoRepository) updateChecksumStatement(video model.Video) *VideoStatement {
-	statement := table.Video.UPDATE().
-		SET(
-			table.Video.Checksum.SET(postgres.String(*video.Checksum)),
-			table.Video.Modified.SET(postgres.TimestampT(video.Modified)),
-		).
-		MODEL(video).
-		WHERE(table.Video.ID.EQ(postgres.UUID(video.ID)))
-
-	util.DebugCheck(ds.Env, statement)
-
-	return &VideoStatement{statement, ds.db, ds.ctx}
-}
-
-func (ds *VideoRepository) updateVideoExistsStatement(video model.Video) *VideoStatement {
-	statement := table.Video.UPDATE().
-		SET(
-			table.Video.Exists.SET(postgres.Bool(video.Exists)),
-			table.Video.Modified.SET(postgres.TimestampT(video.Modified)),
-		).
-		MODEL(video).
-		WHERE(table.Video.ID.EQ(postgres.UUID(video.ID)))
-
-	util.DebugCheck(ds.Env, statement)
-
-	return &VideoStatement{statement, ds.db, ds.ctx}
 }
 
 func (ds *VideoRepository) getByLibraryPathIdStatement(libraryPathId uuid.UUID) *VideoStatement {

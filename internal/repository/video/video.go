@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
@@ -28,8 +27,6 @@ type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
 	GetById(id uuid.UUID) (*models.VideoOverviewModel, error)
-	UpdateExists(video *model.Video) error
-	UpdateChecksum(video *model.Video) error
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
 	GetOverview(models.VideoSearchDTO) (*models.Page[models.VideoOverviewModel], error)
@@ -90,15 +87,6 @@ func (ds *VideoRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Video, erro
 	}
 
 	return vidModels, nil
-}
-
-func (i *VideoRepository) UpdateExists(v *model.Video) error {
-	v.Modified = time.Now()
-	_, err := i.updateVideoExistsStatement(*v).Exec()
-	if err != nil {
-		return errs.BuildError(err, "could not update video exists: %v", v.ID)
-	}
-	return nil
 }
 
 func (r *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
@@ -171,15 +159,6 @@ func (ds *VideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPa
 	}
 
 	return &result, nil
-}
-
-func (ds *VideoRepository) UpdateChecksum(video *model.Video) error {
-	video.Modified = time.Now()
-	if _, err := ds.updateChecksumStatement(*video).Exec(); err != nil {
-		return errs.BuildError(err, "error updating video (%v) checksum %v", video.ID, video.Checksum)
-	}
-
-	return nil
 }
 
 func (ds *VideoRepository) GetOverview(search models.VideoSearchDTO) (*models.Page[models.VideoOverviewModel], error) {
