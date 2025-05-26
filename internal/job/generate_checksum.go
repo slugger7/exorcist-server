@@ -2,7 +2,6 @@ package job
 
 import (
 	"encoding/json"
-	"path/filepath"
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -12,16 +11,16 @@ import (
 )
 
 type GenerateChecksumData struct {
-	VideoId uuid.UUID `json:"videoId"`
+	MediaId uuid.UUID `json:"mediaId"`
 }
 
-func CreateGenerateChecksumJob(videoId, jobId uuid.UUID) (*model.Job, error) {
+func CreateGenerateChecksumJob(mediaId, jobId uuid.UUID) (*model.Job, error) {
 	d := GenerateChecksumData{
-		VideoId: videoId,
+		MediaId: mediaId,
 	}
 	js, err := json.Marshal(d)
 	if err != nil {
-		return nil, errs.BuildError(err, "could not marshal generate checksum data for: %v", videoId)
+		return nil, errs.BuildError(err, "could not marshal generate checksum data for: %v", mediaId)
 	}
 	data := string(js)
 	job := model.Job{
@@ -41,22 +40,21 @@ func (jr *JobRunner) GenerateChecksum(job *model.Job) error {
 		return errs.BuildError(err, "error parsing job data: %v", job.Data)
 	}
 
-	video, err := jr.repo.Video().GetByIdWithLibraryPath(jobData.VideoId)
+	jobMedia, err := jr.repo.Media().GetById(jobData.MediaId)
 	if err != nil {
-		return errs.BuildError(err, "error fetching video with library path by id: %v", jobData.VideoId)
+		return errs.BuildError(err, "error fetching video with library path by id: %v", jobData.MediaId)
 	}
 
-	absolutePath := filepath.Join(video.LibraryPath.Path, video.RelativePath)
-	jr.logger.Infof("Calculating checksum for %v", absolutePath)
+	jr.logger.Infof("Calculating checksum for %v", jobMedia.Path)
 
-	checksum, err := media.CalculateMD5(absolutePath)
+	checksum, err := media.CalculateMD5(jobMedia.Path)
 	if err != nil {
-		return errs.BuildError(err, "error calculating md5sum for %v", absolutePath)
+		return errs.BuildError(err, "error calculating md5sum for %v", jobMedia.Path)
 	}
 
-	video.Video.Checksum = &checksum
+	jobMedia.Checksum = &checksum
 
-	if err := jr.repo.Video().UpdateChecksum(&video.Video); err != nil {
+	if err := jr.repo.Media().UpdateChecksum(*jobMedia); err != nil {
 		return errs.BuildError(err, "error updating video checksum")
 	}
 

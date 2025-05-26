@@ -19,11 +19,15 @@ import (
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
+var media = table.Media
+
 type IMediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
+	UpdateChecksum(m model.Media) error
 	GetAll(models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
+	GetById(id uuid.UUID) (*model.Media, error)
 }
 
 type MediaRepository struct {
@@ -54,7 +58,6 @@ func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
 	if len(ms) == 0 {
 		return nil, nil
 	}
-	media := table.Media
 
 	statement := media.INSERT(
 		media.LibraryPathID,
@@ -80,13 +83,13 @@ func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
 func (r *MediaRepository) UpdateExists(m model.Media) error {
 	m.Modified = time.Now()
 
-	statement := table.Video.UPDATE().
+	statement := media.UPDATE().
 		SET(
-			table.Media.Exists.SET(postgres.Bool(m.Exists)),
-			table.Media.Modified.SET(postgres.TimestampT(m.Modified)),
+			media.Exists.SET(postgres.Bool(m.Exists)),
+			media.Modified.SET(postgres.TimestampT(m.Modified)),
 		).
 		MODEL(m).
-		WHERE(table.Video.ID.EQ(postgres.UUID(m.ID)))
+		WHERE(media.ID.EQ(postgres.UUID(m.ID)))
 
 	util.DebugCheck(r.Env, statement)
 
@@ -99,13 +102,13 @@ func (r *MediaRepository) UpdateExists(m model.Media) error {
 
 func (r *MediaRepository) UpdateChecksum(m model.Media) error {
 	m.Modified = time.Now()
-	statement := table.Video.UPDATE().
+	statement := media.UPDATE().
 		SET(
-			table.Media.Checksum.SET(postgres.String(*m.Checksum)),
-			table.Media.Modified.SET(postgres.TimestampT(m.Modified)),
+			media.Checksum.SET(postgres.String(*m.Checksum)),
+			media.Modified.SET(postgres.TimestampT(m.Modified)),
 		).
 		MODEL(m).
-		WHERE(table.Video.ID.EQ(postgres.UUID(m.ID)))
+		WHERE(media.ID.EQ(postgres.UUID(m.ID)))
 
 	util.DebugCheck(r.Env, statement)
 
@@ -117,7 +120,6 @@ func (r *MediaRepository) UpdateChecksum(m model.Media) error {
 }
 
 func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error) {
-	media := table.Media
 	mediaRelation := table.MediaRelation
 	thumbnail := table.Media.AS("thumbnail")
 	image := table.Image
@@ -182,7 +184,6 @@ func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[mod
 }
 
 func (r *MediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
-	media := table.Media
 	statement := media.SELECT(media.Path, media.ID).
 		FROM(media).
 		WHERE(media.LibraryPathID.EQ(postgres.UUID(id)).
@@ -196,4 +197,20 @@ func (r *MediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error
 	}
 
 	return results, nil
+}
+
+func (r *MediaRepository) GetById(id uuid.UUID) (*model.Media, error) {
+	statement := media.SELECT(media.AllColumns).
+		FROM(media).
+		WHERE(media.ID.EQ(postgres.UUID(id))).
+		LIMIT(1)
+
+	util.DebugCheck(r.Env, statement)
+
+	var result model.Media
+	if err := statement.QueryContext(r.ctx, r.db, &result); err != nil {
+		return nil, errs.BuildError(err, "could not get media by id: %v", id)
+	}
+
+	return &result, nil
 }
