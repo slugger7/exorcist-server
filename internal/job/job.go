@@ -67,30 +67,30 @@ func (jr *JobRunner) wsJobUpdate(job model.Job) {
 	jobUpdate.SendToAll(jr.wss)
 }
 
-func (jr *JobRunner) wsVideoUpdate(video models.VideoOverviewDTO) {
+func (jr *JobRunner) wsVideoUpdate(video models.MediaOverviewDTO) {
 	jr.logger.Debug("ws - updating video")
 
-	videoUpdate := models.WSMessage[models.VideoOverviewDTO]{
+	videoUpdate := models.WSMessage[models.MediaOverviewDTO]{
 		Topic: models.WSTopic_VideoUpdate,
 		Data:  video,
 	}
 	videoUpdate.SendToAll(jr.wss)
 }
 
-func (jr *JobRunner) wsVideoDelete(video models.VideoOverviewDTO) {
+func (jr *JobRunner) wsVideoDelete(video models.MediaOverviewDTO) {
 	jr.logger.Debug("ws - deleting video")
 
-	videoDelete := models.WSMessage[models.VideoOverviewDTO]{
+	videoDelete := models.WSMessage[models.MediaOverviewDTO]{
 		Topic: models.WSTopic_VideoDelete,
 		Data:  video,
 	}
 	videoDelete.SendToAll(jr.wss)
 }
 
-func (jr *JobRunner) wsVideoCreate(video models.VideoOverviewDTO) {
+func (jr *JobRunner) wsVideoCreate(video models.MediaOverviewDTO) {
 	jr.logger.Debug("ws - creating video")
 
-	videoDelete := models.WSMessage[models.VideoOverviewDTO]{
+	videoDelete := models.WSMessage[models.MediaOverviewDTO]{
 		Topic: models.WSTopic_VideoCreate,
 		Data:  video,
 	}

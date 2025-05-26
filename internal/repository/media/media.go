@@ -3,6 +3,8 @@ package media
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -11,12 +13,15 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/repository/helpers"
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
 type IMediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
+	GetAll(models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error)
 }
 
 type MediaRepository struct {
@@ -107,4 +112,69 @@ func (r *MediaRepository) UpdateChecksum(m model.Media) error {
 	}
 
 	return nil
+}
+
+func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error) {
+	media := table.Media
+	mediaRelation := table.MediaRelation
+	thumbnail := table.Media.AS("thumbnail")
+	image := table.Image
+	selectStatement := media.SELECT(
+		media.ID,
+		media.Title,
+		media.MediaType,
+		thumbnail.ID,
+	).
+		FROM(
+			media.LEFT_JOIN(
+				mediaRelation, media.ID.EQ(mediaRelation.MediaID).
+					AND(mediaRelation.RelationType.EQ(postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String()))),
+			).LEFT_JOIN(
+				thumbnail,
+				thumbnail.ID.EQ(mediaRelation.RelatedTo),
+			).LEFT_JOIN(
+				image,
+				image.MediaID.EQ(thumbnail.ID),
+			)).
+		LIMIT(int64(search.Limit)).
+		OFFSET(int64(search.Skip))
+
+	selectStatement = helpers.OrderByDirectionColumn(search.Asc, search.OrderBy.ToColumn(), selectStatement)
+	countStatement := media.SELECT(postgres.COUNT(media.ID).AS("total")).FROM(media)
+
+	if search.Search != "" {
+		caseInsensitive := strings.ToLower(search.Search)
+		likeExpression := fmt.Sprintf("%%%v%%", caseInsensitive)
+		query := media.Deleted.IS_FALSE().
+			AND(media.Exists.IS_TRUE()).
+			AND(
+				postgres.LOWER(media.Title).LIKE(postgres.String(likeExpression)).
+					OR(postgres.LOWER(media.Path).LIKE(postgres.String(likeExpression))),
+			)
+
+		selectStatement = selectStatement.WHERE(query)
+		countStatement = countStatement.WHERE(query)
+	}
+
+	util.DebugCheck(r.Env, countStatement)
+	util.DebugCheck(r.Env, selectStatement)
+
+	var total struct {
+		Total int
+	}
+	if err := countStatement.QueryContext(r.ctx, r.db, &total); err != nil {
+		return nil, errs.BuildError(err, "could not query media for total")
+	}
+
+	var mediaResult []models.MediaOverviewModel
+	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
+		return nil, errs.BuildError(err, "could not query media")
+	}
+
+	return &models.Page[models.MediaOverviewModel]{
+		Data:  mediaResult,
+		Limit: search.Limit,
+		Skip:  search.Skip,
+		Total: total.Total,
+	}, nil
 }

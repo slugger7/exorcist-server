@@ -3,18 +3,13 @@ package videoRepository
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"strings"
 
-	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
-	"github.com/slugger7/exorcist/internal/models"
-	"github.com/slugger7/exorcist/internal/repository/helpers"
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
@@ -26,10 +21,8 @@ type VideoLibraryPathModel struct {
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
-	GetById(id uuid.UUID) (*models.VideoOverviewModel, error)
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
-	GetOverview(models.VideoSearchDTO) (*models.Page[models.VideoOverviewModel], error)
 }
 
 type VideoRepository struct {
@@ -114,41 +107,6 @@ func (r *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	return vids, nil
 }
 
-func (ds *VideoRepository) GetById(id uuid.UUID) (*models.VideoOverviewModel, error) {
-	var vid models.VideoOverviewModel
-
-	statement := table.Video.SELECT(
-		table.Video.ID,
-		table.Media.Path,
-		table.Media.Title,
-		table.Image.ID,
-		table.MediaRelation.RelationType).
-		FROM(table.Video.
-			INNER_JOIN(
-				table.Media,
-				table.Video.MediaID.EQ(table.Media.ID)).
-			LEFT_JOIN(
-				table.MediaRelation,
-				table.MediaRelation.RelationType.EQ(postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String())).
-					AND(
-						table.Media.ID.EQ(table.MediaRelation.MediaID).
-							OR(table.Media.ID.EQ(table.MediaRelation.RelatedTo)),
-					)).
-			LEFT_JOIN(
-				table.Image,
-				table.Image.MediaID.EQ(table.MediaRelation.MediaID).
-					OR(table.Image.MediaID.EQ(table.MediaRelation.RelatedTo)),
-			)).
-		WHERE(table.Video.ID.EQ(postgres.UUID(id))).
-		LIMIT(1)
-
-	if err := statement.QueryContext(ds.ctx, ds.db, &vid); err != nil {
-		return nil, errs.BuildError(err, "error getting video from db for id %v", id)
-	}
-
-	return &vid, nil
-}
-
 func (ds *VideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error) {
 	var results []VideoLibraryPathModel
 	if err := ds.getByIdWithLibraryPathStatement(id).Query(&results); err != nil {
@@ -161,63 +119,4 @@ func (ds *VideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPa
 	}
 
 	return &result, nil
-}
-
-func (ds *VideoRepository) GetOverview(search models.VideoSearchDTO) (*models.Page[models.VideoOverviewModel], error) {
-	selectStatement := table.Video.SELECT(
-		table.Video.ID,
-		table.Video.RelativePath,
-		table.Video.Title,
-		table.Image.ID,
-		table.VideoImage.VideoImageType,
-		table.Video.Deleted,
-	).
-		FROM(table.Video.
-			LEFT_JOIN(
-				table.VideoImage,
-				table.Video.ID.EQ(table.VideoImage.VideoID).
-					AND(table.VideoImage.VideoImageType.EQ(
-						postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
-			LEFT_JOIN(
-				table.Image,
-				table.Image.ID.EQ(table.VideoImage.ImageID),
-			)).
-		LIMIT(int64(search.Limit)).
-		OFFSET(int64(search.Skip))
-
-	selectStatement = helpers.OrderByDirectionColumn(search.Asc, search.OrderBy.ToColumn(), selectStatement)
-
-	countStatement := table.Video.SELECT(postgres.COUNT(table.Video.ID).AS("total")).FROM(table.Video)
-
-	if search.Search != "" {
-		caseInsensitive := strings.ToLower(search.Search)
-		likeExpression := fmt.Sprintf("%%%v%%", caseInsensitive)
-		query := postgres.LOWER(table.Video.Title).LIKE(postgres.String(likeExpression)).
-			OR(postgres.LOWER(table.Video.RelativePath).LIKE(postgres.String(likeExpression)))
-
-		selectStatement = selectStatement.WHERE(query)
-		countStatement = countStatement.WHERE(query)
-	}
-
-	util.DebugCheck(ds.Env, countStatement)
-	util.DebugCheck(ds.Env, selectStatement)
-
-	var vids []models.VideoOverviewModel
-
-	if err := selectStatement.QueryContext(ds.ctx, ds.db, &vids); err != nil {
-		return nil, errs.BuildError(err, "could not query videos for overview")
-	}
-
-	var res struct {
-		Total int
-	}
-	if err := countStatement.QueryContext(ds.ctx, ds.db, &res); err != nil {
-		return nil, errs.BuildError(err, "could not query videos for overview total")
-	}
-	return &models.Page[models.VideoOverviewModel]{
-		Data:  vids,
-		Limit: search.Limit,
-		Skip:  search.Skip,
-		Total: res.Total,
-	}, nil
 }
