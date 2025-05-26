@@ -16,7 +16,6 @@ type Media struct {
 	ID            uuid.UUID `sql:"primary_key"`
 	LibraryPathID uuid.UUID
 	Path          string
-	FileName      string
 	Title         string
 	MediaType     MediaTypeEnum
 	Size          int64

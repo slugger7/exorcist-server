@@ -29,7 +29,6 @@ begin;
     id uuid primary key default gen_random_uuid(),
     library_path_id uuid not null,
     path varchar not null,
-    file_name varchar not null,
     title varchar not null,
     media_type media_type_enum default 'primary' not null,
     size bigint not null,

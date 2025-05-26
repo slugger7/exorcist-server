@@ -20,7 +20,6 @@ type mediaTable struct {
 	ID            postgres.ColumnString
 	LibraryPathID postgres.ColumnString
 	Path          postgres.ColumnString
-	FileName      postgres.ColumnString
 	Title         postgres.ColumnString
 	MediaType     postgres.ColumnString
 	Size          postgres.ColumnInteger
@@ -73,7 +72,6 @@ func newMediaTableImpl(schemaName, tableName, alias string) mediaTable {
 		IDColumn            = postgres.StringColumn("id")
 		LibraryPathIDColumn = postgres.StringColumn("library_path_id")
 		PathColumn          = postgres.StringColumn("path")
-		FileNameColumn      = postgres.StringColumn("file_name")
 		TitleColumn         = postgres.StringColumn("title")
 		MediaTypeColumn     = postgres.StringColumn("media_type")
 		SizeColumn          = postgres.IntegerColumn("size")
@@ -83,8 +81,8 @@ func newMediaTableImpl(schemaName, tableName, alias string) mediaTable {
 		ExistsColumn        = postgres.BoolColumn("exists")
 		CreatedColumn       = postgres.TimestampColumn("created")
 		ModifiedColumn      = postgres.TimestampColumn("modified")
-		allColumns          = postgres.ColumnList{IDColumn, LibraryPathIDColumn, PathColumn, FileNameColumn, TitleColumn, MediaTypeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns      = postgres.ColumnList{LibraryPathIDColumn, PathColumn, FileNameColumn, TitleColumn, MediaTypeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
+		allColumns          = postgres.ColumnList{IDColumn, LibraryPathIDColumn, PathColumn, TitleColumn, MediaTypeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
+		mutableColumns      = postgres.ColumnList{LibraryPathIDColumn, PathColumn, TitleColumn, MediaTypeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return mediaTable{
@@ -94,7 +92,6 @@ func newMediaTableImpl(schemaName, tableName, alias string) mediaTable {
 		ID:            IDColumn,
 		LibraryPathID: LibraryPathIDColumn,
 		Path:          PathColumn,
-		FileName:      FileNameColumn,
 		Title:         TitleColumn,
 		MediaType:     MediaTypeColumn,
 		Size:          SizeColumn,
