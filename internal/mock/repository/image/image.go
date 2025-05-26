@@ -14,6 +14,7 @@ import (
 
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	imageRepository "github.com/slugger7/exorcist/internal/repository/image"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -57,10 +58,10 @@ func (mr *MockIImageRepositoryMockRecorder) Create(m any) *gomock.Call {
 }
 
 // GetById mocks base method.
-func (m *MockIImageRepository) GetById(arg0 uuid.UUID) (*model.Image, error) {
+func (m *MockIImageRepository) GetById(arg0 uuid.UUID) (*imageRepository.MediaImage, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", arg0)
-	ret0, _ := ret[0].(*model.Image)
+	ret0, _ := ret[0].(*imageRepository.MediaImage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -71,17 +72,17 @@ func (mr *MockIImageRepositoryMockRecorder) GetById(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockIImageRepository)(nil).GetById), arg0)
 }
 
-// RelateVideo mocks base method.
-func (m_2 *MockIImageRepository) RelateVideo(m *model.VideoImage) (*model.VideoImage, error) {
-	m_2.ctrl.T.Helper()
-	ret := m_2.ctrl.Call(m_2, "RelateVideo", m)
-	ret0, _ := ret[0].(*model.VideoImage)
+// GetByMediaId mocks base method.
+func (m *MockIImageRepository) GetByMediaId(arg0 uuid.UUID) (*imageRepository.MediaImage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByMediaId", arg0)
+	ret0, _ := ret[0].(*imageRepository.MediaImage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RelateVideo indicates an expected call of RelateVideo.
-func (mr *MockIImageRepositoryMockRecorder) RelateVideo(m any) *gomock.Call {
+// GetByMediaId indicates an expected call of GetByMediaId.
+func (mr *MockIImageRepositoryMockRecorder) GetByMediaId(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RelateVideo", reflect.TypeOf((*MockIImageRepository)(nil).RelateVideo), m)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMediaId", reflect.TypeOf((*MockIImageRepository)(nil).GetByMediaId), arg0)
 }

@@ -54,10 +54,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 		withLibraryPathGetAll(authenticated, libraryPath).
 		withLibraryPathGet(authenticated, libraryPath)
 
-	// Register video controller routes
-	s.withVideoGet(authenticated, videos).
-		withVideoGetById(authenticated, videos)
-
 	// Register media controller routes
 	s.withMediaVideo(authenticated, media).
 		withMediaImage(authenticated, media)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
@@ -27,6 +28,7 @@ type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, error)
+	GetByMediaId(id uuid.UUID) (*MediaVideoModel, error)
 }
 
 type VideoRepository struct {
@@ -34,6 +36,26 @@ type VideoRepository struct {
 	Env    *environment.EnvironmentVariables
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// GetByMediaId implements IVideoRepository.
+func (vr *VideoRepository) GetByMediaId(id uuid.UUID) (*MediaVideoModel, error) {
+	video := table.Video
+	media := table.Media
+
+	statement := video.SELECT(video.AllColumns, media.AllColumns).
+		FROM(video.INNER_JOIN(media, video.MediaID.EQ(media.ID))).
+		LIMIT(1)
+
+	util.DebugCheck(vr.Env, statement)
+
+	var result MediaVideoModel
+
+	if err := statement.QueryContext(vr.ctx, vr.db, &result); err != nil {
+		return nil, errs.BuildError(err, "could not get video by media id: %v", id)
+	}
+
+	return &result, nil
 }
 
 var videoRepoInstance *VideoRepository
@@ -102,6 +124,7 @@ func (r *VideoRepository) GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, erro
 	media := table.Media
 	statement := video.SELECT(video.AllColumns, media.AllColumns).
 		FROM(video.INNER_JOIN(video, video.MediaID.EQ(media.ID))).
+		WHERE(video.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
 
 	util.DebugCheck(r.Env, statement)

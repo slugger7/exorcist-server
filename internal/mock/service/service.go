@@ -12,12 +12,10 @@ package mock_service
 import (
 	reflect "reflect"
 
-	imageService "github.com/slugger7/exorcist/internal/service/image"
 	jobService "github.com/slugger7/exorcist/internal/service/job"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
 	userService "github.com/slugger7/exorcist/internal/service/user"
-	videoService "github.com/slugger7/exorcist/internal/service/video"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -43,20 +41,6 @@ func NewMockIService(ctrl *gomock.Controller) *MockIService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIService) EXPECT() *MockIServiceMockRecorder {
 	return m.recorder
-}
-
-// Image mocks base method.
-func (m *MockIService) Image() imageService.IImageService {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Image")
-	ret0, _ := ret[0].(imageService.IImageService)
-	return ret0
-}
-
-// Image indicates an expected call of Image.
-func (mr *MockIServiceMockRecorder) Image() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Image", reflect.TypeOf((*MockIService)(nil).Image))
 }
 
 // Job mocks base method.
@@ -113,18 +97,4 @@ func (m *MockIService) User() userService.IUserService {
 func (mr *MockIServiceMockRecorder) User() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockIService)(nil).User))
-}
-
-// Video mocks base method.
-func (m *MockIService) Video() videoService.IVideoService {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Video")
-	ret0, _ := ret[0].(videoService.IVideoService)
-	return ret0
-}
-
-// Video indicates an expected call of Video.
-func (mr *MockIServiceMockRecorder) Video() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Video", reflect.TypeOf((*MockIService)(nil).Video))
 }

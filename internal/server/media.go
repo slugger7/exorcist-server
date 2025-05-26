@@ -8,6 +8,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const ErrInvalidIdFormat = "invalid id format"
+const ErrGetVideoService = "could not get video"
+const ErrVideoNotFound = "video not found"
+
 func (s *Server) withMediaVideo(r *gin.RouterGroup, route Route) *Server {
 	r.GET(fmt.Sprintf("%v/video/:id", route), s.getVideoStream)
 	return s
@@ -28,20 +32,19 @@ func (s *Server) getVideoStream(c *gin.Context) {
 		return
 	}
 
-	vid, err := s.service.Video().GetByIdWithLibraryPath(id)
+	med, err := s.repo.Video().GetByMediaId(id)
 	if err != nil {
 		s.logger.Errorf("Error getting video absolute path by id: %v", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrGetVideoService})
 		return
 	}
 
-	if vid == nil {
+	if med == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": ErrVideoNotFound})
 		return
 	}
 
-	absolutePath := fmt.Sprintf("%v%v", vid.LibraryPath.Path, vid.Video.RelativePath)
-	c.File(absolutePath)
+	c.File(med.Path)
 }
 
 const (
@@ -59,7 +62,7 @@ func (s *Server) getMediaImage(c *gin.Context) {
 		return
 	}
 
-	img, err := s.service.Image().GetById(id)
+	img, err := s.repo.Image().GetByMediaId(id)
 	if err != nil {
 		s.logger.Errorf("Error getting image by id: %v", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrGetImageService})

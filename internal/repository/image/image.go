@@ -21,6 +21,7 @@ type MediaImage struct {
 type IImageRepository interface {
 	Create(m *model.Image) (*model.Image, error)
 	GetById(uuid.UUID) (*MediaImage, error)
+	GetByMediaId(uuid.UUID) (*MediaImage, error)
 }
 
 type ImageRepository struct {
@@ -29,16 +30,42 @@ type ImageRepository struct {
 	ctx context.Context
 }
 
+// GetByMediaId implements IImageRepository.
+func (i *ImageRepository) GetByMediaId(id uuid.UUID) (*MediaImage, error) {
+	media := table.Media
+	image := table.Image
+
+	statement := image.SELECT(image.AllColumns, media.AllColumns).
+		FROM(image.INNER_JOIN(
+			media,
+			image.MediaID.EQ(media.ID),
+		)).
+		WHERE(media.ID.EQ(postgres.UUID(id))).
+		LIMIT(1)
+
+	util.DebugCheck(i.Env, statement)
+
+	var result MediaImage
+	if err := statement.QueryContext(i.ctx, i.db, &result); err != nil {
+		return nil, errs.BuildError(err, "could not get image by media id: %v", id)
+	}
+
+	return &result, nil
+}
+
 var imageRepoInstance *ImageRepository
 
 func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IImageRepository {
-	if imageRepoInstance == nil {
-		imageRepoInstance = &ImageRepository{
-			db:  db,
-			Env: env,
-			ctx: context,
-		}
+	if imageRepoInstance != nil {
+		return imageRepoInstance
 	}
+
+	imageRepoInstance = &ImageRepository{
+		db:  db,
+		Env: env,
+		ctx: context,
+	}
+
 	return imageRepoInstance
 }
 
