@@ -28,6 +28,7 @@ type IMediaRepository interface {
 	GetAll(models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
 	GetById(id uuid.UUID) (*model.Media, error)
+	Relate(model.MediaRelation) (*model.MediaRelation, error)
 }
 
 type MediaRepository struct {
@@ -62,7 +63,6 @@ func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
 	statement := media.INSERT(
 		media.LibraryPathID,
 		media.Path,
-		media.FileName,
 		media.Title,
 		media.Size,
 	).
@@ -213,4 +213,24 @@ func (r *MediaRepository) GetById(id uuid.UUID) (*model.Media, error) {
 	}
 
 	return &result, nil
+}
+
+func (r *MediaRepository) Relate(m model.MediaRelation) (*model.MediaRelation, error) {
+	// TODO: add constraint on unique combination of media ids
+	relation := table.MediaRelation
+	statement := relation.INSERT(
+		relation.MediaID,
+		relation.RelatedTo,
+		relation.RelationType,
+	).
+		MODEL(m).
+		RETURNING(relation.AllColumns)
+
+	util.DebugCheck(r.Env, statement)
+
+	if err := statement.Query(r.db, &m); err != nil {
+		return nil, errs.BuildError(err, "could not insert media models")
+	}
+
+	return &m, nil
 }

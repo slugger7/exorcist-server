@@ -116,7 +116,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		RelationType: model.MediaRelationTypeEnum_Thumbnail,
 	}
 
-	videoImage, err = jr.repo.Image().RelateVideo(videoImage)
+	videoImage, err = jr.repo.Media().Relate(*videoImage)
 	if err != nil {
 		return errs.BuildError(err, "could not create video image relation")
 	}

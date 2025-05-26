@@ -95,7 +95,6 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 				newMediaModel := model.Media{
 					LibraryPathID: libPath.ID,
 					Title:         v.Name,
-					FileName:      v.FileName,
 					Size:          v.Size,
 				}
 

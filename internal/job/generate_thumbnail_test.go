@@ -17,7 +17,7 @@ func Test_CreateGenerateThumbnailJob(t *testing.T) {
 	imagePath := "some path"
 	timestamp, height, width := 1337, 69, 420
 
-	actual, err := CreateGenerateThumbnailJob(model.Video{ID: id, LibraryPathID: libraryPathId}, jobId, imagePath, timestamp, height, width)
+	actual, err := CreateGenerateThumbnailJob(model.Video{ID: id}, jobId, imagePath, timestamp, height, width)
 	assert.Equal(t, err, nil, "Error should be nil")
 
 	actualData := *actual.Data
