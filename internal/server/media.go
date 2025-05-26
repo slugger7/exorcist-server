@@ -36,6 +36,10 @@ func (s *Server) getMedia(c *gin.Context) {
 		return
 	}
 
+	if search.Limit == 0 {
+		search.Limit = 100
+	}
+
 	result, err := s.repo.Media().GetAll(search)
 	if err != nil {
 		s.logger.Errorf("could not get media from repo: %v", err.Error())
