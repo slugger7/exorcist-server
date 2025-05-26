@@ -20,7 +20,7 @@ func Test_CreateGenerateChecksumJob(t *testing.T) {
 	actualData := *actual.Data
 	actual.Data = nil
 
-	expectedData := fmt.Sprintf(`{"videoId":"%v"}`, id)
+	expectedData := fmt.Sprintf(`{"mediaId":"%v"}`, id)
 	expected := model.Job{
 		JobType:  model.JobTypeEnum_GenerateChecksum,
 		Status:   model.JobStatusEnum_NotStarted,
