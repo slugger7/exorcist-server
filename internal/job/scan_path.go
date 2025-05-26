@@ -205,7 +205,7 @@ func (jr *JobRunner) removeVideos(nonExistentVideos []model.Video) {
 			return
 		default:
 			v.Exists = false
-			err := jr.repo.Video().UpdateExists(&v)
+			err := jr.repo.Media().UpdateExists(&v)
 			if err != nil {
 				jr.logger.Errorf("Error occured while updating the existance state of the video '%v': %v", v.ID, err)
 			}

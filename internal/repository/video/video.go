@@ -119,23 +119,25 @@ func (ds *VideoRepository) GetById(id uuid.UUID) (*models.VideoOverviewModel, er
 
 	statement := table.Video.SELECT(
 		table.Video.ID,
-		table.Video.RelativePath,
-		table.LibraryPath.Path,
-		table.Video.Title,
+		table.Media.Path,
+		table.Media.Title,
 		table.Image.ID,
-		table.VideoImage.VideoImageType).
+		table.MediaRelation.RelationType).
 		FROM(table.Video.
 			INNER_JOIN(
-				table.LibraryPath,
-				table.Video.LibraryPathID.EQ(table.LibraryPath.ID)).
+				table.Media,
+				table.Video.MediaID.EQ(table.Media.ID)).
 			LEFT_JOIN(
-				table.VideoImage,
-				table.Video.ID.EQ(table.VideoImage.VideoID).
-					AND(table.VideoImage.VideoImageType.EQ(
-						postgres.NewEnumValue(model.VideoImageTypeEnum_Thumbnail.String())))).
+				table.MediaRelation,
+				table.MediaRelation.RelationType.EQ(postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String())).
+					AND(
+						table.Media.ID.EQ(table.MediaRelation.MediaID).
+							OR(table.Media.ID.EQ(table.MediaRelation.RelatedTo)),
+					)).
 			LEFT_JOIN(
 				table.Image,
-				table.Image.ID.EQ(table.VideoImage.ImageID),
+				table.Image.MediaID.EQ(table.MediaRelation.MediaID).
+					OR(table.Image.MediaID.EQ(table.MediaRelation.RelatedTo)),
 			)).
 		WHERE(table.Video.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
