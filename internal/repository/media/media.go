@@ -1,4 +1,4 @@
-package media
+package mediaRepository
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
@@ -22,6 +23,7 @@ type IMediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
 	GetAll(models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error)
+	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
 }
 
 type MediaRepository struct {
@@ -177,4 +179,21 @@ func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[mod
 		Skip:  search.Skip,
 		Total: total.Total,
 	}, nil
+}
+
+func (r *MediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
+	media := table.Media
+	statement := media.SELECT(media.Path, media.ID).
+		FROM(media).
+		WHERE(media.LibraryPathID.EQ(postgres.UUID(id)).
+			AND(media.Exists.IS_TRUE()))
+
+	util.DebugCheck(r.Env, statement)
+
+	var results []model.Media
+	if err := statement.QueryContext(r.ctx, r.db, &results); err != nil {
+		return nil, errs.BuildError(err, "could not get media by library id: %v", id)
+	}
+
+	return results, nil
 }

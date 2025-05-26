@@ -19,6 +19,7 @@ import (
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
+	mediaRepository "github.com/slugger7/exorcist/internal/repository/media"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
@@ -34,6 +35,7 @@ type IRepository interface {
 	Video() videoRepository.IVideoRepository
 	User() userRepository.IUserRepository
 	Image() imageRepository.IImageRepository
+	Media() mediaRepository.IMediaRepository
 }
 
 type Repository struct {
@@ -46,6 +48,7 @@ type Repository struct {
 	videoRepo       videoRepository.IVideoRepository
 	userRepo        userRepository.IUserRepository
 	imageRepo       imageRepository.IImageRepository
+	mediaRepo       mediaRepository.IMediaRepository
 }
 
 var dbInstance *Repository
@@ -108,6 +111,10 @@ func (s *Repository) User() userRepository.IUserRepository {
 
 func (s *Repository) Image() imageRepository.IImageRepository {
 	return dbInstance.imageRepo
+}
+
+func (r *Repository) Media() mediaRepository.IMediaRepository {
+	return dbInstance.mediaRepo
 }
 
 // Health checks the health of the database connection by pinging the database.

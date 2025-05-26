@@ -18,11 +18,17 @@ type VideoLibraryPathModel struct {
 	model.LibraryPath
 }
 
+type MediaVideoModel struct {
+	model.Video
+	model.Media
+}
+
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
+	GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, error)
 }
 
 type VideoRepository struct {
@@ -116,6 +122,23 @@ func (ds *VideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPa
 	var result VideoLibraryPathModel
 	if results != nil {
 		result = results[len(results)-1]
+	}
+
+	return &result, nil
+}
+
+func (r *VideoRepository) GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, error) {
+	video := table.Video
+	media := table.Media
+	statement := video.SELECT(video.AllColumns, media.AllColumns).
+		FROM(video.INNER_JOIN(video, video.MediaID.EQ(media.ID))).
+		LIMIT(1)
+
+	util.DebugCheck(r.Env, statement)
+
+	var result MediaVideoModel
+	if err := statement.QueryContext(r.ctx, r.db, &result); err != nil {
+		return nil, errs.BuildError(err, "could not find video by id with media: %v", id)
 	}
 
 	return &result, nil

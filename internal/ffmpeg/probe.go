@@ -15,7 +15,6 @@ type Stream struct {
 
 type Format struct {
 	Duration string `json:"duration"`
-	Size     string `json:"size"`
 }
 
 type Probe struct {
