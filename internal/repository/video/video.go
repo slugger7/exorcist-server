@@ -25,9 +25,7 @@ type MediaVideoModel struct {
 
 type IVideoRepository interface {
 	GetAll() ([]model.Video, error)
-	GetByLibraryPathId(id uuid.UUID) ([]model.Video, error)
 	Insert(models []model.Video) ([]model.Video, error)
-	GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error)
 	GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, error)
 }
 
@@ -74,20 +72,6 @@ func (vr *VideoRepository) GetAll() ([]model.Video, error) {
 	return models, nil
 }
 
-func (ds *VideoRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Video, error) {
-	var vids []struct{ model.Video }
-	if err := ds.getByLibraryPathIdStatement(id).Query(&vids); err != nil {
-		return nil, errs.BuildError(err, "could not get videos by library path id: %v", id)
-	}
-
-	vidModels := []model.Video{}
-	for _, v := range vids {
-		vidModels = append(vidModels, v.Video)
-	}
-
-	return vidModels, nil
-}
-
 func (r *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	if len(models) == 0 {
 		return nil, nil
@@ -111,20 +95,6 @@ func (r *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	}
 
 	return vids, nil
-}
-
-func (ds *VideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*VideoLibraryPathModel, error) {
-	var results []VideoLibraryPathModel
-	if err := ds.getByIdWithLibraryPathStatement(id).Query(&results); err != nil {
-		return nil, errs.BuildError(err, "error getting video by id (%v) with library path", id.String())
-	}
-
-	var result VideoLibraryPathModel
-	if results != nil {
-		result = results[len(results)-1]
-	}
-
-	return &result, nil
 }
 
 func (r *VideoRepository) GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, error) {
