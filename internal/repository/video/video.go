@@ -123,7 +123,7 @@ func (r *VideoRepository) GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, erro
 	video := table.Video
 	media := table.Media
 	statement := video.SELECT(video.AllColumns, media.AllColumns).
-		FROM(video.INNER_JOIN(video, video.MediaID.EQ(media.ID))).
+		FROM(video.INNER_JOIN(media, video.MediaID.EQ(media.ID))).
 		WHERE(video.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
 

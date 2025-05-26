@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 const ErrInvalidIdFormat = "invalid id format"
@@ -20,6 +21,34 @@ func (s *Server) withMediaVideo(r *gin.RouterGroup, route Route) *Server {
 func (s *Server) withMediaImage(r *gin.RouterGroup, route Route) *Server {
 	r.GET(fmt.Sprintf("%v/image/:id", route), s.getMediaImage)
 	return s
+}
+
+func (s *Server) withMediaSearch(r *gin.RouterGroup, route Route) *Server {
+	r.GET(route, s.getMedia)
+	return s
+}
+
+func (s *Server) getMedia(c *gin.Context) {
+	var search models.MediaSearchDTO
+
+	if err := c.ShouldBindQuery(&search); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	result, err := s.repo.Media().GetAll(search)
+	if err != nil {
+		s.logger.Errorf("could not get media from repo: %v", err.Error())
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("could not get media"))
+		return
+	}
+
+	dtos := make([]models.MediaOverviewDTO, len(result.Data))
+	for i, m := range result.Data {
+		dtos[i] = *m.ToDTO()
+	}
+
+	c.JSON(http.StatusOK, models.DataToPage(dtos, *result))
 }
 
 func (s *Server) getVideoStream(c *gin.Context) {

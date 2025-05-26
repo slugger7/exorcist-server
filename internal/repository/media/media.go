@@ -65,6 +65,7 @@ func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
 		media.Path,
 		media.Title,
 		media.Size,
+		media.MediaType,
 	).
 		MODELS(ms).
 		RETURNING(media.AllColumns)
@@ -122,7 +123,6 @@ func (r *MediaRepository) UpdateChecksum(m model.Media) error {
 func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error) {
 	mediaRelation := table.MediaRelation
 	thumbnail := table.Media.AS("thumbnail")
-	image := table.Image
 	selectStatement := media.SELECT(
 		media.ID,
 		media.Title,
@@ -136,9 +136,6 @@ func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[mod
 			).LEFT_JOIN(
 				thumbnail,
 				thumbnail.ID.EQ(mediaRelation.RelatedTo),
-			).LEFT_JOIN(
-				image,
-				image.MediaID.EQ(thumbnail.ID),
 			)).
 		LIMIT(int64(search.Limit)).
 		OFFSET(int64(search.Skip))
@@ -146,19 +143,22 @@ func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[mod
 	selectStatement = helpers.OrderByDirectionColumn(search.Asc, search.OrderBy.ToColumn(), selectStatement)
 	countStatement := media.SELECT(postgres.COUNT(media.ID).AS("total")).FROM(media)
 
+	whr := media.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Primary.String())).
+		AND(media.Deleted.IS_FALSE()).
+		AND(media.Exists.IS_TRUE())
+
 	if search.Search != "" {
 		caseInsensitive := strings.ToLower(search.Search)
 		likeExpression := fmt.Sprintf("%%%v%%", caseInsensitive)
-		query := media.Deleted.IS_FALSE().
-			AND(media.Exists.IS_TRUE()).
+		whr = whr.
 			AND(
 				postgres.LOWER(media.Title).LIKE(postgres.String(likeExpression)).
 					OR(postgres.LOWER(media.Path).LIKE(postgres.String(likeExpression))),
 			)
-
-		selectStatement = selectStatement.WHERE(query)
-		countStatement = countStatement.WHERE(query)
 	}
+
+	selectStatement = selectStatement.WHERE(whr)
+	countStatement = countStatement.WHERE(whr)
 
 	util.DebugCheck(r.Env, countStatement)
 	util.DebugCheck(r.Env, selectStatement)

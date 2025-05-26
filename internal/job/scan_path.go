@@ -76,7 +76,6 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		// TODO: handle images on disk
 		return nil
 	case videosOnDisk := <-videoChan:
-
 		nonExistentMedia := media.FindNonExistentMedia(existingMedia, videosOnDisk)
 		if len(nonExistentMedia) > 0 {
 			jr.removeMedia(nonExistentMedia)
@@ -96,6 +95,8 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 					LibraryPathID: libPath.ID,
 					Title:         v.Name,
 					Size:          v.Size,
+					Path:          v.Path,
+					MediaType:     model.MediaTypeEnum_Primary,
 				}
 
 				createdMedia, err := jr.repo.Media().Create([]model.Media{newMediaModel})

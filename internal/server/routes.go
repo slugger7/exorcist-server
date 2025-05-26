@@ -45,7 +45,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	// Register library controller routes
 	s.withLibraryGet(authenticated, libraries).
-		//withLibraryGetAction(authenticated, libraryRoute).
 		withLibraryPost(authenticated, libraries).
 		withLibraryGetPaths(authenticated, libraries)
 
@@ -56,7 +55,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	// Register media controller routes
 	s.withMediaVideo(authenticated, media).
-		withMediaImage(authenticated, media)
+		withMediaImage(authenticated, media).
+		withMediaSearch(authenticated, media)
 
 	// Register job controller routes
 	s.withJobRoutes(authenticated, jobs).

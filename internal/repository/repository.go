@@ -77,6 +77,7 @@ func New(env *environment.EnvironmentVariables, context context.Context) IReposi
 			videoRepo:       videoRepository.New(db, env, context),
 			userRepo:        userRepository.New(db, env, context),
 			imageRepo:       imageRepository.New(db, env, context),
+			mediaRepo:       mediaRepository.New(db, env, context),
 		}
 
 		err = dbInstance.runMigrations()

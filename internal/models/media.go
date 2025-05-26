@@ -51,9 +51,13 @@ type MediaVideo struct {
 	model.Video
 }
 
+type Thumbnail struct {
+	ID uuid.UUID `sql:"primary_key"`
+}
+
 type MediaOverviewModel struct {
 	model.Media
-	ThumbnailId uuid.UUID
+	Thumbnail
 }
 
 type MediaOverviewDTO struct {
@@ -67,7 +71,7 @@ func (v *MediaOverviewModel) ToDTO() *MediaOverviewDTO {
 	return &MediaOverviewDTO{
 		Id:          v.Media.ID,
 		Title:       v.Media.Title,
-		ThumbnailId: v.ThumbnailId,
+		ThumbnailId: v.Thumbnail.ID,
 		Deleted:     v.Deleted,
 	}
 }

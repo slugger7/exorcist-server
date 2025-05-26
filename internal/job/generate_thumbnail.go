@@ -56,7 +56,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 
 	video, err := jr.repo.Video().GetByIdWithMedia(jobData.VideoId)
 	if err != nil {
-		return errs.BuildError(err, "error fetching video with library path by id: %v", jobData.VideoId)
+		return errs.BuildError(err, "error fetching video with id: %v", jobData.VideoId)
 	}
 
 	if jobData.Height == 0 {

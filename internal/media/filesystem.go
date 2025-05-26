@@ -70,7 +70,7 @@ func GetFilesByExtensions(root string, extensions []string) (ret []File, reterr 
 
 		if !d.IsDir() {
 			if slices.Contains(extensions, filepath.Ext(d.Name())) {
-				fileSize, err := GetFileSize(d.Name())
+				fileSize, err := GetFileSize(path)
 				if err != nil {
 					return err
 				}
