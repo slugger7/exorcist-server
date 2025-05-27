@@ -91,6 +91,12 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 					continue
 				}
 
+				data, err := ffmpeg.UnmarshalledProbe(v.Path)
+				if err != nil {
+					accErrs = append(accErrs, errs.BuildError(err, "could not get unmarshalled probe data: %v", v.Path))
+					continue
+				}
+
 				newMediaModel := model.Media{
 					LibraryPathID: libPath.ID,
 					Title:         v.Name,
@@ -106,12 +112,6 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 				}
 				if len(createdMedia) != 1 {
 					accErrs = append(accErrs, fmt.Errorf("expected a created media but there was none"))
-					continue
-				}
-
-				data, err := ffmpeg.UnmarshalledProbe(v.Path)
-				if err != nil {
-					accErrs = append(accErrs, errs.BuildError(err, "could not get unmarshalled probe data: %v", v.Path))
 					continue
 				}
 
