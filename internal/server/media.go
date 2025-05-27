@@ -5,12 +5,42 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/models"
 )
 
 func (s *Server) withMediaSearch(r *gin.RouterGroup, route Route) *Server {
 	r.GET(route, s.getMedia)
 	return s
+}
+
+func (s *Server) withMediaGet(r *gin.RouterGroup, route Route) *Server {
+	r.GET(fmt.Sprintf("%v/:id", route), s.getMediaById)
+	return s
+}
+
+func (s *Server) getMediaById(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		e := fmt.Sprintf((ErrIdParse), c.Param(("id")))
+		s.logger.Error(e)
+		c.JSON(http.StatusUnprocessableEntity, createError(e))
+		return
+	}
+
+	m, err := s.repo.Media().GetById(id)
+	if err != nil {
+		s.logger.Errorf("could not get media by id: %v", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not get media by id"})
+		return
+	}
+
+	if m == nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	c.JSON(http.StatusOK, (&models.MediaDTO{}).FromModel(*m))
 }
 
 func (s *Server) getMedia(c *gin.Context) {

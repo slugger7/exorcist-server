@@ -55,7 +55,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 		withLibraryPathGet(authenticated, libraryPath)
 
 	// Register media controller routes
-	s.withMediaSearch(authenticated, media)
+	s.withMediaSearch(authenticated, media).
+		withMediaGet(authenticated, media)
 
 	s.withImageGet(authenticated, images).
 		withVideoGet(authenticated, videos)

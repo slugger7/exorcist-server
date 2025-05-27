@@ -24,10 +24,10 @@ var media = table.Media
 type IMediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
-	UpdateChecksum(m model.Media) error
+	UpdateChecksum(m models.Media) error
 	GetAll(models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
-	GetById(id uuid.UUID) (*model.Media, error)
+	GetById(id uuid.UUID) (*models.Media, error)
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
 }
 
@@ -101,7 +101,7 @@ func (r *MediaRepository) UpdateExists(m model.Media) error {
 	return nil
 }
 
-func (r *MediaRepository) UpdateChecksum(m model.Media) error {
+func (r *MediaRepository) UpdateChecksum(m models.Media) error {
 	m.Modified = time.Now()
 	statement := media.UPDATE().
 		SET(
@@ -109,12 +109,12 @@ func (r *MediaRepository) UpdateChecksum(m model.Media) error {
 			media.Modified.SET(postgres.TimestampT(m.Modified)),
 		).
 		MODEL(m).
-		WHERE(media.ID.EQ(postgres.UUID(m.ID)))
+		WHERE(media.ID.EQ(postgres.UUID(m.Media.ID)))
 
 	util.DebugCheck(r.Env, statement)
 
 	if _, err := statement.Exec(r.db); err != nil {
-		return errs.BuildError(err, "could not update checksum for video: %v", m.ID)
+		return errs.BuildError(err, "could not update checksum for video: %v", m.Media.ID)
 	}
 
 	return nil
@@ -199,15 +199,20 @@ func (r *MediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error
 	return results, nil
 }
 
-func (r *MediaRepository) GetById(id uuid.UUID) (*model.Media, error) {
-	statement := media.SELECT(media.AllColumns).
-		FROM(media).
+func (r *MediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
+	image := table.Image
+	video := table.Video
+	statement := media.SELECT(media.AllColumns, image.AllColumns, video.AllColumns).
+		FROM(media.
+			LEFT_JOIN(image, image.MediaID.EQ(media.ID)).
+			LEFT_JOIN(video, video.MediaID.EQ(media.ID)),
+		).
 		WHERE(media.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
 
 	util.DebugCheck(r.Env, statement)
 
-	var result model.Media
+	var result models.Media
 	if err := statement.QueryContext(r.ctx, r.db, &result); err != nil {
 		return nil, errs.BuildError(err, "could not get media by id: %v", id)
 	}

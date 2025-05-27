@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -84,4 +86,82 @@ func (v *MediaOverviewDTO) FromModel(m *model.Media, i *model.Media) *MediaOverv
 		v.ThumbnailId = i.ID
 	}
 	return v
+}
+
+type Media struct {
+	model.Media
+	*model.Image
+	*model.Video
+}
+
+type MediaDTO struct {
+	ID            uuid.UUID `json:"id"`
+	LibraryPathID uuid.UUID `json:"libraryPathId"`
+	Path          string    `json:"path"`
+	Title         string    `json:"title"`
+	Size          int64     `json:"size"`
+	Checksum      *string   `json:"checksum"`
+	Added         time.Time `json:"added"`
+	Created       time.Time `json:"created"`
+	Modified      time.Time `json:"modified"`
+	Image         *ImageDTO `json:"image,omitempty"`
+	Video         *VideoDTO `json:"video,omitempty"`
+}
+
+func (d *MediaDTO) FromModel(m Media) *MediaDTO {
+	d.ID = m.Media.ID
+	d.LibraryPathID = m.LibraryPathID
+	d.Path = m.Path
+	d.Title = m.Title
+	d.Size = m.Size
+	d.Checksum = m.Checksum
+	d.Added = m.Added
+	d.Created = m.Created
+	d.Modified = m.Modified
+
+	d.Image = (&ImageDTO{}).FromModel(m.Image)
+	d.Video = (&VideoDTO{}).FromModel(m.Video)
+
+	return d
+}
+
+type ImageDTO struct {
+	ID      uuid.UUID `json:"id"`
+	MediaID uuid.UUID `json:"mediaId"`
+	Height  int32     `json:"height"`
+	Width   int32     `json:"width"`
+}
+
+func (d *ImageDTO) FromModel(m *model.Image) *ImageDTO {
+	if m == nil {
+		return nil
+	}
+
+	d.ID = m.ID
+	d.MediaID = m.MediaID
+	d.Height = m.Height
+	d.Width = m.Width
+
+	return d
+}
+
+type VideoDTO struct {
+	ID      uuid.UUID `json:"id"`
+	MediaID uuid.UUID `json:"mediaId"`
+	Height  int32     `json:"height"`
+	Width   int32     `json:"width"`
+	Runtime float64   `json:"runtime"`
+}
+
+func (d *VideoDTO) FromModel(m *model.Video) *VideoDTO {
+	if m == nil {
+		return nil
+	}
+
+	d.ID = m.ID
+	d.MediaID = m.MediaID
+	d.Height = m.Height
+	d.Width = m.Width
+
+	return d
 }
