@@ -139,6 +139,9 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 					accErrs = append(accErrs, errs.BuildError(err, "could not create video"))
 				}
 
+				dto := (&models.MediaOverviewDTO{}).FromModel(&createdMedia[0], nil)
+				jr.wsVideoCreate(*dto)
+
 				checksumJob, err := CreateGenerateChecksumJob(mediaId, job.ID)
 				if err != nil {
 					accErrs = append(accErrs, errs.BuildError(err, "could not create checksum job for media %v in job %v", mediaId, job.ID))
