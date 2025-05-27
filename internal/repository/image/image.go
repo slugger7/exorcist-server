@@ -70,10 +70,15 @@ func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Cont
 }
 
 func (i *ImageRepository) Create(m *model.Image) (*model.Image, error) {
+	image := table.Image
 	var img model.Image
-	statement := table.Image.INSERT(table.Image.AllColumns).
+	statement := image.INSERT(
+		image.MediaID,
+		image.Height,
+		image.Width,
+	).
 		MODEL(m).
-		RETURNING(table.Image.AllColumns)
+		RETURNING(image.AllColumns)
 
 	util.DebugCheck(i.Env, statement)
 
