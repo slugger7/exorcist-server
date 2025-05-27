@@ -54,7 +54,7 @@ type MediaVideo struct {
 }
 
 type Thumbnail struct {
-	ID uuid.UUID `sql:"primary_key"`
+	ID uuid.UUID `sql:"primary_key" json:"id"`
 }
 
 type MediaOverviewModel struct {
@@ -92,6 +92,7 @@ type Media struct {
 	model.Media
 	*model.Image
 	*model.Video
+	*Thumbnail
 }
 
 type MediaDTO struct {
@@ -106,6 +107,7 @@ type MediaDTO struct {
 	Modified      time.Time `json:"modified"`
 	Image         *ImageDTO `json:"image,omitempty"`
 	Video         *VideoDTO `json:"video,omitempty"`
+	ThumbnailID   uuid.UUID `json:"thumbnailId,omitempty"`
 }
 
 func (d *MediaDTO) FromModel(m Media) *MediaDTO {
@@ -118,6 +120,7 @@ func (d *MediaDTO) FromModel(m Media) *MediaDTO {
 	d.Added = m.Added
 	d.Created = m.Created
 	d.Modified = m.Modified
+	d.ThumbnailID = m.Thumbnail.ID
 
 	d.Image = (&ImageDTO{}).FromModel(m.Image)
 	d.Video = (&VideoDTO{}).FromModel(m.Video)
@@ -162,6 +165,7 @@ func (d *VideoDTO) FromModel(m *model.Video) *VideoDTO {
 	d.MediaID = m.MediaID
 	d.Height = m.Height
 	d.Width = m.Width
+	d.Runtime = m.Runtime
 
 	return d
 }

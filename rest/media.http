@@ -2,7 +2,7 @@
 GET {{host}}:{{port}}/api/media?limit=100
 
 ### Get video by id
-GET {{host}}:{{port}}/api/media/99accc82-9ed5-46a7-8c1d-bbf9d33219ed
+GET {{host}}:{{port}}/api/media/3f85a17b-eaab-4eeb-bb4a-42c8466ca3f1
 
 ### Get video media by id
 GET {{host}}:{{port}}/api/media/video/064eb817-2347-4648-9608-84a86f7b303d

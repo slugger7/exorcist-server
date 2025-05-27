@@ -202,10 +202,18 @@ func (r *MediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error
 func (r *MediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 	image := table.Image
 	video := table.Video
-	statement := media.SELECT(media.AllColumns, image.AllColumns, video.AllColumns).
+	thumbnail := table.Media.AS("thumbnail")
+	mediaRelation := table.MediaRelation
+	statement := media.SELECT(media.AllColumns, image.AllColumns, video.AllColumns, thumbnail.ID).
 		FROM(media.
 			LEFT_JOIN(image, image.MediaID.EQ(media.ID)).
-			LEFT_JOIN(video, video.MediaID.EQ(media.ID)),
+			LEFT_JOIN(video, video.MediaID.EQ(media.ID)).
+			LEFT_JOIN(mediaRelation, mediaRelation.MediaID.EQ(media.ID).
+				AND(mediaRelation.RelationType.EQ(
+					postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String()),
+				))).
+			LEFT_JOIN(thumbnail, thumbnail.ID.EQ(mediaRelation.RelatedTo).
+				AND(thumbnail.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Asset.String())))),
 		).
 		WHERE(media.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
