@@ -58,15 +58,11 @@ func (lps *LibraryPathRepository) Create(path string, libraryId uuid.UUID) (*mod
 }
 
 func (lps *LibraryPathRepository) GetAll() ([]model.LibraryPath, error) {
-	var libraryPaths []struct{ model.LibraryPath }
+	var libraryPaths []model.LibraryPath
 	if err := lps.getLibraryPathsSelect().Query(&libraryPaths); err != nil {
 		return nil, errs.BuildError(err, "could not get library paths")
 	}
-	libPathModels := make([]model.LibraryPath, len(libraryPaths))
-	for _, l := range libraryPaths {
-		libPathModels = append(libPathModels, l.LibraryPath)
-	}
-	return libPathModels, nil
+	return libraryPaths, nil
 }
 
 func (lps *LibraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error) {

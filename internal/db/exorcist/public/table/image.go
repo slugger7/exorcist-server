@@ -17,11 +17,10 @@ type imageTable struct {
 	postgres.Table
 
 	// Columns
-	ID       postgres.ColumnString
-	Name     postgres.ColumnString
-	Path     postgres.ColumnString
-	Created  postgres.ColumnTimestamp
-	Modified postgres.ColumnTimestamp
+	ID      postgres.ColumnString
+	MediaID postgres.ColumnString
+	Height  postgres.ColumnInteger
+	Width   postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -63,23 +62,21 @@ func newImageTable(schemaName, tableName, alias string) *ImageTable {
 func newImageTableImpl(schemaName, tableName, alias string) imageTable {
 	var (
 		IDColumn       = postgres.StringColumn("id")
-		NameColumn     = postgres.StringColumn("name")
-		PathColumn     = postgres.StringColumn("path")
-		CreatedColumn  = postgres.TimestampColumn("created")
-		ModifiedColumn = postgres.TimestampColumn("modified")
-		allColumns     = postgres.ColumnList{IDColumn, NameColumn, PathColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns = postgres.ColumnList{NameColumn, PathColumn, CreatedColumn, ModifiedColumn}
+		MediaIDColumn  = postgres.StringColumn("media_id")
+		HeightColumn   = postgres.IntegerColumn("height")
+		WidthColumn    = postgres.IntegerColumn("width")
+		allColumns     = postgres.ColumnList{IDColumn, MediaIDColumn, HeightColumn, WidthColumn}
+		mutableColumns = postgres.ColumnList{MediaIDColumn, HeightColumn, WidthColumn}
 	)
 
 	return imageTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:       IDColumn,
-		Name:     NameColumn,
-		Path:     PathColumn,
-		Created:  CreatedColumn,
-		Modified: ModifiedColumn,
+		ID:      IDColumn,
+		MediaID: MediaIDColumn,
+		Height:  HeightColumn,
+		Width:   WidthColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

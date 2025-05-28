@@ -72,7 +72,6 @@ func Test_UnmarshalProbeData_WithAWorkingFile_ShouldCreateCorrectStruct(t *testi
 	height, width := 270, 480
 	expectedFormat := Format{
 		Duration: "33.023333",
-		Size:     "3889885",
 	}
 	expectedStream := Stream{
 		Height:    &height,
@@ -130,7 +129,6 @@ func Test_UnmarshallProbeData_WithValidJson_ShouldParseJson(t *testing.T) {
 	expectedProbeData := Probe{
 		Format: &Format{
 			Duration: "66.6",
-			Size:     "666",
 		},
 		Streams: []Stream{
 			{

@@ -14,7 +14,6 @@ import (
 
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	models "github.com/slugger7/exorcist/internal/models"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -58,64 +57,34 @@ func (mr *MockIVideoRepositoryMockRecorder) GetAll() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockIVideoRepository)(nil).GetAll))
 }
 
-// GetById mocks base method.
-func (m *MockIVideoRepository) GetById(id uuid.UUID) (*models.VideoOverviewModel, error) {
+// GetByIdWithMedia mocks base method.
+func (m *MockIVideoRepository) GetByIdWithMedia(id uuid.UUID) (*videoRepository.MediaVideoModel, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetById", id)
-	ret0, _ := ret[0].(*models.VideoOverviewModel)
+	ret := m.ctrl.Call(m, "GetByIdWithMedia", id)
+	ret0, _ := ret[0].(*videoRepository.MediaVideoModel)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetById indicates an expected call of GetById.
-func (mr *MockIVideoRepositoryMockRecorder) GetById(id any) *gomock.Call {
+// GetByIdWithMedia indicates an expected call of GetByIdWithMedia.
+func (mr *MockIVideoRepositoryMockRecorder) GetByIdWithMedia(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockIVideoRepository)(nil).GetById), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdWithMedia", reflect.TypeOf((*MockIVideoRepository)(nil).GetByIdWithMedia), id)
 }
 
-// GetByIdWithLibraryPath mocks base method.
-func (m *MockIVideoRepository) GetByIdWithLibraryPath(id uuid.UUID) (*videoRepository.VideoLibraryPathModel, error) {
+// GetByMediaId mocks base method.
+func (m *MockIVideoRepository) GetByMediaId(id uuid.UUID) (*videoRepository.MediaVideoModel, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByIdWithLibraryPath", id)
-	ret0, _ := ret[0].(*videoRepository.VideoLibraryPathModel)
+	ret := m.ctrl.Call(m, "GetByMediaId", id)
+	ret0, _ := ret[0].(*videoRepository.MediaVideoModel)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByIdWithLibraryPath indicates an expected call of GetByIdWithLibraryPath.
-func (mr *MockIVideoRepositoryMockRecorder) GetByIdWithLibraryPath(id any) *gomock.Call {
+// GetByMediaId indicates an expected call of GetByMediaId.
+func (mr *MockIVideoRepositoryMockRecorder) GetByMediaId(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdWithLibraryPath", reflect.TypeOf((*MockIVideoRepository)(nil).GetByIdWithLibraryPath), id)
-}
-
-// GetByLibraryPathId mocks base method.
-func (m *MockIVideoRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Video, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByLibraryPathId", id)
-	ret0, _ := ret[0].([]model.Video)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByLibraryPathId indicates an expected call of GetByLibraryPathId.
-func (mr *MockIVideoRepositoryMockRecorder) GetByLibraryPathId(id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLibraryPathId", reflect.TypeOf((*MockIVideoRepository)(nil).GetByLibraryPathId), id)
-}
-
-// GetOverview mocks base method.
-func (m *MockIVideoRepository) GetOverview(arg0 models.VideoSearchDTO) (*models.Page[models.VideoOverviewModel], error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOverview", arg0)
-	ret0, _ := ret[0].(*models.Page[models.VideoOverviewModel])
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetOverview indicates an expected call of GetOverview.
-func (mr *MockIVideoRepositoryMockRecorder) GetOverview(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOverview", reflect.TypeOf((*MockIVideoRepository)(nil).GetOverview), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMediaId", reflect.TypeOf((*MockIVideoRepository)(nil).GetByMediaId), id)
 }
 
 // Insert mocks base method.
@@ -131,32 +100,4 @@ func (m *MockIVideoRepository) Insert(models []model.Video) ([]model.Video, erro
 func (mr *MockIVideoRepositoryMockRecorder) Insert(models any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockIVideoRepository)(nil).Insert), models)
-}
-
-// UpdateChecksum mocks base method.
-func (m *MockIVideoRepository) UpdateChecksum(video *model.Video) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateChecksum", video)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateChecksum indicates an expected call of UpdateChecksum.
-func (mr *MockIVideoRepositoryMockRecorder) UpdateChecksum(video any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChecksum", reflect.TypeOf((*MockIVideoRepository)(nil).UpdateChecksum), video)
-}
-
-// UpdateExists mocks base method.
-func (m *MockIVideoRepository) UpdateExists(video *model.Video) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateExists", video)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateExists indicates an expected call of UpdateExists.
-func (mr *MockIVideoRepositoryMockRecorder) UpdateExists(video any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExists", reflect.TypeOf((*MockIVideoRepository)(nil).UpdateExists), video)
 }

@@ -45,10 +45,4 @@ mockgen -source=${SERVICE_DIR}/library_path/library_path.go > ${MOCK_SERVICE_DIR
 mkdir -p ${MOCK_SERVICE_DIR}/user
 mockgen -source=${SERVICE_DIR}/user/user.go > ${MOCK_SERVICE_DIR}/user/user.go
 
-mkdir -p ${MOCK_SERVICE_DIR}/video
-mockgen -source=${SERVICE_DIR}/video/video.go > ${MOCK_SERVICE_DIR}/video/video.go
-
-mkdir -p ${MOCK_SERVICE_DIR}/image
-mockgen -source=${SERVICE_DIR}/image/image.go > ${MOCK_SERVICE_DIR}/image/image.go
-
 echo "Mocks generated"

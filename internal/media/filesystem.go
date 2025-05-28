@@ -15,11 +15,11 @@ import (
 )
 
 type File struct {
-	Name         string
-	FileName     string
-	Path         string
-	Extension    string
-	RelativePath string
+	Name      string
+	FileName  string
+	Path      string
+	Extension string
+	Size      int64
 }
 
 func CalculateMD5(filePath string) (string, error) {
@@ -54,6 +54,14 @@ func GetTitleOfFile(filename string) string {
 	return strings.Join(parts, ".")
 }
 
+func GetFileSize(path string) (int64, error) {
+	fileinfo, err := os.Stat(path)
+	if err != nil {
+		return 0, err
+	}
+	return fileinfo.Size(), nil
+}
+
 func GetFilesByExtensions(root string, extensions []string) (ret []File, reterr error) {
 	reterr = filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -62,11 +70,15 @@ func GetFilesByExtensions(root string, extensions []string) (ret []File, reterr 
 
 		if !d.IsDir() {
 			if slices.Contains(extensions, filepath.Ext(d.Name())) {
+				fileSize, err := GetFileSize(path)
+				if err != nil {
+					return err
+				}
 				file := File{
-					Name:         GetTitleOfFile(d.Name()),
-					FileName:     filepath.Base(d.Name()),
-					Path:         path,
-					RelativePath: GetRelativePath(root, path),
+					Name:     GetTitleOfFile(d.Name()),
+					FileName: filepath.Base(d.Name()),
+					Path:     path,
+					Size:     fileSize,
 				}
 
 				ret = append(ret, file)
@@ -79,11 +91,11 @@ func GetFilesByExtensions(root string, extensions []string) (ret []File, reterr 
 	return ret, reterr
 }
 
-func FindNonExistentVideos(existingVideos []model.Video, files []File) []model.Video {
-	nonExsistentVideos := []model.Video{}
+func FindNonExistentMedia(existingVideos []model.Media, files []File) []model.Media {
+	nonExsistentVideos := []model.Media{}
 	for _, v := range existingVideos {
 		if !slices.ContainsFunc(files, func(mediaFile File) bool {
-			return mediaFile.RelativePath == v.RelativePath
+			return mediaFile.Path == v.Path
 		}) {
 			nonExsistentVideos = append(nonExsistentVideos, v)
 		}

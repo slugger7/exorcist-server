@@ -85,75 +85,75 @@ func Test_GetRelativePath_WithFileBeingInASubfolder_ShouldReturnPathToSubfolder(
 }
 
 func Test_FindNonExistentVideos_WithTwoEmptySlices_ShouldReturnEmptySlice(t *testing.T) {
-	existingVideos := []model.Video{}
+	existingMedia := []model.Media{}
 	files := []File{}
 
-	nonExistentVideos := FindNonExistentVideos(existingVideos, files)
+	nonExistentMedia := FindNonExistentMedia(existingMedia, files)
 
-	if len(nonExistentVideos) != 0 {
+	if len(nonExistentMedia) != 0 {
 		t.Error("A file did not exist even though there was nothing to match. Phone your God.")
 	}
 }
 
 func Test_FindNonExistentVideos_WithTwoSlicesThatHaveNoDifference_ShouldReturnEmptySlice(t *testing.T) {
-	existingVideos := []model.Video{
+	existingMedia := []model.Media{
 		{
-			RelativePath: "some relative path",
+			Path: "some path",
 		},
 	}
 	files := []File{
 		{
-			RelativePath: "some relative path",
+			Path: "some path",
 		},
 	}
 
-	nonExistentVideos := FindNonExistentVideos(existingVideos, files)
+	nonExistentMedia := FindNonExistentMedia(existingMedia, files)
 
-	if len(nonExistentVideos) != 0 {
+	if len(nonExistentMedia) != 0 {
 		t.Error("Lists had identical relative paths and should have returned an empty list but didn't")
 	}
 }
 
 func Test_FindNonExistentVideos_WithAllTheFilesExistingAndExtraFiles_ShouldReturnEmptySlice(t *testing.T) {
-	existingVideos := []model.Video{
+	existingMedia := []model.Media{
 		{
-			RelativePath: "some relative path",
+			Path: "some path",
 		},
 	}
 	files := []File{
 		{
-			RelativePath: "some relative path",
+			Path: "some path",
 		},
 		{
-			RelativePath: "another relative path that should not make a differenc",
+			Path: "another path that should not make a difference",
 		},
 	}
 
-	nonExistentVideos := FindNonExistentVideos(existingVideos, files)
+	nonExistentMedia := FindNonExistentMedia(existingMedia, files)
 
-	if len(nonExistentVideos) != 0 {
+	if len(nonExistentMedia) != 0 {
 		t.Error("Found a relative path that should exist")
 	}
 }
 
 func Test_FindNonExistentVideos_WithAVideoThatDoesNotExist_ShouldReturnASliceContainingVideo(t *testing.T) {
-	existingVideos := []model.Video{
+	existingMedia := []model.Media{
 		{
-			RelativePath: "some relative path",
+			Path: "some path",
 		},
 	}
 	files := []File{
 		{
-			RelativePath: "another relative path that should not make a differenc",
+			Path: "another path that should not make a difference",
 		},
 	}
 
-	nonExistentVideos := FindNonExistentVideos(existingVideos, files)
+	nonExistentMedia := FindNonExistentMedia(existingMedia, files)
 
-	if len(nonExistentVideos) != 1 {
+	if len(nonExistentMedia) != 1 {
 		t.Error("No elements were returned in the non existent video search, when one was expected")
 	}
-	if !(nonExistentVideos[len(nonExistentVideos)-1].RelativePath == existingVideos[len(existingVideos)-1].RelativePath) {
-		t.Error("Returned relative path did not match expected relative path")
+	if !(nonExistentMedia[len(nonExistentMedia)-1].Path == existingMedia[len(existingMedia)-1].Path) {
+		t.Error("Returned path did not match expected relative path")
 	}
 }

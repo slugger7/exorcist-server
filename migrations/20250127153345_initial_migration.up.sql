@@ -1,72 +1,93 @@
-create table library
-(
-  id uuid primary key default gen_random_uuid(),
-  "name" varchar not null unique,
-  created timestamp default current_timestamp not null,
-  modified timestamp default current_timestamp not null
-);
+begin;
+  create type library_type_enum as enum ('image', 'video', 'mixed');
 
-create table library_path
-(
-  id uuid primary key default gen_random_uuid(),
-  library_id uuid not null,
-  path varchar not null unique,
-  created timestamp default current_timestamp not null,
-  modified timestamp default current_timestamp not null,
-  constraint fk_library_path_library
-    foreign key(library_id) references library(id)
-    on delete cascade
-);
-
-create table video
-(
-  id uuid primary key default gen_random_uuid(),
-  library_path_id uuid not null,
-  relative_path varchar not null,
-  title varchar not null,
-  file_name varchar not null,
-  height int not null,
-  width int not null,
-  runtime double precision not null,
-  size bigint not null,
-  checksum char(32),
-  added timestamp default current_timestamp not null,
-  deleted boolean default false not null,
-  exists boolean default true not null,
-  created timestamp default current_timestamp not null,
-  modified timestamp default current_timestamp not null,
-  constraint fk_video_library_path
-    foreign key
-  (library_path_id) references library_path
-  (id)
-    on
-  delete cascade
-);
-
-  create table "image"
+  create table library
   (
     id uuid primary key default gen_random_uuid(),
-    name varchar not null,
-    path varchar not null,
+    "name" varchar not null unique,
+    library_type library_type_enum default 'mixed' not null,
     created timestamp default current_timestamp not null,
     modified timestamp default current_timestamp not null
   );
 
-  create unique index unique_image_path on "image"(path);
-
-  create type video_image_type_enum as enum
-  ('thumbnail', 'chapter');
-
-  create table "video_image"
+  create table library_path
   (
     id uuid primary key default gen_random_uuid(),
-    video_id uuid not null,
-    image_id uuid not null,
-    video_image_type video_image_type_enum not null,
+    library_id uuid not null,
+    path varchar not null unique,
     created timestamp default current_timestamp not null,
     modified timestamp default current_timestamp not null,
-    constraint fk_video_image_video foreign key(video_id) references "video"(id) on delete cascade,
-    constraint fk_video_image_image foreign key(image_id) references "image"(id) on delete cascade
+    constraint fk_library_path_library
+      foreign key(library_id) references library(id)
+      on delete cascade
+  );
+
+  create type media_type_enum as enum ('primary', 'asset');
+
+  create table media
+  (
+    id uuid primary key default gen_random_uuid(),
+    library_path_id uuid not null,
+    path varchar not null,
+    title varchar not null,
+    media_type media_type_enum default 'primary' not null,
+    size bigint not null,
+    checksum char(32),
+    added timestamp default current_timestamp not null,
+    deleted boolean default false not null,
+    exists boolean default true not null,
+    created timestamp default current_timestamp not null,
+    modified timestamp default current_timestamp not null,
+    constraint fk_media_library_path 
+      foreign key (library_path_id) 
+      references library_path (id) 
+      on delete cascade
+  );
+
+  create table video
+  (
+    id uuid primary key default gen_random_uuid(),
+    media_id uuid not null,
+    height int not null,
+    width int not null,
+    runtime double precision not null,
+    constraint fk_video_media 
+      foreign key (media_id) 
+      references media(id) 
+      on delete cascade
+  );
+
+  create table "image"
+  (
+    id uuid primary key default gen_random_uuid(),
+    media_id uuid not null,
+    height int not null,
+    width int not null,
+    constraint fk_image_media 
+      foreign key (media_id) 
+      references media(id) 
+      on delete cascade
+  );
+
+  create type media_relation_type_enum as enum
+  ('thumbnail', 'chapter', 'media');
+
+  create table media_relation
+  (
+    id uuid primary key default gen_random_uuid(),
+    media_id uuid not null,
+    related_to uuid not null, 
+    relation_type media_relation_type_enum not null,
+    created timestamp default current_timestamp not null,
+    modified timestamp default current_timestamp not null,
+    constraint fk_media_relation_media 
+      foreign key(media_id) 
+      references "media"(id) 
+      on delete cascade,
+    constraint fk_media_relation_related_to 
+      foreign key(related_to) 
+      references "media"(id) 
+      on delete cascade
   );
 
   create table "user"
@@ -104,3 +125,4 @@ create table video
     created timestamp default current_timestamp not null,
     modified timestamp default current_timestamp not null
   );
+commit;

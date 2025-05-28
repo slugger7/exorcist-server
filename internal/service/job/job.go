@@ -68,7 +68,7 @@ func (i *JobService) generateThumbnail(data string, priority int16) (*model.Job,
 		return nil, errs.BuildError(err, "could not unmarshal data for job %v", data)
 	}
 
-	if _, err := i.repo.Video().GetById(generateThumbnailData.VideoId); err != nil {
+	if _, err := i.repo.Video().GetByIdWithMedia(generateThumbnailData.VideoId); err != nil {
 		return nil, errs.BuildError(
 			err,
 			ErrActionGenerateThumbnailVideoNotFound,

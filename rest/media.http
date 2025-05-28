@@ -1,8 +1,8 @@
 ### Get All videos
-GET {{host}}:{{port}}/api/videos
+GET {{host}}:{{port}}/api/media?limit=100
 
 ### Get video by id
-GET {{host}}:{{port}}/api/videos/0b157e11-4ae9-44e6-965f-fdfda4d2dbe1
+GET {{host}}:{{port}}/api/media/3f85a17b-eaab-4eeb-bb4a-42c8466ca3f1
 
 ### Get video media by id
 GET {{host}}:{{port}}/api/media/video/064eb817-2347-4648-9608-84a86f7b303d

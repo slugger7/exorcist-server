@@ -16,6 +16,7 @@ import (
 	jobRepository "github.com/slugger7/exorcist/internal/repository/job"
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
+	mediaRepository "github.com/slugger7/exorcist/internal/repository/media"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 	gomock "go.uber.org/mock/gomock"
@@ -127,6 +128,20 @@ func (m *MockIRepository) LibraryPath() libraryPathRepository.ILibraryPathReposi
 func (mr *MockIRepositoryMockRecorder) LibraryPath() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LibraryPath", reflect.TypeOf((*MockIRepository)(nil).LibraryPath))
+}
+
+// Media mocks base method.
+func (m *MockIRepository) Media() mediaRepository.IMediaRepository {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Media")
+	ret0, _ := ret[0].(mediaRepository.IMediaRepository)
+	return ret0
+}
+
+// Media indicates an expected call of Media.
+func (mr *MockIRepositoryMockRecorder) Media() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Media", reflect.TypeOf((*MockIRepository)(nil).Media))
 }
 
 // User mocks base method.

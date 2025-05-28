@@ -3,9 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
-	. "github.com/slugger7/exorcist/internal/errors"
+	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/ffmpeg"
 )
 
@@ -230,16 +229,10 @@ func main() {
 	var structdata *ffmpeg.Probe
 
 	err = json.Unmarshal([]byte(jsonData), &structdata)
-	PanicError(err)
-
-	i, err := strconv.Atoi(structdata.Format.Size)
-	PanicError(err)
-
-	fmt.Printf("json map: %v\n", structdata.Format.Size)
-	fmt.Printf("size: %v\n", i)
+	errs.PanicError(err)
 
 	width, height, err := ffmpeg.GetDimensions(structdata.Streams)
-	PanicError(err)
+	errs.PanicError(err)
 
 	fmt.Printf("Width & Height: %v %v\n", width, height)
 }

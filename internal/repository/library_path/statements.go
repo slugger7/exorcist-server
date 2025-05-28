@@ -10,7 +10,7 @@ import (
 
 func (ds *LibraryPathRepository) getLibraryPathsSelect() LibraryPathStatement {
 	selectQuery := table.LibraryPath.
-		SELECT(table.LibraryPath.ID, table.LibraryPath.Path).
+		SELECT(table.LibraryPath.AllColumns).
 		FROM(table.LibraryPath)
 
 	util.DebugCheck(ds.Env, selectQuery)

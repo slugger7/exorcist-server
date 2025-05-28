@@ -15,6 +15,7 @@ const (
 	users       Route = "/users"
 	libraries   Route = "/libraries"
 	videos      Route = "/videos"
+	images      Route = "/images"
 	media       Route = "/media"
 	jobs        Route = "/jobs"
 	libraryPath Route = "/libraryPaths"
@@ -45,7 +46,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	// Register library controller routes
 	s.withLibraryGet(authenticated, libraries).
-		//withLibraryGetAction(authenticated, libraryRoute).
 		withLibraryPost(authenticated, libraries).
 		withLibraryGetPaths(authenticated, libraries)
 
@@ -54,13 +54,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 		withLibraryPathGetAll(authenticated, libraryPath).
 		withLibraryPathGet(authenticated, libraryPath)
 
-	// Register video controller routes
-	s.withVideoGet(authenticated, videos).
-		withVideoGetById(authenticated, videos)
-
 	// Register media controller routes
-	s.withMediaVideo(authenticated, media).
-		withMediaImage(authenticated, media)
+	s.withMediaSearch(authenticated, media).
+		withMediaGet(authenticated, media)
+
+	s.withImageGet(authenticated, images).
+		withVideoGet(authenticated, videos)
 
 	// Register job controller routes
 	s.withJobRoutes(authenticated, jobs).
