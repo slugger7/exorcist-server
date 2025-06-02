@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/dto"
-	"github.com/slugger7/exorcist/internal/models"
 )
 
 // https://medium.com/@abhishekranjandev/building-a-production-grade-websocket-for-notifications-with-golang-and-gin-a-detailed-guide-5b676dcfbd5a
@@ -82,5 +81,5 @@ func (s *Server) getAllJobs(c *gin.Context) {
 		jobDtos[i] = *(&dto.JobDTO{}).FromModel(j)
 	}
 
-	c.JSON(http.StatusOK, models.DataToPage(jobDtos, *jobsPage))
+	c.JSON(http.StatusOK, dto.DataToPage(jobDtos, *jobsPage))
 }

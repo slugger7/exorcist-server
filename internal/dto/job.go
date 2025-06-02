@@ -28,12 +28,11 @@ const (
 )
 
 type JobSearchDTO struct {
-	Skip     int                   `form:"skip"`
-	Limit    int                   `form:"limit"`
-	Statuses []model.JobStatusEnum `form:"status" tstype:"model.JobStatusEnum"`
-	Parent   *string               `form:"parent" binding:"omitempty,uuid"`
-	OrderBy  JobOrdinal            `form:"orderBy"`
-	JobTypes []model.JobTypeEnum   `form:"type" tstype:"model.JobTypeEnum"`
+	PageRequestDTO
+	Statuses []model.JobStatusEnum `form:"status" json:"statuses" tstype:"model.JobStatusEnum"`
+	Parent   *string               `form:"parent" binding:"omitempty,uuid" json:"parent"`
+	OrderBy  JobOrdinal            `form:"orderBy" json:"orderBy"`
+	JobTypes []model.JobTypeEnum   `form:"type" tstype:"model.JobTypeEnum" json:"jobTypes"`
 }
 
 type JobOrdinal string

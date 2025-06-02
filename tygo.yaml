@@ -4,9 +4,9 @@ type_mappings:
 
 packages:
   - path: "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-    output_path: "ts/model.ts"
+    output_path: "ts/model.d.ts"
     indent: "  "
   - path: "github.com/slugger7/exorcist/internal/dto"
-    output_path: "ts/dto.ts"
+    output_path: "ts/index.d.ts"
     indent: "  "
-    frontmatter: "import * as model from \"./model.ts\""
+    frontmatter: "import * as model from \"./model.d.ts\""

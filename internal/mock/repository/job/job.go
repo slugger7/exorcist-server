@@ -14,7 +14,6 @@ import (
 
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	dto "github.com/slugger7/exorcist/internal/dto"
-	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -58,10 +57,10 @@ func (mr *MockIJobRepositoryMockRecorder) CreateAll(jobs any) *gomock.Call {
 }
 
 // GetAll mocks base method.
-func (m *MockIJobRepository) GetAll(arg0 dto.JobSearchDTO) (*models.PageDTO[model.Job], error) {
+func (m *MockIJobRepository) GetAll(arg0 dto.JobSearchDTO) (*dto.PageDTO[model.Job], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", arg0)
-	ret0, _ := ret[0].(*models.PageDTO[model.Job])
+	ret0, _ := ret[0].(*dto.PageDTO[model.Job])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

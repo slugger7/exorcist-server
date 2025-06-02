@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/dto"
-	"github.com/slugger7/exorcist/internal/models"
 )
 
 func (s *Server) withMediaSearch(r *gin.RouterGroup, route Route) *Server {
@@ -63,5 +62,5 @@ func (s *Server) getMedia(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, models.DataToPage(result.Data, *result))
+	c.JSON(http.StatusOK, dto.DataToPage(result.Data, *result))
 }

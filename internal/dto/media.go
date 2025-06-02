@@ -42,11 +42,9 @@ func (o MediaOrdinal) ToColumn() postgres.Column {
 }
 
 type MediaSearchDTO struct {
-	Limit   int          `form:"limit"`
-	Skip    int          `form:"skip"`
-	OrderBy MediaOrdinal `form:"orderBy"`
-	Asc     bool         `form:"asc"`
-	Search  string       `form:"search"`
+	PageRequestDTO
+	OrderBy MediaOrdinal `form:"orderBy" json:"orderBy"`
+	Search  string       `form:"search" json:"search"`
 }
 
 type MediaOverviewDTO struct {
