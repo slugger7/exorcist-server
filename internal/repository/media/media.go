@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
@@ -24,10 +25,10 @@ var media = table.Media
 type IMediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
-	UpdateChecksum(m models.Media) error
-	GetAll(models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error)
+	UpdateChecksum(m dto.Media) error
+	GetAll(dto.MediaSearchDTO) (*models.Page[dto.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
-	GetById(id uuid.UUID) (*models.Media, error)
+	GetById(id uuid.UUID) (*dto.Media, error)
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
 }
 
@@ -101,7 +102,7 @@ func (r *MediaRepository) UpdateExists(m model.Media) error {
 	return nil
 }
 
-func (r *MediaRepository) UpdateChecksum(m models.Media) error {
+func (r *MediaRepository) UpdateChecksum(m dto.Media) error {
 	m.Modified = time.Now()
 	statement := media.UPDATE().
 		SET(
@@ -120,7 +121,7 @@ func (r *MediaRepository) UpdateChecksum(m models.Media) error {
 	return nil
 }
 
-func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error) {
+func (r *MediaRepository) GetAll(search dto.MediaSearchDTO) (*models.Page[dto.MediaOverviewModel], error) {
 	mediaRelation := table.MediaRelation
 	thumbnail := table.Media.AS("thumbnail")
 	selectStatement := media.SELECT(
@@ -170,12 +171,12 @@ func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[mod
 		return nil, errs.BuildError(err, "could not query media for total")
 	}
 
-	var mediaResult []models.MediaOverviewModel
+	var mediaResult []dto.MediaOverviewModel
 	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
 		return nil, errs.BuildError(err, "could not query media")
 	}
 
-	return &models.Page[models.MediaOverviewModel]{
+	return &models.Page[dto.MediaOverviewModel]{
 		Data:  mediaResult,
 		Limit: search.Limit,
 		Skip:  search.Skip,
@@ -199,7 +200,7 @@ func (r *MediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error
 	return results, nil
 }
 
-func (r *MediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
+func (r *MediaRepository) GetById(id uuid.UUID) (*dto.Media, error) {
 	image := table.Image
 	video := table.Video
 	thumbnail := table.Media.AS("thumbnail")
@@ -220,7 +221,7 @@ func (r *MediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 
 	util.DebugCheck(r.Env, statement)
 
-	var result models.Media
+	var result dto.Media
 	if err := statement.QueryContext(r.ctx, r.db, &result); err != nil {
 		return nil, errs.BuildError(err, "could not get media by id: %v", id)
 	}

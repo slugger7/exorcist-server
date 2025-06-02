@@ -1,4 +1,4 @@
-package models
+package dto
 
 import (
 	"time"
@@ -10,8 +10,8 @@ import (
 )
 
 type CreateJobDTO struct {
-	Type     model.JobTypeEnum      `json:"type" binding:"required"`
-	Data     map[string]interface{} `json:"data"`
+	Type     model.JobTypeEnum      `json:"type" binding:"required" tstype:"model.JobTypeEnum"`
+	Data     map[string]interface{} `json:"data" tstype:"ScanPathData | GenerateThumbnailData"`
 	Priority *JobPriority           `json:"priority"`
 }
 
@@ -30,10 +30,10 @@ const (
 type JobSearchDTO struct {
 	Skip     int                   `form:"skip"`
 	Limit    int                   `form:"limit"`
-	Statuses []model.JobStatusEnum `form:"status"`
+	Statuses []model.JobStatusEnum `form:"status" tstype:"model.JobStatusEnum"`
 	Parent   *string               `form:"parent" binding:"omitempty,uuid"`
 	OrderBy  JobOrdinal            `form:"orderBy"`
-	JobTypes []model.JobTypeEnum   `form:"type"`
+	JobTypes []model.JobTypeEnum   `form:"type" tstype:"model.JobTypeEnum"`
 }
 
 type JobOrdinal string
@@ -61,8 +61,8 @@ type JobDTO struct {
 	Id       uuid.UUID           `json:"id"`
 	Parent   *uuid.UUID          `json:"parent,omitempty"`
 	Priority int16               `json:"priority,omitempty"`
-	JobType  model.JobTypeEnum   `json:"jobType,omitempty"`
-	Status   model.JobStatusEnum `json:"status,omitempty"`
+	JobType  model.JobTypeEnum   `json:"jobType,omitempty" tstype:"model.JobTypeEnum"`
+	Status   model.JobStatusEnum `json:"status,omitempty" tstype:"model.JobStatusEnum"`
 	Data     *string             `json:"data,omitempty"`
 	Outcome  *string             `json:"outcome,omitempty"`
 	Created  time.Time           `json:"created,omitempty"`

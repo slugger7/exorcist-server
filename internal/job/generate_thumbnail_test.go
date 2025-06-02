@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +28,7 @@ func Test_CreateGenerateThumbnailJob(t *testing.T) {
 		Status:   model.JobStatusEnum_NotStarted,
 		Data:     nil,
 		Parent:   &jobId,
-		Priority: models.JobPriority_MediumHigh,
+		Priority: dto.JobPriority_MediumHigh,
 	}
 
 	assert.Equal(t, expected, *actual, "Expected job should be equal to actual job")

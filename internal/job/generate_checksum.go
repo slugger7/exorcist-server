@@ -5,9 +5,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/media"
-	"github.com/slugger7/exorcist/internal/models"
 )
 
 type GenerateChecksumData struct {
@@ -28,7 +28,7 @@ func CreateGenerateChecksumJob(mediaId, jobId uuid.UUID) (*model.Job, error) {
 		Status:   model.JobStatusEnum_NotStarted,
 		Data:     &data,
 		Parent:   &jobId,
-		Priority: models.JobPriority_Low,
+		Priority: dto.JobPriority_Low,
 	}
 
 	return &job, nil

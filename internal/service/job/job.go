@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
@@ -13,7 +14,7 @@ import (
 )
 
 type IJobService interface {
-	Create(models.CreateJobDTO) (*model.Job, error)
+	Create(dto.CreateJobDTO) (*model.Job, error)
 }
 
 type JobService struct {
@@ -39,8 +40,8 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 	return jobServiceInstance
 }
 
-func (s *JobService) Create(m models.CreateJobDTO) (*model.Job, error) {
-	defaultJobPriority := models.JobPriority_Medium
+func (s *JobService) Create(m dto.CreateJobDTO) (*model.Job, error) {
+	defaultJobPriority := dto.JobPriority_Medium
 	if m.Priority == nil {
 		m.Priority = &(defaultJobPriority)
 	}

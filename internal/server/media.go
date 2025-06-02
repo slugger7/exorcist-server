@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/models"
 )
 
@@ -40,11 +41,11 @@ func (s *Server) getMediaById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, (&models.MediaDTO{}).FromModel(*m))
+	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
 }
 
 func (s *Server) getMedia(c *gin.Context) {
-	var search models.MediaSearchDTO
+	var search dto.MediaSearchDTO
 
 	if err := c.ShouldBindQuery(&search); err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
@@ -62,7 +63,7 @@ func (s *Server) getMedia(c *gin.Context) {
 		return
 	}
 
-	dtos := make([]models.MediaOverviewDTO, len(result.Data))
+	dtos := make([]dto.MediaOverviewDTO, len(result.Data))
 	for i, m := range result.Data {
 		dtos[i] = *m.ToDTO()
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +25,7 @@ func Test_CreateGenerateChecksumJob(t *testing.T) {
 		JobType:  model.JobTypeEnum_GenerateChecksum,
 		Status:   model.JobStatusEnum_NotStarted,
 		Data:     nil,
-		Priority: models.JobPriority_Low,
+		Priority: dto.JobPriority_Low,
 		Parent:   &jobId,
 	}
 
