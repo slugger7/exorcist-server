@@ -42,3 +42,6 @@ build
 # Static web files
 www
 dist
+
+# Generated types for the FE
+ts

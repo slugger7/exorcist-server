@@ -17,6 +17,7 @@ build: exorcist
 
 clean:
 	rm -rf build
+	rm -rf ts/*
 
 mocks:
 	./scripts/generate-mocks.sh
@@ -36,3 +37,6 @@ recreate-db:
 	
 generate-diagrams:
 	./scripts/generate-diagrams.sh
+
+models:
+	tygo generate
