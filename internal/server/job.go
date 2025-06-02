@@ -50,8 +50,8 @@ func (s *Server) CreateJob(c *gin.Context) {
 	}
 
 	jobDto := (&dto.JobDTO{}).FromModel(*job)
-	message := models.WSMessage[dto.JobDTO]{
-		Topic: models.WSTopic_JobCreate,
+	message := dto.WSMessage[dto.JobDTO]{
+		Topic: dto.WSTopic_JobCreate,
 		Data:  *jobDto,
 	}
 

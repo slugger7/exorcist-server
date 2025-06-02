@@ -58,10 +58,10 @@ func (mr *MockIJobRepositoryMockRecorder) CreateAll(jobs any) *gomock.Call {
 }
 
 // GetAll mocks base method.
-func (m *MockIJobRepository) GetAll(arg0 dto.JobSearchDTO) (*models.Page[model.Job], error) {
+func (m *MockIJobRepository) GetAll(arg0 dto.JobSearchDTO) (*models.PageDTO[model.Job], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", arg0)
-	ret0, _ := ret[0].(*models.Page[model.Job])
+	ret0, _ := ret[0].(*models.PageDTO[model.Job])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -63,10 +63,5 @@ func (s *Server) getMedia(c *gin.Context) {
 		return
 	}
 
-	dtos := make([]dto.MediaOverviewDTO, len(result.Data))
-	for i, m := range result.Data {
-		dtos[i] = *m.ToDTO()
-	}
-
-	c.JSON(http.StatusOK, models.DataToPage(dtos, *result))
+	c.JSON(http.StatusOK, models.DataToPage(result.Data, *result))
 }

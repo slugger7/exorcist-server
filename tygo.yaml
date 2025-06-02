@@ -7,6 +7,6 @@ packages:
     output_path: "ts/model.ts"
     indent: "  "
   - path: "github.com/slugger7/exorcist/internal/dto"
-    output_path: "ts/models.ts"
+    output_path: "ts/dto.ts"
     indent: "  "
     frontmatter: "import * as model from \"./model.ts\""

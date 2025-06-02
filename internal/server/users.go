@@ -22,7 +22,7 @@ func (s *Server) withUserUpdatePassword(r *gin.RouterGroup, route Route) *Server
 const ErrCreateUser ApiError = "could not create new user"
 
 func (s *Server) CreateUser(c *gin.Context) {
-	var newUser models.CreateUserModel
+	var newUser models.CreateUserDTO
 
 	if err := c.ShouldBindBodyWithJSON(&newUser); err != nil {
 		s.logger.Info("Colud not read body")

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 type MediaOrdinal string
@@ -48,34 +49,11 @@ type MediaSearchDTO struct {
 	Search  string       `form:"search"`
 }
 
-type MediaVideo struct {
-	model.Media
-	model.Video
-}
-
-type Thumbnail struct {
-	ID uuid.UUID `sql:"primary_key" json:"id"`
-}
-
-type MediaOverviewModel struct {
-	model.Media
-	Thumbnail
-}
-
 type MediaOverviewDTO struct {
 	Id          uuid.UUID `json:"id"`
 	Title       string    `json:"title,omitempty"`
 	ThumbnailId uuid.UUID `json:"thumbnailId,omitempty"`
 	Deleted     bool      `json:"deleted"`
-}
-
-func (v *MediaOverviewModel) ToDTO() *MediaOverviewDTO {
-	return &MediaOverviewDTO{
-		Id:          v.Media.ID,
-		Title:       v.Media.Title,
-		ThumbnailId: v.Thumbnail.ID,
-		Deleted:     v.Deleted,
-	}
 }
 
 func (v *MediaOverviewDTO) FromModel(m *model.Media, i *model.Media) *MediaOverviewDTO {
@@ -86,13 +64,6 @@ func (v *MediaOverviewDTO) FromModel(m *model.Media, i *model.Media) *MediaOverv
 		v.ThumbnailId = i.ID
 	}
 	return v
-}
-
-type Media struct {
-	model.Media
-	*model.Image
-	*model.Video
-	*Thumbnail
 }
 
 type MediaDTO struct {
@@ -110,7 +81,7 @@ type MediaDTO struct {
 	ThumbnailID   uuid.UUID `json:"thumbnailId,omitempty"`
 }
 
-func (d *MediaDTO) FromModel(m Media) *MediaDTO {
+func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
 	d.ID = m.Media.ID
 	d.LibraryPathID = m.LibraryPathID
 	d.Path = m.Path

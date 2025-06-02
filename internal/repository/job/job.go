@@ -26,7 +26,7 @@ type IJobRepository interface {
 	CreateAll(jobs []model.Job) ([]model.Job, error)
 	GetNextJob() (*model.Job, error)
 	UpdateJobStatus(model *model.Job) error
-	GetAll(dto.JobSearchDTO) (*models.Page[model.Job], error)
+	GetAll(dto.JobSearchDTO) (*models.PageDTO[model.Job], error)
 }
 
 type JobRepository struct {
@@ -87,7 +87,7 @@ func (j *JobRepository) UpdateJobStatus(model *model.Job) error {
 	return nil
 }
 
-func (r *JobRepository) GetAll(m dto.JobSearchDTO) (*models.Page[model.Job], error) {
+func (r *JobRepository) GetAll(m dto.JobSearchDTO) (*models.PageDTO[model.Job], error) {
 	if m.Limit == 0 {
 		m.Limit = 100
 	}
@@ -147,7 +147,7 @@ func (r *JobRepository) GetAll(m dto.JobSearchDTO) (*models.Page[model.Job], err
 		jobs[i] = j.Job
 	}
 
-	return &models.Page[model.Job]{
+	return &models.PageDTO[model.Job]{
 		Total: totalStruct.Total,
 		Limit: m.Limit,
 		Skip:  m.Skip,

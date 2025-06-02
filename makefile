@@ -38,5 +38,5 @@ recreate-db:
 generate-diagrams:
 	./scripts/generate-diagrams.sh
 
-models:
+dtos:
 	tygo generate

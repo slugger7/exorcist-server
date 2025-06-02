@@ -1,4 +1,4 @@
-package models
+package dto
 
 import (
 	"time"
@@ -7,7 +7,7 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 )
 
-type CreateLibraryPathModel struct {
+type CreateLibraryPathModelDTO struct {
 	LibraryId uuid.UUID `json:"libraryId" binding:"required"`
 	Path      string    `json:"path" binding:"required"`
 }
@@ -16,8 +16,8 @@ type LibraryPathDTO struct {
 	Id        uuid.UUID `json:"id,omitempty"`
 	LibraryId uuid.UUID `json:"libraryId,omitempty"`
 	Path      string    `json:"path,omitempty"`
-	Created   time.Time `json:"created,omitempty"`
-	Modified  time.Time `json:"modified,omitempty"`
+	Created   time.Time `json:"created"`
+	Modified  time.Time `json:"modified"`
 }
 
 func (l *LibraryPathDTO) FromModel(m model.LibraryPath) *LibraryPathDTO {

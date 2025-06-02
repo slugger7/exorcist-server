@@ -61,8 +61,8 @@ func New(
 func (jr *JobRunner) wsJobUpdate(job model.Job) {
 	jr.logger.Debug("ws - updating job")
 
-	jobUpdate := models.WSMessage[dto.JobDTO]{
-		Topic: models.WSTopic_JobUpdate,
+	jobUpdate := dto.WSMessage[dto.JobDTO]{
+		Topic: dto.WSTopic_JobUpdate,
 		Data:  *(&dto.JobDTO{}).FromModel(job),
 	}
 	jobUpdate.SendToAll(jr.wss)
@@ -71,8 +71,8 @@ func (jr *JobRunner) wsJobUpdate(job model.Job) {
 func (jr *JobRunner) wsVideoUpdate(video dto.MediaOverviewDTO) {
 	jr.logger.Debug("ws - updating video")
 
-	videoUpdate := models.WSMessage[dto.MediaOverviewDTO]{
-		Topic: models.WSTopic_VideoUpdate,
+	videoUpdate := dto.WSMessage[dto.MediaOverviewDTO]{
+		Topic: dto.WSTopic_VideoUpdate,
 		Data:  video,
 	}
 	videoUpdate.SendToAll(jr.wss)
@@ -81,8 +81,8 @@ func (jr *JobRunner) wsVideoUpdate(video dto.MediaOverviewDTO) {
 func (jr *JobRunner) wsVideoDelete(video dto.MediaOverviewDTO) {
 	jr.logger.Debug("ws - deleting video")
 
-	videoDelete := models.WSMessage[dto.MediaOverviewDTO]{
-		Topic: models.WSTopic_VideoDelete,
+	videoDelete := dto.WSMessage[dto.MediaOverviewDTO]{
+		Topic: dto.WSTopic_VideoDelete,
 		Data:  video,
 	}
 	videoDelete.SendToAll(jr.wss)
@@ -91,8 +91,8 @@ func (jr *JobRunner) wsVideoDelete(video dto.MediaOverviewDTO) {
 func (jr *JobRunner) wsVideoCreate(video dto.MediaOverviewDTO) {
 	jr.logger.Debug("ws - creating video")
 
-	videoDelete := models.WSMessage[dto.MediaOverviewDTO]{
-		Topic: models.WSTopic_VideoCreate,
+	videoDelete := dto.WSMessage[dto.MediaOverviewDTO]{
+		Topic: dto.WSTopic_VideoCreate,
 		Data:  video,
 	}
 	videoDelete.SendToAll(jr.wss)

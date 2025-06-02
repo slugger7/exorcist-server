@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/dto"
 	"go.uber.org/mock/gomock"
 )
 
@@ -28,7 +28,7 @@ func Test_CreateLibraryPath_ErrFromService(t *testing.T) {
 		withLibraryPathService()
 
 	id, _ := uuid.NewRandom()
-	m := &models.CreateLibraryPathModel{
+	m := &dto.CreateLibraryPathModelDTO{
 		LibraryId: id,
 		Path:      "some path",
 	}
@@ -54,7 +54,7 @@ func Test_CreateLibraryPath_Success(t *testing.T) {
 
 	libId, _ := uuid.NewRandom()
 	id, _ := uuid.NewRandom()
-	m := &models.CreateLibraryPathModel{
+	m := &dto.CreateLibraryPathModelDTO{
 		LibraryId: libId,
 		Path:      "some path",
 	}
@@ -71,7 +71,7 @@ func Test_CreateLibraryPath_Success(t *testing.T) {
 	rr := s.withPostRequest(bodyM(m)).
 		exec()
 
-	result := models.LibraryPathDTO{
+	result := dto.LibraryPathDTO{
 		Id:        id,
 		LibraryId: libId,
 		Path:      m.Path,
@@ -122,7 +122,7 @@ func Test_GetAllLibraryPaths_Success(t *testing.T) {
 	rr := s.withGetRequest("").
 		exec()
 
-	body, _ := json.Marshal([]models.LibraryPathDTO{{Id: libPath.ID, LibraryId: libPath.LibraryID, Path: libPath.Path}})
+	body, _ := json.Marshal([]dto.LibraryPathDTO{{Id: libPath.ID, LibraryId: libPath.LibraryID, Path: libPath.Path}})
 
 	assert.StatusCode(t, http.StatusOK, rr.Code)
 	assert.Body(t, string(body), rr.Body.String())
