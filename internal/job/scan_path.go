@@ -13,7 +13,6 @@ import (
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
-	"github.com/slugger7/exorcist/internal/models"
 )
 
 var videoExtensions = [...]string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"}
@@ -33,7 +32,7 @@ func (jr *JobRunner) getFilesByExtension(path string, extensions []string, ch ch
 }
 
 func (jr *JobRunner) ScanPath(job *model.Job) error {
-	var data models.ScanPathData
+	var data dto.ScanPathData
 	if err := json.Unmarshal([]byte(*job.Data), &data); err != nil {
 		return errs.BuildError(err, "could not unmarshal scan path job data: %v", err)
 	}

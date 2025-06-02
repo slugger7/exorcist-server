@@ -9,7 +9,6 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
-	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
@@ -63,7 +62,7 @@ func (s *JobService) Create(m dto.CreateJobDTO) (*model.Job, error) {
 const ErrActionGenerateThumbnailVideoNotFound = "could not find video for generate thumbnail job: %v"
 
 func (i *JobService) generateThumbnail(data string, priority int16) (*model.Job, error) {
-	var generateThumbnailData models.GenerateThumbnailData
+	var generateThumbnailData dto.GenerateThumbnailData
 
 	if err := json.Unmarshal([]byte(data), &generateThumbnailData); err != nil {
 		return nil, errs.BuildError(err, "could not unmarshal data for job %v", data)
@@ -97,7 +96,7 @@ const ErrActionScanGetLibraryPaths = "could not get library paths in scan action
 const ErrCreatingJobs = "error creating jobs"
 
 func (i *JobService) scanPath(data string, priority int16) (*model.Job, error) {
-	var scanPathData models.ScanPathData
+	var scanPathData dto.ScanPathData
 
 	if err := json.Unmarshal([]byte(data), &scanPathData); err != nil {
 		return nil, errs.BuildError(err, "could not unmarshall data for job %v", data)
