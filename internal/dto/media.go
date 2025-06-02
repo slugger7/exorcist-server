@@ -54,13 +54,12 @@ type MediaOverviewDTO struct {
 	Deleted     bool      `json:"deleted"`
 }
 
-func (v *MediaOverviewDTO) FromModel(m *model.Media, i *model.Media) *MediaOverviewDTO {
-	v.Id = m.ID
+func (v *MediaOverviewDTO) FromModel(m models.MediaOverviewModel) *MediaOverviewDTO {
+	v.Id = m.Media.ID
 	v.Title = m.Title
 	v.Deleted = m.Deleted
-	if i != nil {
-		v.ThumbnailId = i.ID
-	}
+	v.ThumbnailId = m.Thumbnail.ID
+
 	return v
 }
 

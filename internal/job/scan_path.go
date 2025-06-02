@@ -13,6 +13,7 @@ import (
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
+	"github.com/slugger7/exorcist/internal/models"
 )
 
 var videoExtensions = [...]string{".mp4", ".m4v", ".mkv", ".avi", ".wmv", ".flv", ".webm", ".f4v", ".mpg", ".m2ts", ".mov"}
@@ -139,7 +140,9 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 					accErrs = append(accErrs, errs.BuildError(err, "could not create video"))
 				}
 
-				dto := (&dto.MediaOverviewDTO{}).FromModel(&createdMedia[0], nil)
+				dto := (&dto.MediaOverviewDTO{}).FromModel(models.MediaOverviewModel{
+					Media: createdMedia[0],
+				})
 				jr.wsVideoCreate(*dto)
 
 				checksumJob, err := CreateGenerateChecksumJob(mediaId, job.ID)

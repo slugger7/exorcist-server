@@ -26,7 +26,7 @@ type IMediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
 	UpdateChecksum(m models.Media) error
-	GetAll(dto.MediaSearchDTO) (*dto.PageDTO[dto.MediaOverviewDTO], error)
+	GetAll(dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
 	GetById(id uuid.UUID) (*models.Media, error)
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
@@ -121,7 +121,7 @@ func (r *MediaRepository) UpdateChecksum(m models.Media) error {
 	return nil
 }
 
-func (r *MediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[dto.MediaOverviewDTO], error) {
+func (r *MediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	mediaRelation := table.MediaRelation
 	thumbnail := table.Media.AS("thumbnail")
 	selectStatement := media.SELECT(
@@ -171,12 +171,12 @@ func (r *MediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[dto.Me
 		return nil, errs.BuildError(err, "could not query media for total")
 	}
 
-	var mediaResult []dto.MediaOverviewDTO
+	var mediaResult []models.MediaOverviewModel
 	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
 		return nil, errs.BuildError(err, "could not query media")
 	}
 
-	return &dto.PageDTO[dto.MediaOverviewDTO]{
+	return &dto.PageDTO[models.MediaOverviewModel]{
 		Data:  mediaResult,
 		Limit: search.Limit,
 		Skip:  search.Skip,
