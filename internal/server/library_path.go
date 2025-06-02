@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/dto"
 )
 
 func (s *Server) withLibraryPathCreate(r *gin.RouterGroup, route Route) *Server {
@@ -40,7 +40,7 @@ func (s *Server) GetLibraryPath(c *gin.Context) {
 		return
 	}
 
-	libPathDto := *(&models.LibraryPathDTO{}).FromModel(*libraryPath)
+	libPathDto := *(&dto.LibraryPathDTO{}).FromModel(*libraryPath)
 
 	c.JSON(http.StatusOK, libPathDto)
 }
@@ -48,7 +48,7 @@ func (s *Server) GetLibraryPath(c *gin.Context) {
 const ErrCreatingLibraryPath string = "colud not create new library path"
 
 func (s *Server) CreateLibraryPath(c *gin.Context) {
-	var body models.CreateLibraryPathModel
+	var body dto.CreateLibraryPathModelDTO
 
 	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
@@ -63,7 +63,7 @@ func (s *Server) CreateLibraryPath(c *gin.Context) {
 		return
 	}
 
-	result := (&models.LibraryPathDTO{}).FromModel(*libPath)
+	result := (&dto.LibraryPathDTO{}).FromModel(*libPath)
 
 	c.JSON(http.StatusCreated, result)
 }
@@ -78,9 +78,9 @@ func (s *Server) GetAllLibraryPaths(c *gin.Context) {
 		return
 	}
 
-	libPaths := []models.LibraryPathDTO{}
+	libPaths := []dto.LibraryPathDTO{}
 	for _, l := range libraryPaths {
-		libPaths = append(libPaths, *(&models.LibraryPathDTO{}).FromModel(l))
+		libPaths = append(libPaths, *(&dto.LibraryPathDTO{}).FromModel(l))
 	}
 
 	c.JSON(http.StatusOK, libPaths)

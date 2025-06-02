@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
@@ -60,38 +61,38 @@ func New(
 func (jr *JobRunner) wsJobUpdate(job model.Job) {
 	jr.logger.Debug("ws - updating job")
 
-	jobUpdate := models.WSMessage[models.JobDTO]{
-		Topic: models.WSTopic_JobUpdate,
-		Data:  *(&models.JobDTO{}).FromModel(job),
+	jobUpdate := dto.WSMessage[dto.JobDTO]{
+		Topic: dto.WSTopic_JobUpdate,
+		Data:  *(&dto.JobDTO{}).FromModel(job),
 	}
 	jobUpdate.SendToAll(jr.wss)
 }
 
-func (jr *JobRunner) wsVideoUpdate(video models.MediaOverviewDTO) {
+func (jr *JobRunner) wsVideoUpdate(video dto.MediaOverviewDTO) {
 	jr.logger.Debug("ws - updating video")
 
-	videoUpdate := models.WSMessage[models.MediaOverviewDTO]{
-		Topic: models.WSTopic_VideoUpdate,
+	videoUpdate := dto.WSMessage[dto.MediaOverviewDTO]{
+		Topic: dto.WSTopic_VideoUpdate,
 		Data:  video,
 	}
 	videoUpdate.SendToAll(jr.wss)
 }
 
-func (jr *JobRunner) wsVideoDelete(video models.MediaOverviewDTO) {
+func (jr *JobRunner) wsVideoDelete(video dto.MediaOverviewDTO) {
 	jr.logger.Debug("ws - deleting video")
 
-	videoDelete := models.WSMessage[models.MediaOverviewDTO]{
-		Topic: models.WSTopic_VideoDelete,
+	videoDelete := dto.WSMessage[dto.MediaOverviewDTO]{
+		Topic: dto.WSTopic_VideoDelete,
 		Data:  video,
 	}
 	videoDelete.SendToAll(jr.wss)
 }
 
-func (jr *JobRunner) wsVideoCreate(video models.MediaOverviewDTO) {
+func (jr *JobRunner) wsVideoCreate(video dto.MediaOverviewDTO) {
 	jr.logger.Debug("ws - creating video")
 
-	videoDelete := models.WSMessage[models.MediaOverviewDTO]{
-		Topic: models.WSTopic_VideoCreate,
+	videoDelete := dto.WSMessage[dto.MediaOverviewDTO]{
+		Topic: dto.WSTopic_VideoCreate,
 		Data:  video,
 	}
 	videoDelete.SendToAll(jr.wss)

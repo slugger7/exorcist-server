@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
@@ -32,7 +33,7 @@ func (jr *JobRunner) getFilesByExtension(path string, extensions []string, ch ch
 }
 
 func (jr *JobRunner) ScanPath(job *model.Job) error {
-	var data models.ScanPathData
+	var data dto.ScanPathData
 	if err := json.Unmarshal([]byte(*job.Data), &data); err != nil {
 		return errs.BuildError(err, "could not unmarshal scan path job data: %v", err)
 	}
@@ -139,7 +140,9 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 					accErrs = append(accErrs, errs.BuildError(err, "could not create video"))
 				}
 
-				dto := (&models.MediaOverviewDTO{}).FromModel(&createdMedia[0], nil)
+				dto := (&dto.MediaOverviewDTO{}).FromModel(models.MediaOverviewModel{
+					Media: createdMedia[0],
+				})
 				jr.wsVideoCreate(*dto)
 
 				checksumJob, err := CreateGenerateChecksumJob(mediaId, job.ID)
@@ -194,7 +197,7 @@ func (jr *JobRunner) removeMedia(nonExistentMedia []model.Media) {
 				jr.logger.Errorf("Error occured while updating the existance state of the media '%v': %v", v.ID, err)
 			}
 
-			jr.wsVideoDelete(models.MediaOverviewDTO{Id: v.ID, Deleted: true})
+			jr.wsVideoDelete(dto.MediaOverviewDTO{Id: v.ID, Deleted: true})
 		}
 	}
 }

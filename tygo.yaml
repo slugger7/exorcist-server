@@ -1,0 +1,12 @@
+type_mappings:
+  time.Time: "Date"
+  uuid.UUID: "string /* UUID */"
+
+packages:
+  - path: "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+    output_path: "ts/model.d.ts"
+    indent: "  "
+  - path: "github.com/slugger7/exorcist/internal/dto"
+    output_path: "ts/index.d.ts"
+    indent: "  "
+    frontmatter: "import * as model from \"./model.d.ts\""

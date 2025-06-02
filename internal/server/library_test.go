@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/dto"
 	"go.uber.org/mock/gomock"
 )
 
@@ -27,7 +27,7 @@ func Test_CreateLibrary_ErrorByService(t *testing.T) {
 	s := setupServer(t).
 		withLibraryService()
 
-	m := models.CreateLibraryModel{
+	m := dto.CreateLibraryDTO{
 		Name: "someName",
 	}
 	l := &model.Library{Name: m.Name}
@@ -51,7 +51,7 @@ func Test_CreateLibrary_Success(t *testing.T) {
 	s := setupServer(t).
 		withLibraryService()
 
-	m := models.CreateLibraryModel{
+	m := dto.CreateLibraryDTO{
 		Name: "someName",
 	}
 	l := model.Library{Name: m.Name}
@@ -71,7 +71,7 @@ func Test_CreateLibrary_Success(t *testing.T) {
 	rr := s.withPostRequest(bodyM(m)).
 		exec()
 
-	result := (&models.Library{}).FromModel(cm)
+	result := (&dto.LibraryDTO{}).FromModel(cm)
 
 	body, _ := json.Marshal(result)
 	assert.StatusCode(t, http.StatusCreated, rr.Code)
@@ -114,7 +114,7 @@ func Test_GetLibraries_Succeeds(t *testing.T) {
 	rr := s.withGetRequest("").
 		exec()
 
-	bm := []models.Library{{Name: lib.Name}}
+	bm := []dto.LibraryDTO{{Name: lib.Name}}
 
 	body, _ := json.Marshal(bm)
 

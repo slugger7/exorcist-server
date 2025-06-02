@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
@@ -25,7 +26,7 @@ type IMediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
 	UpdateChecksum(m models.Media) error
-	GetAll(models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error)
+	GetAll(dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
 	GetById(id uuid.UUID) (*models.Media, error)
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
@@ -120,7 +121,7 @@ func (r *MediaRepository) UpdateChecksum(m models.Media) error {
 	return nil
 }
 
-func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[models.MediaOverviewModel], error) {
+func (r *MediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	mediaRelation := table.MediaRelation
 	thumbnail := table.Media.AS("thumbnail")
 	selectStatement := media.SELECT(
@@ -175,7 +176,7 @@ func (r *MediaRepository) GetAll(search models.MediaSearchDTO) (*models.Page[mod
 		return nil, errs.BuildError(err, "could not query media")
 	}
 
-	return &models.Page[models.MediaOverviewModel]{
+	return &dto.PageDTO[models.MediaOverviewModel]{
 		Data:  mediaResult,
 		Limit: search.Limit,
 		Skip:  search.Skip,

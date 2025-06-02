@@ -29,7 +29,7 @@ func Test_Create_ServiceReturnsError(t *testing.T) {
 	s := setupServer(t).
 		withUserService()
 
-	u := models.CreateUserModel{
+	u := models.CreateUserDTO{
 		Username: "someUsername",
 		Password: "somePassword",
 	}
@@ -53,7 +53,7 @@ func Test_Create_Success(t *testing.T) {
 	s := setupServer(t).
 		withUserService()
 
-	nu := &models.CreateUserModel{
+	nu := &models.CreateUserDTO{
 		Username: "expectedUsername",
 		Password: "somePassword",
 	}

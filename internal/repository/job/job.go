@@ -9,9 +9,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
-	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
@@ -25,7 +25,7 @@ type IJobRepository interface {
 	CreateAll(jobs []model.Job) ([]model.Job, error)
 	GetNextJob() (*model.Job, error)
 	UpdateJobStatus(model *model.Job) error
-	GetAll(models.JobSearchDTO) (*models.Page[model.Job], error)
+	GetAll(dto.JobSearchDTO) (*dto.PageDTO[model.Job], error)
 }
 
 type JobRepository struct {
@@ -86,7 +86,7 @@ func (j *JobRepository) UpdateJobStatus(model *model.Job) error {
 	return nil
 }
 
-func (r *JobRepository) GetAll(m models.JobSearchDTO) (*models.Page[model.Job], error) {
+func (r *JobRepository) GetAll(m dto.JobSearchDTO) (*dto.PageDTO[model.Job], error) {
 	if m.Limit == 0 {
 		m.Limit = 100
 	}
@@ -146,7 +146,7 @@ func (r *JobRepository) GetAll(m models.JobSearchDTO) (*models.Page[model.Job], 
 		jobs[i] = j.Job
 	}
 
-	return &models.Page[model.Job]{
+	return &dto.PageDTO[model.Job]{
 		Total: totalStruct.Total,
 		Limit: m.Limit,
 		Skip:  m.Skip,

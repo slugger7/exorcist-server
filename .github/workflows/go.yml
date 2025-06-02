@@ -29,3 +29,9 @@ jobs:
       
     - name: Test
       run: go test -v ./...
+
+    - name: Install tygo
+      run: go install github.com/gzuidhof/tygo@v0.2.18
+
+    - name: Generate FE Types
+      run: make dtos

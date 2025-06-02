@@ -8,14 +8,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/ffmpeg"
 	"github.com/slugger7/exorcist/internal/media"
-	"github.com/slugger7/exorcist/internal/models"
 )
 
 func CreateGenerateThumbnailJob(video model.Video, jobId uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
-	d := models.GenerateThumbnailData{
+	d := dto.GenerateThumbnailData{
 		VideoId:   video.ID,
 		Path:      imagePath,
 		Height:    height,
@@ -33,7 +33,7 @@ func CreateGenerateThumbnailJob(video model.Video, jobId uuid.UUID, imagePath st
 		Status:   model.JobStatusEnum_NotStarted,
 		Data:     &data,
 		Parent:   &jobId,
-		Priority: models.JobPriority_MediumHigh,
+		Priority: dto.JobPriority_MediumHigh,
 	}
 
 	return job, nil
@@ -45,7 +45,7 @@ func createAssetDirectory(path string) error {
 }
 
 func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
-	var jobData models.GenerateThumbnailData
+	var jobData dto.GenerateThumbnailData
 	if err := json.Unmarshal([]byte(*job.Data), &jobData); err != nil {
 		return errs.BuildError(err, "error parsing job data: %v", job.Data)
 	}
@@ -121,7 +121,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		return errs.BuildError(err, "could not create video image relation")
 	}
 
-	vidUpdate := models.MediaOverviewDTO{
+	vidUpdate := dto.MediaOverviewDTO{
 		Id:          video.Media.ID,
 		ThumbnailId: image.MediaID,
 	}
