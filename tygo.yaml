@@ -9,4 +9,6 @@ packages:
   - path: "github.com/slugger7/exorcist/internal/dto"
     output_path: "ts/index.d.ts"
     indent: "  "
-    frontmatter: "import * as model from \"./model.d.ts\""
+    frontmatter: |
+      import * as model from "./model.d.ts"
+      export * from "./enum.d.ts"

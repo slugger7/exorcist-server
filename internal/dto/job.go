@@ -43,6 +43,12 @@ const (
 	JobOrdinal_Priority JobOrdinal = "priority"
 )
 
+var JobOrdinalAllValues = []JobOrdinal{
+	JobOrdinal_Created,
+	JobOrdinal_Modified,
+	JobOrdinal_Priority,
+}
+
 func (o JobOrdinal) ToColumn() postgres.Column {
 	switch o {
 	case JobOrdinal_Created:
@@ -54,6 +60,10 @@ func (o JobOrdinal) ToColumn() postgres.Column {
 	default:
 		return table.Job.Created
 	}
+}
+
+func (o JobOrdinal) String() string {
+	return string(o)
 }
 
 type JobDTO struct {
