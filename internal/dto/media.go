@@ -21,6 +21,15 @@ const (
 	MediaOrdinal_Added    MediaOrdinal = "added"
 )
 
+var MediaOrdinalAllValues = []MediaOrdinal{
+	MediaOrdinal_Created,
+	MediaOrdinal_Modified,
+	MediaOrdinal_Added,
+	MediaOrdinal_Path,
+	MediaOrdinal_Size,
+	MediaOrdinal_Title,
+}
+
 func (o MediaOrdinal) ToColumn() postgres.Column {
 	media := table.Media
 	switch o {
@@ -39,6 +48,10 @@ func (o MediaOrdinal) ToColumn() postgres.Column {
 	default:
 		return media.Added
 	}
+}
+
+func (o MediaOrdinal) String() string {
+	return string(o)
 }
 
 type MediaSearchDTO struct {

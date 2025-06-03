@@ -39,4 +39,6 @@ generate-diagrams:
 	./scripts/generate-diagrams.sh
 
 dtos:
+	mkdir -p ts
+	go run ./cmd/enum-export
 	tygo generate
