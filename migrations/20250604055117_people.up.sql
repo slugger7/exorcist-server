@@ -1,7 +1,7 @@
 create table person
 (
   id uuid primary key default gen_random_uuid(),
-  name varchar not null,
+  name varchar not null unique,
   created timestamp default current_timestamp not null,
   modified timestamp default current_timestamp not null
 );
