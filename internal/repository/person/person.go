@@ -3,15 +3,22 @@ package personRepository
 import (
 	"context"
 	"database/sql"
+	"strings"
 
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
+	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
+
+var person = table.Person
 
 type IPersonRepository interface {
 	GetByName(name string) (*model.Person, error)
-	Create(name string) (*model.Person, error)
+	Create(names []string) ([]model.Person, error)
 }
 
 type personRepository struct {
@@ -22,13 +29,44 @@ type personRepository struct {
 }
 
 // Create implements IPersonRepository.
-func (p *personRepository) Create(name string) (*model.Person, error) {
-	panic("unimplemented")
+func (p *personRepository) Create(names []string) ([]model.Person, error) {
+	if len(names) == 0 {
+		return nil, nil
+	}
+
+	peopleModels := make([]model.Person, len(names))
+	for i, n := range names {
+		peopleModels[i] = model.Person{Name: n}
+	}
+
+	statement := person.INSERT(person.Name).
+		MODELS(peopleModels).
+		RETURNING(person.AllColumns)
+
+	util.DebugCheck(p.env, statement)
+
+	if err := statement.Query(p.db, &peopleModels); err != nil {
+		return nil, errs.BuildError(err, "could not insert new people models")
+	}
+
+	return peopleModels, nil
 }
 
 // GetByName implements IPersonRepository.
 func (p *personRepository) GetByName(name string) (*model.Person, error) {
-	panic("unimplemented")
+	statement := person.SELECT(person.AllColumns).
+		FROM(person).
+		WHERE(postgres.LOWER(person.Name).EQ(postgres.String(strings.ToLower(name))))
+
+	util.DebugCheck(p.env, statement)
+
+	var personModel *model.Person
+
+	if err := statement.QueryContext(p.ctx, p.db, personModel); err != nil {
+		return nil, errs.BuildError(err, "could not query people by name")
+	}
+
+	return personModel, nil
 }
 
 var personRepositoryInstance *personRepository
