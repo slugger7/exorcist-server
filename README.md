@@ -6,7 +6,6 @@ Similar to [ghost](https://github.com/slugger7/ghost-media) and [poltergeist](ht
 
 This is your warning that this project is not in any state ready to be used (even by me) and is still under constant construction without a usable version at the moment
 
-
 ## Getting started
 
 - Install Go
@@ -22,7 +21,7 @@ This is your warning that this project is not in any state ready to be used (eve
 
 ## Frontend
 
-The server will serve any files that are in the [www](./www) directory if it exists. This directory can be changed by an environment variable in [.env](.env) but it is an optional field. 
+The server will serve any files that are in the [www](./www) directory if it exists. This directory can be changed by an environment variable in [.env](.env) but it is an optional field.
 If the variable is not set it will not serve any static files.
 
 The [web](https://github.com/slugger7/exorcist-web) project can be built and all of the files in its `dist` directory can be added to the [www](./www) directory.
