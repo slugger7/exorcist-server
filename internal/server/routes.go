@@ -65,7 +65,8 @@ func (s *server) RegisterRoutes() http.Handler {
 	// Register media controller routes
 	s.withMediaSearch(authenticated, media).
 		withMediaGet(authenticated, media).
-		withMediaPutPeople(authenticated, media)
+		withMediaPutPeople(authenticated, media).
+		withMediaPutTags(authenticated, media)
 
 	s.withImageGet(authenticated, images).
 		withVideoGet(authenticated, videos)
