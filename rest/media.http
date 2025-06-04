@@ -15,3 +15,11 @@ Content-Type: application/json
   "not kevin",
   "kevin"
 ]
+
+### Add Tags to media
+PUT {{host}}:{{port}}/api/media/eff222d5-54bf-47ab-88d5-b54baf085284/tags
+Content-Type: application/json
+
+[
+  "tag 1"
+]

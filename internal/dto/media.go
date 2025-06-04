@@ -90,6 +90,7 @@ type MediaDTO struct {
 	Video         *VideoDTO   `json:"video,omitempty"`
 	ThumbnailID   uuid.UUID   `json:"thumbnailId,omitempty"`
 	People        []PersonDTO `json:"people"`
+	Tags          []TagDTO    `json:"tags"`
 }
 
 func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
@@ -111,6 +112,13 @@ func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
 		d.People = make([]PersonDTO, len(m.People))
 		for i, p := range m.People {
 			d.People[i] = *(&PersonDTO{}).FromModel(&p)
+		}
+	}
+
+	if len(m.Tags) > 0 {
+		d.Tags = make([]TagDTO, len(m.Tags))
+		for i, t := range m.Tags {
+			d.Tags[i] = *(&TagDTO{}).FromModel(&t)
 		}
 	}
 

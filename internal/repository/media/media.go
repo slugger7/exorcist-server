@@ -207,7 +207,9 @@ func (r *mediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 	mediaRelation := table.MediaRelation
 	mediaPerson := table.MediaPerson
 	person := table.Person
-	statement := media.SELECT(media.AllColumns, image.AllColumns, video.AllColumns, thumbnail.ID, person.AllColumns).
+	mediaTag := table.MediaTag
+	tag := table.Tag
+	statement := media.SELECT(media.AllColumns, image.AllColumns, video.AllColumns, thumbnail.ID, person.AllColumns, tag.AllColumns).
 		FROM(media.
 			LEFT_JOIN(image, image.MediaID.EQ(media.ID)).
 			LEFT_JOIN(video, video.MediaID.EQ(media.ID)).
@@ -218,7 +220,9 @@ func (r *mediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 			LEFT_JOIN(thumbnail, thumbnail.ID.EQ(mediaRelation.RelatedTo).
 				AND(thumbnail.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Asset.String())))).
 			LEFT_JOIN(mediaPerson, mediaPerson.MediaID.EQ(media.ID)).
-			INNER_JOIN(person, person.ID.EQ(mediaPerson.PersonID)),
+			LEFT_JOIN(person, person.ID.EQ(mediaPerson.PersonID)).
+			LEFT_JOIN(mediaTag, mediaTag.MediaID.EQ(media.ID)).
+			LEFT_JOIN(tag, tag.ID.EQ(mediaTag.TagID)),
 		).
 		WHERE(media.ID.EQ(postgres.UUID(id)))
 

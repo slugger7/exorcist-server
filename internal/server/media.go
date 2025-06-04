@@ -42,6 +42,10 @@ func (s *server) putMediaTags(c *gin.Context) {
 	}
 
 	m, err := s.service.Media().SetTags(id, tags)
+	if err != nil {
+		s.logger.Errorf("could not set tags for media %v: %v", id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
 	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
 }
 
@@ -58,6 +62,10 @@ func (s *server) putMediaPeople(c *gin.Context) {
 	}
 
 	m, err := s.service.Media().SetPeople(id, people)
+	if err != nil {
+		s.logger.Errorf("could not set people for media %v: %v", id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
 	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
 }
 
