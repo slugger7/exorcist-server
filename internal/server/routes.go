@@ -19,6 +19,7 @@ const (
 	media       Route = "/media"
 	jobs        Route = "/jobs"
 	libraryPath Route = "/libraryPaths"
+	people      Route = "/people"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -65,6 +66,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	s.withJobRoutes(authenticated, jobs).
 		withJobCreate(authenticated, jobs).
 		withJobGetAll(authenticated, jobs)
+
+	// Register person controller routes
+	s.withPersonUpsert(authenticated, people)
 
 	s.withWS(authenticated, root)
 

@@ -3,6 +3,7 @@ package personService
 import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
+	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
 )
@@ -19,7 +20,20 @@ type personService struct {
 
 // Upsert implements IPersonService.
 func (p *personService) Upsert(name string) (*model.Person, error) {
-	panic("unimplemented")
+	person, err := p.repo.Person().GetByName(name)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get person by name from repo")
+	}
+
+	if person == nil {
+		people, err := p.repo.Person().Create([]string{name})
+		if err != nil {
+			return nil, errs.BuildError(err, "could not create person by name")
+		}
+		person = &people[0]
+	}
+
+	return person, nil
 }
 
 var personServiceInstance *personService

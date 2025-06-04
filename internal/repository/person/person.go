@@ -45,28 +45,34 @@ func (p *personRepository) Create(names []string) ([]model.Person, error) {
 
 	util.DebugCheck(p.env, statement)
 
-	if err := statement.Query(p.db, &peopleModels); err != nil {
+	var createdModels []model.Person
+	if err := statement.Query(p.db, &createdModels); err != nil {
 		return nil, errs.BuildError(err, "could not insert new people models")
 	}
 
-	return peopleModels, nil
+	return createdModels, nil
 }
 
 // GetByName implements IPersonRepository.
 func (p *personRepository) GetByName(name string) (*model.Person, error) {
 	statement := person.SELECT(person.AllColumns).
 		FROM(person).
-		WHERE(postgres.LOWER(person.Name).EQ(postgres.String(strings.ToLower(name))))
+		WHERE(postgres.LOWER(person.Name).EQ(postgres.String(strings.ToLower(name)))).
+		LIMIT(1)
 
 	util.DebugCheck(p.env, statement)
 
-	var personModel *model.Person
+	var personModel []model.Person
 
-	if err := statement.QueryContext(p.ctx, p.db, personModel); err != nil {
+	if err := statement.QueryContext(p.ctx, p.db, &personModel); err != nil {
 		return nil, errs.BuildError(err, "could not query people by name")
 	}
 
-	return personModel, nil
+	if len(personModel) == 0 {
+		return nil, nil
+	}
+
+	return &personModel[0], nil
 }
 
 var personRepositoryInstance *personRepository
