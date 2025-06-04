@@ -41,17 +41,17 @@ func (m *MockMediaService) EXPECT() *MockMediaServiceMockRecorder {
 	return m.recorder
 }
 
-// AddPeople mocks base method.
-func (m *MockMediaService) AddPeople(id uuid.UUID, people []string) (*models.Media, error) {
+// SetPeople mocks base method.
+func (m *MockMediaService) SetPeople(id uuid.UUID, people []string) (*models.Media, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddPeople", id, people)
+	ret := m.ctrl.Call(m, "SetPeople", id, people)
 	ret0, _ := ret[0].(*models.Media)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// AddPeople indicates an expected call of AddPeople.
-func (mr *MockMediaServiceMockRecorder) AddPeople(id, people any) *gomock.Call {
+// SetPeople indicates an expected call of SetPeople.
+func (mr *MockMediaServiceMockRecorder) SetPeople(id, people any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPeople", reflect.TypeOf((*MockMediaService)(nil).AddPeople), id, people)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetPeople", reflect.TypeOf((*MockMediaService)(nil).SetPeople), id, people)
 }
