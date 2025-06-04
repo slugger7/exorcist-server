@@ -16,7 +16,6 @@ type MediaPerson struct {
 	ID       uuid.UUID `sql:"primary_key"`
 	Created  time.Time
 	Modified time.Time
-	Role     *string
 	MediaID  uuid.UUID
 	PersonID uuid.UUID
 }

@@ -23,7 +23,6 @@ create table media_person
   id uuid primary key default gen_random_uuid(),
   created timestamp default current_timestamp not null,
   modified timestamp default current_timestamp not null,
-  role varchar null,
   media_id uuid not null,
   person_id uuid not null,
   constraint fk_media_person_media
