@@ -7,6 +7,7 @@ import (
 	jobService "github.com/slugger7/exorcist/internal/service/job"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
+	mediaService "github.com/slugger7/exorcist/internal/service/media"
 	personService "github.com/slugger7/exorcist/internal/service/person"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 )
@@ -17,6 +18,7 @@ type IService interface {
 	LibraryPath() libraryPathService.ILibraryPathService
 	Job() jobService.IJobService
 	Person() personService.IPersonService
+	Media() mediaService.MediaService
 }
 
 type service struct {
@@ -27,6 +29,7 @@ type service struct {
 	libraryPath libraryPathService.ILibraryPathService
 	job         jobService.IJobService
 	person      personService.IPersonService
+	media       mediaService.MediaService
 }
 
 var serviceInstance *service
@@ -41,6 +44,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 			libraryPath: libraryPathService.New(repo, env),
 			job:         jobService.New(repo, env, jobCh),
 			person:      personService.New(repo, env),
+			media:       mediaService.New(env, repo),
 		}
 
 		serviceInstance.logger.Info("Service instance created")
@@ -71,4 +75,9 @@ func (s *service) Job() jobService.IJobService {
 func (s *service) Person() personService.IPersonService {
 	s.logger.Debug("Getting personService")
 	return s.person
+}
+
+func (s *service) Media() mediaService.MediaService {
+	s.logger.Debug("Getting mediaService")
+	return s.media
 }

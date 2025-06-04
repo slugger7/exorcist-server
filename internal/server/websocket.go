@@ -14,16 +14,16 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-func (s *Server) pongDuration() time.Duration {
+func (s *server) pongDuration() time.Duration {
 	return time.Duration(s.env.WebsocketHeartbeatInterval * int(time.Millisecond))
 }
 
-func (s *Server) pingDuration() time.Duration {
+func (s *server) pingDuration() time.Duration {
 	val := (s.env.WebsocketHeartbeatInterval * 9) / 10
 	return time.Duration(val * int(time.Millisecond))
 }
 
-func (s *Server) webSocketHeartbeat() {
+func (s *server) webSocketHeartbeat() {
 	tickerDuration := s.pingDuration()
 	ticker := time.NewTicker(tickerDuration)
 	defer ticker.Stop()
@@ -50,14 +50,14 @@ func (s *Server) webSocketHeartbeat() {
 	}
 }
 
-func (s *Server) withWS(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withWS(r *gin.RouterGroup, route Route) *server {
 	r.GET(fmt.Sprintf("%v/ws", route), s.ws)
 
 	go s.webSocketHeartbeat()
 	return s
 }
 
-func (s *Server) ws(c *gin.Context) {
+func (s *server) ws(c *gin.Context) {
 	session := sessions.Default(c)
 	if userRaw, ok := session.Get(userKey).(string); ok {
 		userId, err := uuid.Parse(userRaw)
@@ -95,7 +95,7 @@ func (s *Server) ws(c *gin.Context) {
 	}
 }
 
-func (s *Server) wsReader(ws *websocket.Conn, id uuid.UUID) {
+func (s *server) wsReader(ws *websocket.Conn, id uuid.UUID) {
 	for {
 		ws.SetReadDeadline(time.Now().Add(s.pongDuration()))
 		_, message, err := ws.ReadMessage()

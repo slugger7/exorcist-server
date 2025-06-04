@@ -9,19 +9,19 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-func (s *Server) withUserCreate(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withUserCreate(r *gin.RouterGroup, route Route) *server {
 	r.POST(route, s.CreateUser)
 	return s
 }
 
-func (s *Server) withUserUpdatePassword(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withUserUpdatePassword(r *gin.RouterGroup, route Route) *server {
 	r.PUT(route, s.UpdatePassword)
 	return s
 }
 
 const ErrCreateUser ApiError = "could not create new user"
 
-func (s *Server) CreateUser(c *gin.Context) {
+func (s *server) CreateUser(c *gin.Context) {
 	var newUser models.CreateUserDTO
 
 	if err := c.ShouldBindBodyWithJSON(&newUser); err != nil {
@@ -43,7 +43,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 const ErrUpdatePassword string = "could not update password"
 const OkPasswordUpdate string = "password updated"
 
-func (s *Server) UpdatePassword(c *gin.Context) {
+func (s *server) UpdatePassword(c *gin.Context) {
 	var model models.ResetPasswordModel
 	if err := c.ShouldBindBodyWithJSON(&model); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})

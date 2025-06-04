@@ -8,13 +8,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Server) withVideoGet(r *gin.RouterGroup, route Route) *Server {
-	r.GET(fmt.Sprintf("%v/:id", route), s.getVideoStream)
+func (s *server) withVideoGet(r *gin.RouterGroup, route Route) *server {
+	r.GET(fmt.Sprintf("%v/:%v", route, idKey), s.getVideoStream)
 	return s
 }
 
-func (s *Server) getVideoStream(c *gin.Context) {
-	idString := c.Param("id")
+func (s *server) getVideoStream(c *gin.Context) {
+	idString := c.Param(idKey)
 
 	id, err := uuid.Parse(idString)
 	if err != nil {

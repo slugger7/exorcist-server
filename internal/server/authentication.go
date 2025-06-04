@@ -10,24 +10,24 @@ import (
 
 const userKey string = "userId"
 
-func (s *Server) withCookieStore(r *gin.Engine) *Server {
+func (s *server) withCookieStore(r *gin.Engine) *server {
 	r.Use(sessions.Sessions("exorcist", cookie.NewStore([]byte(s.env.Secret))))
 	return s
 }
 
-func (s *Server) withAuthLogin(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withAuthLogin(r *gin.RouterGroup, route Route) *server {
 	r.POST(route, s.Login)
 	return s
 }
 
-func (s *Server) withAuthLogout(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withAuthLogout(r *gin.RouterGroup, route Route) *server {
 	r.GET(route, s.Logout)
 	return s
 }
 
 const ErrUnauthorized ApiError = "unauthorized"
 
-func (s *Server) AuthRequired(c *gin.Context) {
+func (s *server) AuthRequired(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userKey)
 
@@ -46,7 +46,7 @@ type LoginModel struct {
 
 const MsgAuthSuccess string = "successfully authenticated user"
 
-func (s *Server) Login(c *gin.Context) {
+func (s *server) Login(c *gin.Context) {
 	session := sessions.Default(c)
 	var userBody LoginModel
 	if err := c.ShouldBindBodyWithJSON(&userBody); err != nil {
@@ -74,7 +74,7 @@ const (
 	MsgLoggedOut           string   = "successfully logged out"
 )
 
-func (s *Server) Logout(c *gin.Context) {
+func (s *server) Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userKey)
 	if user == nil {

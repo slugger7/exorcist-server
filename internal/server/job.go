@@ -10,22 +10,22 @@ import (
 
 // https://medium.com/@abhishekranjandev/building-a-production-grade-websocket-for-notifications-with-golang-and-gin-a-detailed-guide-5b676dcfbd5a
 
-func (s *Server) withJobRoutes(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withJobRoutes(r *gin.RouterGroup, route Route) *server {
 	r.GET(fmt.Sprintf("%v/start-runner", route), s.startJobRunner)
 	return s
 }
 
-func (s *Server) withJobCreate(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withJobCreate(r *gin.RouterGroup, route Route) *server {
 	r.POST(route, s.CreateJob)
 	return s
 }
 
-func (s *Server) withJobGetAll(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withJobGetAll(r *gin.RouterGroup, route Route) *server {
 	r.GET(route, s.getAllJobs)
 	return s
 }
 
-func (s *Server) startJobRunner(c *gin.Context) {
+func (s *server) startJobRunner(c *gin.Context) {
 	s.jobCh <- true
 	c.JSON(http.StatusOK, nil)
 }
@@ -34,7 +34,7 @@ const (
 	ErrJobCreate ApiError = "could not create job"
 )
 
-func (s *Server) CreateJob(c *gin.Context) {
+func (s *server) CreateJob(c *gin.Context) {
 	var cm dto.CreateJobDTO
 	if err := c.ShouldBindBodyWithJSON(&cm); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err})
@@ -60,7 +60,7 @@ func (s *Server) CreateJob(c *gin.Context) {
 
 const ErrGetAllJobs ApiError = "could not get all jobs"
 
-func (s *Server) getAllJobs(c *gin.Context) {
+func (s *server) getAllJobs(c *gin.Context) {
 	var jobSearch dto.JobSearchDTO
 
 	if err := c.ShouldBindQuery(&jobSearch); err != nil {

@@ -22,7 +22,14 @@ const (
 	people      Route = "/people"
 )
 
-func (s *Server) RegisterRoutes() http.Handler {
+type key = string
+
+const (
+	nameKey key = "name"
+	idKey   key = "id"
+)
+
+func (s *server) RegisterRoutes() http.Handler {
 	if s.env.AppEnv == environment.AppEnvEnum.Prod {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
@@ -76,6 +83,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 	return r
 }
 
-func (s *Server) HealthHandler(c *gin.Context) {
+func (s *server) HealthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.repo.Health())
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) withStaticFiles(r *gin.Engine) *Server {
+func (s *server) withStaticFiles(r *gin.Engine) *server {
 	if s.env.Web == nil {
 		return s
 	}

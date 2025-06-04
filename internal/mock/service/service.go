@@ -15,6 +15,7 @@ import (
 	jobService "github.com/slugger7/exorcist/internal/service/job"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
+	mediaService "github.com/slugger7/exorcist/internal/service/media"
 	personService "github.com/slugger7/exorcist/internal/service/person"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 	gomock "go.uber.org/mock/gomock"
@@ -84,6 +85,20 @@ func (m *MockIService) LibraryPath() libraryPathService.ILibraryPathService {
 func (mr *MockIServiceMockRecorder) LibraryPath() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LibraryPath", reflect.TypeOf((*MockIService)(nil).LibraryPath))
+}
+
+// Media mocks base method.
+func (m *MockIService) Media() mediaService.MediaService {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Media")
+	ret0, _ := ret[0].(mediaService.MediaService)
+	return ret0
+}
+
+// Media indicates an expected call of Media.
+func (mr *MockIServiceMockRecorder) Media() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Media", reflect.TypeOf((*MockIService)(nil).Media))
 }
 
 // Person mocks base method.

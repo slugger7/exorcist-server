@@ -8,17 +8,13 @@ import (
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
-type key = string
-
-const personName key = "name"
-
-func (s *Server) withPersonUpsert(r *gin.RouterGroup, route Route) *Server {
-	r.PUT(fmt.Sprintf("%v/:%v", route, personName), s.putPerson)
+func (s *server) withPersonUpsert(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v", route, nameKey), s.putPerson)
 	return s
 }
 
-func (s *Server) putPerson(c *gin.Context) {
-	name := c.Param(personName)
+func (s *server) putPerson(c *gin.Context) {
+	name := c.Param(nameKey)
 	if name == "" {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return

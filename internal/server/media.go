@@ -9,20 +9,41 @@ import (
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
-func (s *Server) withMediaSearch(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withMediaSearch(r *gin.RouterGroup, route Route) *server {
 	r.GET(route, s.getMedia)
 	return s
 }
 
-func (s *Server) withMediaGet(r *gin.RouterGroup, route Route) *Server {
-	r.GET(fmt.Sprintf("%v/:id", route), s.getMediaById)
+func (s *server) withMediaGet(r *gin.RouterGroup, route Route) *server {
+	r.GET(fmt.Sprintf("%v/:%v", route, idKey), s.getMediaById)
 	return s
 }
 
-func (s *Server) getMediaById(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+func (s *server) withMediaPutPeople(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v/people", route, idKey), s.putMediaPeople)
+	return s
+}
+
+func (s *server) putMediaPeople(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
 	if err != nil {
-		e := fmt.Sprintf((ErrIdParse), c.Param(("id")))
+		c.AbortWithStatus(http.StatusUnprocessableEntity)
+	}
+
+	var people []string
+	if err := c.ShouldBindBodyWithJSON(&people); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "could not process body"})
+		return
+	}
+
+	m, err := s.service.Media().AddPeople(id, people)
+	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
+}
+
+func (s *server) getMediaById(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		e := fmt.Sprintf((ErrIdParse), c.Param((idKey)))
 		s.logger.Error(e)
 		c.JSON(http.StatusUnprocessableEntity, createError(e))
 		return
@@ -43,7 +64,7 @@ func (s *Server) getMediaById(c *gin.Context) {
 	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
 }
 
-func (s *Server) getMedia(c *gin.Context) {
+func (s *server) getMedia(c *gin.Context) {
 	var search dto.MediaSearchDTO
 
 	if err := c.ShouldBindQuery(&search); err != nil {

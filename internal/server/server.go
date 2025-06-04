@@ -16,7 +16,7 @@ import (
 	"github.com/slugger7/exorcist/internal/service"
 )
 
-type Server struct {
+type server struct {
 	env            *environment.EnvironmentVariables
 	repo           repository.IRepository
 	service        service.IService
@@ -26,7 +26,7 @@ type Server struct {
 	websocketMutex sync.Mutex
 }
 
-func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, wss models.WebSocketMap) *Server {
+func (s *server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, wss models.WebSocketMap) *server {
 	ch := job.New(s.env, s.service, s.logger, ctx, wg, wss)
 	s.jobCh = ch
 
@@ -35,13 +35,13 @@ func (s *Server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, wss mode
 	return s
 }
 
-func NewServer(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server {
+func New(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server {
 	lg := logger.New(env)
 	shutdownCtx, cancel := context.WithCancel(context.Background())
 
 	repo := repository.New(env, shutdownCtx)
 
-	newServer := &Server{
+	newServer := &server{
 		repo:       repo,
 		env:        env,
 		logger:     lg,

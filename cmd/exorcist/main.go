@@ -44,7 +44,7 @@ func main() {
 	env := environment.GetEnvironmentVariables()
 
 	var wg sync.WaitGroup
-	server := server.NewServer(env, &wg)
+	server := server.New(env, &wg)
 
 	done := make(chan bool, 1)
 
