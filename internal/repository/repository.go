@@ -21,6 +21,7 @@ import (
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 	mediaRepository "github.com/slugger7/exorcist/internal/repository/media"
 	personRepository "github.com/slugger7/exorcist/internal/repository/person"
+	tagRepository "github.com/slugger7/exorcist/internal/repository/tag"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
@@ -38,6 +39,7 @@ type IRepository interface {
 	Image() imageRepository.IImageRepository
 	Media() mediaRepository.IMediaRepository
 	Person() personRepository.IPersonRepository
+	Tag() tagRepository.TagRepository
 }
 
 type repository struct {
@@ -52,6 +54,7 @@ type repository struct {
 	imageRepo       imageRepository.IImageRepository
 	mediaRepo       mediaRepository.IMediaRepository
 	personRepo      personRepository.IPersonRepository
+	tagRepo         tagRepository.TagRepository
 }
 
 var dbInstance *repository
@@ -82,6 +85,7 @@ func New(env *environment.EnvironmentVariables, context context.Context) IReposi
 			imageRepo:       imageRepository.New(db, env, context),
 			mediaRepo:       mediaRepository.New(db, env, context),
 			personRepo:      personRepository.New(env, db, context),
+			tagRepo:         tagRepository.New(env, db, context),
 		}
 
 		err = dbInstance.runMigrations()
@@ -132,6 +136,11 @@ func (s *repository) Media() mediaRepository.IMediaRepository {
 func (s *repository) Person() personRepository.IPersonRepository {
 	s.logger.Debug("Getting person repo")
 	return dbInstance.personRepo
+}
+
+func (s *repository) Tag() tagRepository.TagRepository {
+	s.logger.Debug("Getting tag repo")
+	return dbInstance.tagRepo
 }
 
 // Health checks the health of the database connection by pinging the database.

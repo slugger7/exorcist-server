@@ -28,7 +28,7 @@ run-migrations:
 undo-migration:
 	./scripts/undo-migration.sh
 
-update-models:
+models:
 	./scripts/update-models.sh
 
 recreate-db:

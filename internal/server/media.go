@@ -24,6 +24,31 @@ func (s *server) withMediaPutPeople(r *gin.RouterGroup, route Route) *server {
 	return s
 }
 
+func (s *server) withMediaPutTags(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v/tags", route, idKey), s.putMediaTags)
+	return s
+}
+
+func (s *server) putMediaTags(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnprocessableEntity)
+	}
+
+	var tags []string
+	if err := c.ShouldBindBodyWithJSON(&tags); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "could not process body"})
+		return
+	}
+
+	m, err := s.service.Media().SetTags(id, tags)
+	if err != nil {
+		s.logger.Errorf("could not set tags for media %v: %v", id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
+	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
+}
+
 func (s *server) putMediaPeople(c *gin.Context) {
 	id, err := uuid.Parse(c.Param(idKey))
 	if err != nil {
@@ -37,6 +62,10 @@ func (s *server) putMediaPeople(c *gin.Context) {
 	}
 
 	m, err := s.service.Media().SetPeople(id, people)
+	if err != nil {
+		s.logger.Errorf("could not set people for media %v: %v", id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
 	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
 }
 

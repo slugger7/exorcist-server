@@ -35,6 +35,12 @@ mockgen -source=${REPO_DIR}/image/image.go > ${MOCK_REPO_DIR}/image/image.go
 mkdir -p ${MOCK_REPO_DIR}/media
 mockgen -source=${REPO_DIR}/media/media.go > ${MOCK_REPO_DIR}/media/media.go
 
+mkdir -p ${MOCK_REPO_DIR}/person
+mockgen -source=${REPO_DIR}/person/person.go > ${MOCK_REPO_DIR}/person/person.go
+
+mkdir -p ${MOCK_REPO_DIR}/tag
+mockgen -source=${REPO_DIR}/tag/tag.go > ${MOCK_REPO_DIR}/tag/tag.go
+
 echo "Generate service mocks"
 mkdir -p ${MOCK_SERVICE_DIR}
 mockgen -source=${SERVICE_DIR}/service.go > ${MOCK_SERVICE_DIR}/service.go
@@ -50,5 +56,11 @@ mockgen -source=${SERVICE_DIR}/user/user.go > ${MOCK_SERVICE_DIR}/user/user.go
 
 mkdir -p ${MOCK_SERVICE_DIR}/media
 mockgen -source=${SERVICE_DIR}/media/media.go > ${MOCK_SERVICE_DIR}/media/media.go
+
+mkdir -p ${MOCK_SERVICE_DIR}/person
+mockgen -source=${SERVICE_DIR}/person/person.go > ${MOCK_SERVICE_DIR}/person/person.go
+
+mkdir -p ${MOCK_SERVICE_DIR}/tag
+mockgen -source=${SERVICE_DIR}/tag/tag.go > ${MOCK_SERVICE_DIR}/tag/tag.go
 
 echo "Mocks generated"

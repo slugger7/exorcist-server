@@ -18,6 +18,7 @@ import (
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 	mediaRepository "github.com/slugger7/exorcist/internal/repository/media"
 	personRepository "github.com/slugger7/exorcist/internal/repository/person"
+	tagRepository "github.com/slugger7/exorcist/internal/repository/tag"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 	gomock "go.uber.org/mock/gomock"
@@ -157,6 +158,20 @@ func (m *MockIRepository) Person() personRepository.IPersonRepository {
 func (mr *MockIRepositoryMockRecorder) Person() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Person", reflect.TypeOf((*MockIRepository)(nil).Person))
+}
+
+// Tag mocks base method.
+func (m *MockIRepository) Tag() tagRepository.TagRepository {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Tag")
+	ret0, _ := ret[0].(tagRepository.TagRepository)
+	return ret0
+}
+
+// Tag indicates an expected call of Tag.
+func (mr *MockIRepositoryMockRecorder) Tag() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tag", reflect.TypeOf((*MockIRepository)(nil).Tag))
 }
 
 // User mocks base method.
