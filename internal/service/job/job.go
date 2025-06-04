@@ -16,19 +16,19 @@ type IJobService interface {
 	Create(dto.CreateJobDTO) (*model.Job, error)
 }
 
-type JobService struct {
-	Env    *environment.EnvironmentVariables
+type jobService struct {
+	env    *environment.EnvironmentVariables
 	repo   repository.IRepository
 	logger logger.ILogger
 	jobCh  chan bool
 }
 
-var jobServiceInstance *JobService
+var jobServiceInstance *jobService
 
 func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool) IJobService {
 	if jobServiceInstance == nil {
-		jobServiceInstance = &JobService{
-			Env:    env,
+		jobServiceInstance = &jobService{
+			env:    env,
 			repo:   repo,
 			logger: logger.New(env),
 			jobCh:  jobCh,
@@ -39,7 +39,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 	return jobServiceInstance
 }
 
-func (s *JobService) Create(m dto.CreateJobDTO) (*model.Job, error) {
+func (s *jobService) Create(m dto.CreateJobDTO) (*model.Job, error) {
 	defaultJobPriority := dto.JobPriority_Medium
 	if m.Priority == nil {
 		m.Priority = &(defaultJobPriority)
@@ -61,7 +61,7 @@ func (s *JobService) Create(m dto.CreateJobDTO) (*model.Job, error) {
 
 const ErrActionGenerateThumbnailVideoNotFound = "could not find video for generate thumbnail job: %v"
 
-func (i *JobService) generateThumbnail(data string, priority int16) (*model.Job, error) {
+func (i *jobService) generateThumbnail(data string, priority int16) (*model.Job, error) {
 	var generateThumbnailData dto.GenerateThumbnailData
 
 	if err := json.Unmarshal([]byte(data), &generateThumbnailData); err != nil {
@@ -95,7 +95,7 @@ func (i *JobService) generateThumbnail(data string, priority int16) (*model.Job,
 const ErrActionScanGetLibraryPaths = "could not get library paths in scan action"
 const ErrCreatingJobs = "error creating jobs"
 
-func (i *JobService) scanPath(data string, priority int16) (*model.Job, error) {
+func (i *jobService) scanPath(data string, priority int16) (*model.Job, error) {
 	var scanPathData dto.ScanPathData
 
 	if err := json.Unmarshal([]byte(data), &scanPathData); err != nil {
@@ -126,8 +126,8 @@ func (i *JobService) scanPath(data string, priority int16) (*model.Job, error) {
 }
 
 // We do this at the moment to stack a signal to the job runner if it is already running
-func (i *JobService) startJobRunner() {
-	if i.Env.JobRunner {
+func (i *jobService) startJobRunner() {
+	if i.env.JobRunner {
 		i.jobCh <- true
 	}
 }

@@ -18,7 +18,7 @@ import (
 )
 
 type testService struct {
-	svc             *LibraryService
+	svc             *libraryService
 	repo            *mock_repository.MockIRepository
 	libraryRepo     *mock_libraryRepository.MockILibraryRepository
 	libraryPathRepo *mock_libraryPathRepository.MockILibraryPathRepository
@@ -54,7 +54,7 @@ func setup(t *testing.T) *testService {
 		}).
 		AnyTimes()
 
-	ls := &LibraryService{repo: mockRepo}
+	ls := &libraryService{repo: mockRepo}
 	return &testService{ls, mockRepo, mockLibraryRepo, mockLibraryPathRepo, mockJobRepo}
 }
 

@@ -15,18 +15,18 @@ type ILibraryService interface {
 	GetAll() ([]model.Library, error)
 }
 
-type LibraryService struct {
-	Env    *environment.EnvironmentVariables
+type libraryService struct {
+	env    *environment.EnvironmentVariables
 	repo   repository.IRepository
 	logger logger.ILogger
 }
 
-var libraryServiceInstance *LibraryService
+var libraryServiceInstance *libraryService
 
 func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILibraryService {
 	if libraryServiceInstance == nil {
-		libraryServiceInstance = &LibraryService{
-			Env:    env,
+		libraryServiceInstance = &libraryService{
+			env:    env,
 			repo:   repo,
 			logger: logger.New(env),
 		}
@@ -41,7 +41,7 @@ const (
 	ErrLibraryExists string = "library named %v already exists"
 )
 
-func (i *LibraryService) Create(newLibrary *model.Library) (*model.Library, error) {
+func (i *libraryService) Create(newLibrary *model.Library) (*model.Library, error) {
 	library, err := i.repo.Library().
 		GetByName(newLibrary.Name)
 	if err != nil {
@@ -62,7 +62,7 @@ func (i *LibraryService) Create(newLibrary *model.Library) (*model.Library, erro
 
 const ErrGetLibraries = "could not getting libraries in repo"
 
-func (i *LibraryService) GetAll() ([]model.Library, error) {
+func (i *libraryService) GetAll() ([]model.Library, error) {
 	libraries, err := i.repo.Library().GetAll()
 	if err != nil {
 		return nil, errs.BuildError(err, ErrGetLibraries)

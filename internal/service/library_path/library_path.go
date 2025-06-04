@@ -20,18 +20,18 @@ type ILibraryPathService interface {
 	GetAll() ([]model.LibraryPath, error)
 }
 
-type LibraryPathService struct {
-	Env    *environment.EnvironmentVariables
+type libraryPathService struct {
+	env    *environment.EnvironmentVariables
 	repo   repository.IRepository
 	logger logger.ILogger
 }
 
-var libraryPathServiceInstance *LibraryPathService
+var libraryPathServiceInstance *libraryPathService
 
 func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILibraryPathService {
 	if libraryPathServiceInstance == nil {
-		libraryPathServiceInstance = &LibraryPathService{
-			Env:    env,
+		libraryPathServiceInstance = &libraryPathService{
+			env:    env,
 			repo:   repo,
 			logger: logger.New(env),
 		}
@@ -45,7 +45,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILi
 const ErrGetLibraryById = "could not get library by id: %v"
 const ErrCreateLibraryPath = "could not create new library path"
 
-func (lps *LibraryPathService) Create(libPathModel *model.LibraryPath) (*model.LibraryPath, error) {
+func (lps *libraryPathService) Create(libPathModel *model.LibraryPath) (*model.LibraryPath, error) {
 	if libPathModel == nil {
 		return nil, fmt.Errorf(LibraryPathWasNilErr)
 	}
@@ -69,7 +69,7 @@ func (lps *LibraryPathService) Create(libPathModel *model.LibraryPath) (*model.L
 
 const ErrGetAllLibraryPaths = "could not get all library paths"
 
-func (lps *LibraryPathService) GetAll() ([]model.LibraryPath, error) {
+func (lps *libraryPathService) GetAll() ([]model.LibraryPath, error) {
 	libPaths, err := lps.repo.LibraryPath().GetAll()
 	if err != nil {
 		return nil, errs.BuildError(err, ErrGetAllLibraryPaths)
