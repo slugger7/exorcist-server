@@ -9,6 +9,7 @@ import (
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
 	mediaService "github.com/slugger7/exorcist/internal/service/media"
 	personService "github.com/slugger7/exorcist/internal/service/person"
+	tagService "github.com/slugger7/exorcist/internal/service/tag"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 )
 
@@ -18,6 +19,7 @@ type IService interface {
 	LibraryPath() libraryPathService.ILibraryPathService
 	Job() jobService.IJobService
 	Person() personService.IPersonService
+	Tag() tagService.TagService
 	Media() mediaService.MediaService
 }
 
@@ -29,6 +31,7 @@ type service struct {
 	libraryPath libraryPathService.ILibraryPathService
 	job         jobService.IJobService
 	person      personService.IPersonService
+	tag         tagService.TagService
 	media       mediaService.MediaService
 }
 
@@ -37,6 +40,7 @@ var serviceInstance *service
 func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool) IService {
 	if serviceInstance == nil {
 		personService := personService.New(repo, env)
+		tagService := tagService.New(repo, env)
 		serviceInstance = &service{
 			env:         env,
 			logger:      logger.New(env),
@@ -45,7 +49,8 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 			libraryPath: libraryPathService.New(repo, env),
 			job:         jobService.New(repo, env, jobCh),
 			person:      personService,
-			media:       mediaService.New(env, repo, personService),
+			tag:         tagService,
+			media:       mediaService.New(env, repo, personService, tagService),
 		}
 
 		serviceInstance.logger.Info("Service instance created")
@@ -81,4 +86,9 @@ func (s *service) Person() personService.IPersonService {
 func (s *service) Media() mediaService.MediaService {
 	s.logger.Debug("Getting mediaService")
 	return s.media
+}
+
+func (s *service) Tag() tagService.TagService {
+	s.logger.Debug("Getting tagService")
+	return s.tag
 }

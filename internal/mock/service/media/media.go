@@ -55,3 +55,18 @@ func (mr *MockMediaServiceMockRecorder) SetPeople(id, people any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetPeople", reflect.TypeOf((*MockMediaService)(nil).SetPeople), id, people)
 }
+
+// SetTags mocks base method.
+func (m *MockMediaService) SetTags(id uuid.UUID, tags []string) (*models.Media, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetTags", id, tags)
+	ret0, _ := ret[0].(*models.Media)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetTags indicates an expected call of SetTags.
+func (mr *MockMediaServiceMockRecorder) SetTags(id, tags any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTags", reflect.TypeOf((*MockMediaService)(nil).SetTags), id, tags)
+}
