@@ -36,6 +36,7 @@ var serviceInstance *service
 
 func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool) IService {
 	if serviceInstance == nil {
+		personService := personService.New(repo, env)
 		serviceInstance = &service{
 			env:         env,
 			logger:      logger.New(env),
@@ -43,8 +44,8 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 			library:     libraryService.New(repo, env),
 			libraryPath: libraryPathService.New(repo, env),
 			job:         jobService.New(repo, env, jobCh),
-			person:      personService.New(repo, env),
-			media:       mediaService.New(env, repo),
+			person:      personService,
+			media:       mediaService.New(env, repo, personService),
 		}
 
 		serviceInstance.logger.Info("Service instance created")

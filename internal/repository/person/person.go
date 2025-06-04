@@ -19,6 +19,7 @@ var person = table.Person
 type IPersonRepository interface {
 	GetByName(name string) (*model.Person, error)
 	Create(names []string) ([]model.Person, error)
+	LinkWithMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error)
 }
 
 type personRepository struct {
@@ -26,6 +27,27 @@ type personRepository struct {
 	db     *sql.DB
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// LinkWithMedia implements IPersonRepository.
+func (p *personRepository) LinkWithMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error) {
+	if len(mediaPeople) == 0 {
+		return nil, nil
+	}
+
+	mediaPerson := table.MediaPerson
+	statement := mediaPerson.INSERT(mediaPerson.MediaID, mediaPerson.PersonID).
+		MODELS(mediaPeople).
+		RETURNING(mediaPerson.AllColumns)
+
+	util.DebugCheck(p.env, statement)
+
+	var createdModels []model.MediaPerson
+	if err := statement.QueryContext(p.ctx, p.db, &createdModels); err != nil {
+		return nil, errs.BuildError(err, "could not insert media person models")
+	}
+
+	return createdModels, nil
 }
 
 // Create implements IPersonRepository.
@@ -46,7 +68,7 @@ func (p *personRepository) Create(names []string) ([]model.Person, error) {
 	util.DebugCheck(p.env, statement)
 
 	var createdModels []model.Person
-	if err := statement.Query(p.db, &createdModels); err != nil {
+	if err := statement.QueryContext(p.ctx, p.db, &createdModels); err != nil {
 		return nil, errs.BuildError(err, "could not insert new people models")
 	}
 

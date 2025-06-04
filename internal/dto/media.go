@@ -64,18 +64,19 @@ func (v *MediaOverviewDTO) FromModel(m models.MediaOverviewModel) *MediaOverview
 }
 
 type MediaDTO struct {
-	ID            uuid.UUID `json:"id"`
-	LibraryPathID uuid.UUID `json:"libraryPathId"`
-	Path          string    `json:"path"`
-	Title         string    `json:"title"`
-	Size          int64     `json:"size"`
-	Checksum      *string   `json:"checksum"`
-	Added         time.Time `json:"added"`
-	Created       time.Time `json:"created"`
-	Modified      time.Time `json:"modified"`
-	Image         *ImageDTO `json:"image,omitempty"`
-	Video         *VideoDTO `json:"video,omitempty"`
-	ThumbnailID   uuid.UUID `json:"thumbnailId,omitempty"`
+	ID            uuid.UUID   `json:"id"`
+	LibraryPathID uuid.UUID   `json:"libraryPathId"`
+	Path          string      `json:"path"`
+	Title         string      `json:"title"`
+	Size          int64       `json:"size"`
+	Checksum      *string     `json:"checksum"`
+	Added         time.Time   `json:"added"`
+	Created       time.Time   `json:"created"`
+	Modified      time.Time   `json:"modified"`
+	Image         *ImageDTO   `json:"image,omitempty"`
+	Video         *VideoDTO   `json:"video,omitempty"`
+	ThumbnailID   uuid.UUID   `json:"thumbnailId,omitempty"`
+	People        []PersonDTO `json:"people"`
 }
 
 func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
@@ -92,6 +93,13 @@ func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
 
 	d.Image = (&ImageDTO{}).FromModel(m.Image)
 	d.Video = (&VideoDTO{}).FromModel(m.Video)
+
+	if len(m.People) > 0 {
+		d.People = make([]PersonDTO, len(m.People))
+		for i, p := range m.People {
+			d.People[i] = *(&PersonDTO{}).FromModel(&p)
+		}
+	}
 
 	return d
 }
