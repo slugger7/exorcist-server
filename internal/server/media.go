@@ -36,7 +36,7 @@ func (s *server) putMediaPeople(c *gin.Context) {
 		return
 	}
 
-	m, err := s.service.Media().AddPeople(id, people)
+	m, err := s.service.Media().SetPeople(id, people)
 	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
 }
 

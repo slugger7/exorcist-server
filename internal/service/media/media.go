@@ -3,6 +3,8 @@ package mediaService
 import (
 	"errors"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
@@ -15,7 +17,7 @@ import (
 )
 
 type MediaService interface {
-	AddPeople(id uuid.UUID, people []string) (*models.Media, error)
+	SetPeople(id uuid.UUID, people []string) (*models.Media, error)
 }
 
 type mediaService struct {
@@ -25,8 +27,14 @@ type mediaService struct {
 	personService personService.IPersonService
 }
 
-// AddPeople implements MediaService.
-func (m *mediaService) AddPeople(id uuid.UUID, people []string) (*models.Media, error) {
+func lowerStringComparator(a string) func(string) bool {
+	return func(b string) bool {
+		return strings.ToLower(a) == strings.ToLower(b)
+	}
+}
+
+// SetPeople implements MediaService.
+func (m *mediaService) SetPeople(id uuid.UUID, people []string) (*models.Media, error) {
 	mediaModel, err := m.repo.Media().GetById(id)
 	if err != nil {
 		return nil, errs.BuildError(err, "could not get media by id: %v", id.String())
@@ -35,6 +43,28 @@ func (m *mediaService) AddPeople(id uuid.UUID, people []string) (*models.Media, 
 	if mediaModel == nil {
 		return nil, fmt.Errorf("could not find media by id")
 	}
+
+	if len(people) == 0 {
+		return mediaModel, nil
+	}
+
+	uniquePeople := []string{people[0]}
+	for _, p := range people {
+		if !slices.ContainsFunc(uniquePeople, lowerStringComparator(p)) {
+			uniquePeople = append(uniquePeople, p)
+		}
+	}
+	people = uniquePeople
+
+	leftovers := []model.Person{}
+	for _, p := range mediaModel.People {
+		if !slices.ContainsFunc(people, lowerStringComparator(p.Name)) {
+			m.repo.Person().RemoveFromMedia(model.MediaPerson{MediaID: id, PersonID: p.ID})
+		} else {
+			leftovers = append(leftovers, p)
+		}
+	}
+	mediaModel.People = leftovers
 
 	peopleModels := []model.Person{}
 	errorList := []error{}
@@ -52,15 +82,21 @@ func (m *mediaService) AddPeople(id uuid.UUID, people []string) (*models.Media, 
 		m.logger.Errorf("error while upserting people: %v", errs.BuildError(joinedErrors, "could not upsert some people").Error())
 	}
 
-	mediaPersonModels := make([]model.MediaPerson, len(peopleModels))
-	for i, p := range peopleModels {
-		mediaPersonModels[i] = model.MediaPerson{
+	mediaPersonModels := []model.MediaPerson{}
+	for _, p := range peopleModels {
+		if slices.ContainsFunc(mediaModel.People, func(person model.Person) bool {
+			return person.ID == p.ID
+		}) {
+			continue
+		}
+
+		mediaPersonModels = append(mediaPersonModels, model.MediaPerson{
 			MediaID:  id,
 			PersonID: p.ID,
-		}
+		})
 	}
 
-	mediaPersonModels, err = m.repo.Person().LinkWithMedia(mediaPersonModels)
+	mediaPersonModels, err = m.repo.Person().AddToMedia(mediaPersonModels)
 	if err != nil {
 		return nil, errs.BuildError(err, "error linking media with people")
 	}

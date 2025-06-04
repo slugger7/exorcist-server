@@ -15,11 +15,13 @@ import (
 )
 
 var person = table.Person
+var mediaPerson = table.MediaPerson
 
 type IPersonRepository interface {
 	GetByName(name string) (*model.Person, error)
 	Create(names []string) ([]model.Person, error)
-	LinkWithMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error)
+	AddToMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error)
+	RemoveFromMedia(mediaPerson model.MediaPerson) error
 }
 
 type personRepository struct {
@@ -29,13 +31,27 @@ type personRepository struct {
 	ctx    context.Context
 }
 
-// LinkWithMedia implements IPersonRepository.
-func (p *personRepository) LinkWithMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error) {
+// RemoveFromMedia implements IPersonRepository.
+func (p *personRepository) RemoveFromMedia(mp model.MediaPerson) error {
+	statement := mediaPerson.DELETE().
+		WHERE(mediaPerson.MediaID.EQ(postgres.UUID(mp.MediaID)).
+			AND(mediaPerson.PersonID.EQ(postgres.UUID(mp.PersonID))))
+
+	util.DebugCheck(p.env, statement)
+
+	if _, err := statement.ExecContext(p.ctx, p.db); err != nil {
+		return errs.BuildError(err, "could not delete media person with media id %v and person id %v", mp.MediaID.String(), mp.PersonID.String())
+	}
+
+	return nil
+}
+
+// AddToMedia implements IPersonRepository.
+func (p *personRepository) AddToMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error) {
 	if len(mediaPeople) == 0 {
 		return nil, nil
 	}
 
-	mediaPerson := table.MediaPerson
 	statement := mediaPerson.INSERT(mediaPerson.MediaID, mediaPerson.PersonID).
 		MODELS(mediaPeople).
 		RETURNING(mediaPerson.AllColumns)
