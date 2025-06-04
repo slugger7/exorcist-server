@@ -20,6 +20,7 @@ import (
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 	mediaRepository "github.com/slugger7/exorcist/internal/repository/media"
+	personRepository "github.com/slugger7/exorcist/internal/repository/person"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
@@ -36,6 +37,7 @@ type IRepository interface {
 	User() userRepository.IUserRepository
 	Image() imageRepository.IImageRepository
 	Media() mediaRepository.IMediaRepository
+	Person() personRepository.IPersonRepository
 }
 
 type repository struct {
@@ -49,6 +51,7 @@ type repository struct {
 	userRepo        userRepository.IUserRepository
 	imageRepo       imageRepository.IImageRepository
 	mediaRepo       mediaRepository.IMediaRepository
+	personRepo      personRepository.IPersonRepository
 }
 
 var dbInstance *repository
@@ -78,6 +81,7 @@ func New(env *environment.EnvironmentVariables, context context.Context) IReposi
 			userRepo:        userRepository.New(db, env, context),
 			imageRepo:       imageRepository.New(db, env, context),
 			mediaRepo:       mediaRepository.New(db, env, context),
+			personRepo:      personRepository.New(env, db, context),
 		}
 
 		err = dbInstance.runMigrations()
@@ -91,31 +95,43 @@ func New(env *environment.EnvironmentVariables, context context.Context) IReposi
 }
 
 func (s *repository) Job() jobRepository.IJobRepository {
+	s.logger.Debug("Getting job repo")
 	return s.jobRepo
 }
 
 func (s *repository) Library() libraryRepository.ILibraryRepository {
+	s.logger.Debug("Getting library repo")
 	return s.libraryRepo
 }
 
 func (s *repository) LibraryPath() libraryPathRepository.ILibraryPathRepository {
+	s.logger.Debug("Getting library path repo")
 	return s.libraryPathRepo
 }
 
 func (s *repository) Video() videoRepository.IVideoRepository {
+	s.logger.Debug("Getting video repo")
 	return s.videoRepo
 }
 
 func (s *repository) User() userRepository.IUserRepository {
+	s.logger.Debug("Getting user repo")
 	return dbInstance.userRepo
 }
 
 func (s *repository) Image() imageRepository.IImageRepository {
+	s.logger.Debug("Getting image repo")
 	return dbInstance.imageRepo
 }
 
-func (r *repository) Media() mediaRepository.IMediaRepository {
+func (s *repository) Media() mediaRepository.IMediaRepository {
+	s.logger.Debug("Getting media repo")
 	return dbInstance.mediaRepo
+}
+
+func (s *repository) Person() personRepository.IPersonRepository {
+	s.logger.Debug("Getting person repo")
+	return dbInstance.personRepo
 }
 
 // Health checks the health of the database connection by pinging the database.
