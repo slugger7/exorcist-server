@@ -38,10 +38,10 @@ type IRepository interface {
 	Media() mediaRepository.IMediaRepository
 }
 
-type Repository struct {
+type repository struct {
 	db              *sql.DB
 	logger          logger.ILogger
-	Env             *environment.EnvironmentVariables
+	env             *environment.EnvironmentVariables
 	jobRepo         jobRepository.IJobRepository
 	libraryRepo     libraryRepository.ILibraryRepository
 	libraryPathRepo libraryPathRepository.ILibraryPathRepository
@@ -51,7 +51,7 @@ type Repository struct {
 	mediaRepo       mediaRepository.IMediaRepository
 }
 
-var dbInstance *Repository
+var dbInstance *repository
 
 func New(env *environment.EnvironmentVariables, context context.Context) IRepository {
 	if dbInstance == nil {
@@ -67,9 +67,9 @@ func New(env *environment.EnvironmentVariables, context context.Context) IReposi
 		db, err := sql.Open("postgres", psqlconn)
 		errs.PanicError(err)
 
-		dbInstance = &Repository{
+		dbInstance = &repository{
 			db:              db,
-			Env:             env,
+			env:             env,
 			logger:          logger.New(env),
 			jobRepo:         jobRepository.New(db, env, context),
 			libraryRepo:     libraryRepository.New(db, env, context),
@@ -90,37 +90,37 @@ func New(env *environment.EnvironmentVariables, context context.Context) IReposi
 	return dbInstance
 }
 
-func (s *Repository) Job() jobRepository.IJobRepository {
+func (s *repository) Job() jobRepository.IJobRepository {
 	return s.jobRepo
 }
 
-func (s *Repository) Library() libraryRepository.ILibraryRepository {
+func (s *repository) Library() libraryRepository.ILibraryRepository {
 	return s.libraryRepo
 }
 
-func (s *Repository) LibraryPath() libraryPathRepository.ILibraryPathRepository {
+func (s *repository) LibraryPath() libraryPathRepository.ILibraryPathRepository {
 	return s.libraryPathRepo
 }
 
-func (s *Repository) Video() videoRepository.IVideoRepository {
+func (s *repository) Video() videoRepository.IVideoRepository {
 	return s.videoRepo
 }
 
-func (s *Repository) User() userRepository.IUserRepository {
+func (s *repository) User() userRepository.IUserRepository {
 	return dbInstance.userRepo
 }
 
-func (s *Repository) Image() imageRepository.IImageRepository {
+func (s *repository) Image() imageRepository.IImageRepository {
 	return dbInstance.imageRepo
 }
 
-func (r *Repository) Media() mediaRepository.IMediaRepository {
+func (r *repository) Media() mediaRepository.IMediaRepository {
 	return dbInstance.mediaRepo
 }
 
 // Health checks the health of the database connection by pinging the database.
 // It returns a map with keys indicating various health statistics.
-func (s *Repository) Health() map[string]string {
+func (s *repository) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -174,12 +174,12 @@ func (s *Repository) Health() map[string]string {
 // It logs a message indicating the disconnection from the specific database.
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
-func (s *Repository) Close() error {
-	log.Printf("Disconnected from database: %s", s.Env.DatabaseName)
+func (s *repository) Close() error {
+	log.Printf("Disconnected from database: %s", s.env.DatabaseName)
 	return s.db.Close()
 }
 
-func (s *Repository) runMigrations() error {
+func (s *repository) runMigrations() error {
 	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
 	if err != nil {
 		return err

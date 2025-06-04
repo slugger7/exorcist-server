@@ -18,13 +18,13 @@ type ILibraryPathRepository interface {
 	GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error)
 }
 
-type LibraryPathRepository struct {
+type libraryPathRepository struct {
 	db  *sql.DB
-	Env *environment.EnvironmentVariables
+	env *environment.EnvironmentVariables
 	ctx context.Context
 }
 
-var libraryPathRepoInstance *LibraryPathRepository
+var libraryPathRepoInstance *libraryPathRepository
 
 type LibraryPathStatement struct {
 	postgres.Statement
@@ -36,9 +36,9 @@ func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Cont
 	if libraryPathRepoInstance != nil {
 		return libraryPathRepoInstance
 	}
-	libraryPathRepoInstance = &LibraryPathRepository{
+	libraryPathRepoInstance = &libraryPathRepository{
 		db:  db,
-		Env: env,
+		env: env,
 		ctx: context,
 	}
 
@@ -49,7 +49,7 @@ func (lps LibraryPathStatement) Query(destination interface{}) error {
 	return lps.Statement.QueryContext(lps.ctx, lps.db, destination)
 }
 
-func (lps *LibraryPathRepository) Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error) {
+func (lps *libraryPathRepository) Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error) {
 	var libraryPath struct{ model.LibraryPath }
 	if err := lps.create(&model.LibraryPath{Path: path, LibraryID: libraryId}).Query(&libraryPath); err != nil {
 		return nil, errs.BuildError(err, "could not create library path, with \npath: %v\nlibraryId: %v", path, libraryId)
@@ -57,7 +57,7 @@ func (lps *LibraryPathRepository) Create(path string, libraryId uuid.UUID) (*mod
 	return &libraryPath.LibraryPath, nil
 }
 
-func (lps *LibraryPathRepository) GetAll() ([]model.LibraryPath, error) {
+func (lps *libraryPathRepository) GetAll() ([]model.LibraryPath, error) {
 	var libraryPaths []model.LibraryPath
 	if err := lps.getLibraryPathsSelect().Query(&libraryPaths); err != nil {
 		return nil, errs.BuildError(err, "could not get library paths")
@@ -65,7 +65,7 @@ func (lps *LibraryPathRepository) GetAll() ([]model.LibraryPath, error) {
 	return libraryPaths, nil
 }
 
-func (lps *LibraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error) {
+func (lps *libraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error) {
 	var libraryPaths []struct{ model.LibraryPath }
 	if err := lps.getByLibraryIdStatement(libraryId).Query(&libraryPaths); err != nil {
 		return nil, errs.BuildError(err, "could not get library paths for library %v", libraryId)
@@ -79,7 +79,7 @@ func (lps *LibraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]model.L
 	return libPathModels, nil
 }
 
-func (lps *LibraryPathRepository) GetById(id uuid.UUID) (*model.LibraryPath, error) {
+func (lps *libraryPathRepository) GetById(id uuid.UUID) (*model.LibraryPath, error) {
 	var libraryPaths []struct{ model.LibraryPath }
 	if err := lps.getByIdStatement(id).Query(&libraryPaths); err != nil {
 		return nil, errs.BuildError(err, "could not get library path by id: %v", id)

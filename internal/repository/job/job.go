@@ -28,27 +28,27 @@ type IJobRepository interface {
 	GetAll(dto.JobSearchDTO) (*dto.PageDTO[model.Job], error)
 }
 
-type JobRepository struct {
+type jobRepository struct {
 	db  *sql.DB
-	Env *environment.EnvironmentVariables
+	env *environment.EnvironmentVariables
 	ctx context.Context
 }
 
-var jobRepoInstance *JobRepository
+var jobRepoInstance *jobRepository
 
 func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IJobRepository {
 	if jobRepoInstance != nil {
 		return jobRepoInstance
 	}
-	jobRepoInstance = &JobRepository{
+	jobRepoInstance = &jobRepository{
 		db:  db,
-		Env: env,
+		env: env,
 		ctx: context,
 	}
 	return jobRepoInstance
 }
 
-func (j *JobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
+func (j *jobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
 	if len(jobs) == 0 {
 		return jobs, nil
 	}
@@ -65,7 +65,7 @@ func (j *JobRepository) CreateAll(jobs []model.Job) ([]model.Job, error) {
 	return jobModels, nil
 }
 
-func (j *JobRepository) GetNextJob() (*model.Job, error) {
+func (j *jobRepository) GetNextJob() (*model.Job, error) {
 	var job []struct{ model.Job }
 	if err := j.getNextJobStatement().Query(&job); err != nil {
 		return nil, errs.BuildError(err, "could not get next job")
@@ -77,7 +77,7 @@ func (j *JobRepository) GetNextJob() (*model.Job, error) {
 	return nil, nil
 }
 
-func (j *JobRepository) UpdateJobStatus(model *model.Job) error {
+func (j *jobRepository) UpdateJobStatus(model *model.Job) error {
 	model.Modified = time.Now()
 	if _, err := j.updateJobStatusStatement(model).Exec(); err != nil {
 		return errs.BuildError(err, "could not update job %v status to %v", model.ID, model.Status)
@@ -86,7 +86,7 @@ func (j *JobRepository) UpdateJobStatus(model *model.Job) error {
 	return nil
 }
 
-func (r *JobRepository) GetAll(m dto.JobSearchDTO) (*dto.PageDTO[model.Job], error) {
+func (r *jobRepository) GetAll(m dto.JobSearchDTO) (*dto.PageDTO[model.Job], error) {
 	if m.Limit == 0 {
 		m.Limit = 100
 	}
@@ -126,8 +126,8 @@ func (r *JobRepository) GetAll(m dto.JobSearchDTO) (*dto.PageDTO[model.Job], err
 	statement = statement.WHERE(whereExpression)
 	countStatement = countStatement.WHERE(whereExpression)
 
-	util.DebugCheck(r.Env, statement)
-	util.DebugCheck(r.Env, countStatement)
+	util.DebugCheck(r.env, statement)
+	util.DebugCheck(r.env, countStatement)
 
 	var totalStruct struct {
 		Total int

@@ -27,19 +27,19 @@ type IUserRepository interface {
 	UpdatePassword(user *model.User) error
 }
 
-type UserRepository struct {
+type userRepository struct {
 	db  *sql.DB
-	Env *environment.EnvironmentVariables
+	env *environment.EnvironmentVariables
 	ctx context.Context
 }
 
-var userRepositoryInstance *UserRepository
+var userRepositoryInstance *userRepository
 
 func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IUserRepository {
 	if userRepositoryInstance == nil {
-		userRepositoryInstance = &UserRepository{
+		userRepositoryInstance = &userRepository{
 			db:  db,
-			Env: env,
+			env: env,
 			ctx: context,
 		}
 	}
@@ -55,7 +55,7 @@ func (us *UserStatement) Exec() (sql.Result, error) {
 	return us.Statement.ExecContext(us.ctx, us.db)
 }
 
-func (ur *UserRepository) CreateUser(user model.User) (*model.User, error) {
+func (ur *userRepository) CreateUser(user model.User) (*model.User, error) {
 	var newUser struct{ model.User }
 	if err := ur.createStatement(user).Query(&newUser); err != nil {
 		return nil, errs.BuildError(err, "could not create user %v", user)
@@ -63,7 +63,7 @@ func (ur *UserRepository) CreateUser(user model.User) (*model.User, error) {
 	return &newUser.User, nil
 }
 
-func (ur *UserRepository) GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error) {
+func (ur *userRepository) GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error) {
 	var users []struct{ model.User }
 	if err := ur.getUserByUsernameStatement(username, columns...).Query(&users); err != nil {
 		log.Println("something went wrong getting user by username")
@@ -76,7 +76,7 @@ func (ur *UserRepository) GetUserByUsername(username string, columns ...postgres
 	return user, nil
 }
 
-func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string) (*model.User, error) {
+func (ur *userRepository) GetUserByUsernameAndPassword(username, password string) (*model.User, error) {
 	var users []struct{ model.User }
 	if err := ur.getUserByUsernameAndPasswordStatement(username, password).Query(&users); err != nil {
 		log.Println("something went wrong getting user by username")
@@ -89,7 +89,7 @@ func (ur *UserRepository) GetUserByUsernameAndPassword(username, password string
 	return user, nil
 }
 
-func (ur *UserRepository) GetById(id uuid.UUID) (*model.User, error) {
+func (ur *userRepository) GetById(id uuid.UUID) (*model.User, error) {
 	var users []struct{ model.User }
 	if err := ur.getByIdStatement(id).Query(&users); err != nil {
 		return nil, errs.BuildError(err, "could not get user by id: %v", id)
@@ -102,7 +102,7 @@ func (ur *UserRepository) GetById(id uuid.UUID) (*model.User, error) {
 	return &users[len(users)-1].User, nil
 }
 
-func (ur *UserRepository) UpdatePassword(user *model.User) error {
+func (ur *userRepository) UpdatePassword(user *model.User) error {
 	if _, err := ur.updatePasswordStatement(user).Exec(); err != nil {
 		return errs.BuildError(err, "could not update user password: %v", user.ID)
 	}

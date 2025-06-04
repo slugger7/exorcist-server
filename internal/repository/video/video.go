@@ -31,15 +31,15 @@ type IVideoRepository interface {
 	GetByMediaId(id uuid.UUID) (*MediaVideoModel, error)
 }
 
-type VideoRepository struct {
+type videoRepository struct {
 	db     *sql.DB
-	Env    *environment.EnvironmentVariables
+	env    *environment.EnvironmentVariables
 	logger logger.ILogger
 	ctx    context.Context
 }
 
 // GetByMediaId implements IVideoRepository.
-func (vr *VideoRepository) GetByMediaId(id uuid.UUID) (*MediaVideoModel, error) {
+func (vr *videoRepository) GetByMediaId(id uuid.UUID) (*MediaVideoModel, error) {
 	video := table.Video
 	media := table.Media
 
@@ -48,7 +48,7 @@ func (vr *VideoRepository) GetByMediaId(id uuid.UUID) (*MediaVideoModel, error) 
 		WHERE(media.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
 
-	util.DebugCheck(vr.Env, statement)
+	util.DebugCheck(vr.env, statement)
 
 	var result MediaVideoModel
 
@@ -59,22 +59,22 @@ func (vr *VideoRepository) GetByMediaId(id uuid.UUID) (*MediaVideoModel, error) 
 	return &result, nil
 }
 
-var videoRepoInstance *VideoRepository
+var videoRepoInstance *videoRepository
 
 func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IVideoRepository {
 	if videoRepoInstance != nil {
 		return videoRepoInstance
 	}
-	videoRepoInstance = &VideoRepository{
+	videoRepoInstance = &videoRepository{
 		db:     db,
-		Env:    env,
+		env:    env,
 		ctx:    context,
 		logger: logger.New(env),
 	}
 	return videoRepoInstance
 }
 
-func (vr *VideoRepository) GetAll() ([]model.Video, error) {
+func (vr *videoRepository) GetAll() ([]model.Video, error) {
 	statement := table.Video.SELECT(table.Video.AllColumns).
 		FROM(table.Video)
 
@@ -95,7 +95,7 @@ func (vr *VideoRepository) GetAll() ([]model.Video, error) {
 	return models, nil
 }
 
-func (r *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
+func (r *videoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	if len(models) == 0 {
 		return nil, nil
 	}
@@ -109,7 +109,7 @@ func (r *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 		MODELS(models).
 		RETURNING(table.Video.AllColumns)
 
-	util.DebugCheck(r.Env, statement)
+	util.DebugCheck(r.env, statement)
 
 	var vids []model.Video
 
@@ -120,7 +120,7 @@ func (r *VideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	return vids, nil
 }
 
-func (r *VideoRepository) GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, error) {
+func (r *videoRepository) GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, error) {
 	video := table.Video
 	media := table.Media
 	statement := video.SELECT(video.AllColumns, media.AllColumns).
@@ -128,7 +128,7 @@ func (r *VideoRepository) GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, erro
 		WHERE(video.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
 
-	util.DebugCheck(r.Env, statement)
+	util.DebugCheck(r.env, statement)
 
 	var result MediaVideoModel
 	if err := statement.QueryContext(r.ctx, r.db, &result); err != nil {
