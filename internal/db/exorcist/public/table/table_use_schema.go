@@ -17,9 +17,12 @@ func UseSchema(schema string) {
 	Media = Media.FromSchema(schema)
 	MediaPerson = MediaPerson.FromSchema(schema)
 	MediaRelation = MediaRelation.FromSchema(schema)
+	MediaTag = MediaTag.FromSchema(schema)
 	Person = Person.FromSchema(schema)
 	PersonAlias = PersonAlias.FromSchema(schema)
 	SchemaMigrations = SchemaMigrations.FromSchema(schema)
+	Tag = Tag.FromSchema(schema)
+	TagAlias = TagAlias.FromSchema(schema)
 	User = User.FromSchema(schema)
 	Video = Video.FromSchema(schema)
 }
