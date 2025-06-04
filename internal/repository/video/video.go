@@ -45,6 +45,7 @@ func (vr *VideoRepository) GetByMediaId(id uuid.UUID) (*MediaVideoModel, error) 
 
 	statement := video.SELECT(video.AllColumns, media.AllColumns).
 		FROM(video.INNER_JOIN(media, video.MediaID.EQ(media.ID))).
+		WHERE(media.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
 
 	util.DebugCheck(vr.Env, statement)
