@@ -7,8 +7,8 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 )
 
-var lr = LibraryRepository{
-	Env: &environment.EnvironmentVariables{DebugSql: false},
+var lr = libraryRepository{
+	env: &environment.EnvironmentVariables{DebugSql: false},
 }
 
 func Test_CreateLibraryStatment(t *testing.T) {

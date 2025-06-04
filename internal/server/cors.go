@@ -6,7 +6,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 )
 
-func (s *Server) withCors(r *gin.Engine) *Server {
+func (s *server) withCors(r *gin.Engine) *server {
 	if s.env.AppEnv == environment.AppEnvEnum.Prod {
 		return s
 	}

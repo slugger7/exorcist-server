@@ -2,7 +2,16 @@
 GET {{host}}:{{port}}/api/media?limit=100
 
 ### Get video by id
-GET {{host}}:{{port}}/api/media/3f85a17b-eaab-4eeb-bb4a-42c8466ca3f1
+GET {{host}}:{{port}}/api/media/eff222d5-54bf-47ab-88d5-b54baf085284
 
 ### Get video media by id
 GET {{host}}:{{port}}/api/media/video/064eb817-2347-4648-9608-84a86f7b303d
+
+### Add People to media
+PUT {{host}}:{{port}}/api/media/eff222d5-54bf-47ab-88d5-b54baf085284/people
+Content-Type: application/json
+
+[
+  "not kevin",
+  "kevin"
+]

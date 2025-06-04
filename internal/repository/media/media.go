@@ -32,23 +32,23 @@ type IMediaRepository interface {
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
 }
 
-type MediaRepository struct {
+type mediaRepository struct {
 	db     *sql.DB
-	Env    *environment.EnvironmentVariables
+	env    *environment.EnvironmentVariables
 	logger logger.ILogger
 	ctx    context.Context
 }
 
-var mediaRepositoryInstance *MediaRepository
+var mediaRepositoryInstance *mediaRepository
 
 func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IMediaRepository {
 	if mediaRepositoryInstance != nil {
 		return mediaRepositoryInstance
 	}
 
-	mediaRepositoryInstance = &MediaRepository{
+	mediaRepositoryInstance = &mediaRepository{
 		db:     db,
-		Env:    env,
+		env:    env,
 		ctx:    context,
 		logger: logger.New(env),
 	}
@@ -56,7 +56,7 @@ func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Cont
 	return mediaRepositoryInstance
 }
 
-func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
+func (r *mediaRepository) Create(ms []model.Media) ([]model.Media, error) {
 	if len(ms) == 0 {
 		return nil, nil
 	}
@@ -71,7 +71,7 @@ func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
 		MODELS(ms).
 		RETURNING(media.AllColumns)
 
-	util.DebugCheck(r.Env, statement)
+	util.DebugCheck(r.env, statement)
 
 	models := []model.Media{}
 
@@ -82,7 +82,7 @@ func (r *MediaRepository) Create(ms []model.Media) ([]model.Media, error) {
 	return models, nil
 }
 
-func (r *MediaRepository) UpdateExists(m model.Media) error {
+func (r *mediaRepository) UpdateExists(m model.Media) error {
 	m.Modified = time.Now()
 
 	statement := media.UPDATE().
@@ -93,7 +93,7 @@ func (r *MediaRepository) UpdateExists(m model.Media) error {
 		MODEL(m).
 		WHERE(media.ID.EQ(postgres.UUID(m.ID)))
 
-	util.DebugCheck(r.Env, statement)
+	util.DebugCheck(r.env, statement)
 
 	if _, err := statement.Exec(r.db); err != nil {
 		return errs.BuildError(err, "could not update media exists: %v", m.ID)
@@ -102,7 +102,7 @@ func (r *MediaRepository) UpdateExists(m model.Media) error {
 	return nil
 }
 
-func (r *MediaRepository) UpdateChecksum(m models.Media) error {
+func (r *mediaRepository) UpdateChecksum(m models.Media) error {
 	m.Modified = time.Now()
 	statement := media.UPDATE().
 		SET(
@@ -112,7 +112,7 @@ func (r *MediaRepository) UpdateChecksum(m models.Media) error {
 		MODEL(m).
 		WHERE(media.ID.EQ(postgres.UUID(m.Media.ID)))
 
-	util.DebugCheck(r.Env, statement)
+	util.DebugCheck(r.env, statement)
 
 	if _, err := statement.Exec(r.db); err != nil {
 		return errs.BuildError(err, "could not update checksum for video: %v", m.Media.ID)
@@ -121,7 +121,7 @@ func (r *MediaRepository) UpdateChecksum(m models.Media) error {
 	return nil
 }
 
-func (r *MediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (r *mediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	mediaRelation := table.MediaRelation
 	thumbnail := table.Media.AS("thumbnail")
 	selectStatement := media.SELECT(
@@ -161,8 +161,8 @@ func (r *MediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models
 	selectStatement = selectStatement.WHERE(whr)
 	countStatement = countStatement.WHERE(whr)
 
-	util.DebugCheck(r.Env, countStatement)
-	util.DebugCheck(r.Env, selectStatement)
+	util.DebugCheck(r.env, countStatement)
+	util.DebugCheck(r.env, selectStatement)
 
 	var total struct {
 		Total int
@@ -184,13 +184,13 @@ func (r *MediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models
 	}, nil
 }
 
-func (r *MediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
+func (r *mediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
 	statement := media.SELECT(media.Path, media.ID).
 		FROM(media).
 		WHERE(media.LibraryPathID.EQ(postgres.UUID(id)).
 			AND(media.Exists.IS_TRUE()))
 
-	util.DebugCheck(r.Env, statement)
+	util.DebugCheck(r.env, statement)
 
 	var results []model.Media
 	if err := statement.QueryContext(r.ctx, r.db, &results); err != nil {
@@ -200,12 +200,14 @@ func (r *MediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error
 	return results, nil
 }
 
-func (r *MediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
+func (r *mediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 	image := table.Image
 	video := table.Video
 	thumbnail := table.Media.AS("thumbnail")
 	mediaRelation := table.MediaRelation
-	statement := media.SELECT(media.AllColumns, image.AllColumns, video.AllColumns, thumbnail.ID).
+	mediaPerson := table.MediaPerson
+	person := table.Person
+	statement := media.SELECT(media.AllColumns, image.AllColumns, video.AllColumns, thumbnail.ID, person.AllColumns).
 		FROM(media.
 			LEFT_JOIN(image, image.MediaID.EQ(media.ID)).
 			LEFT_JOIN(video, video.MediaID.EQ(media.ID)).
@@ -214,12 +216,13 @@ func (r *MediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 					postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String()),
 				))).
 			LEFT_JOIN(thumbnail, thumbnail.ID.EQ(mediaRelation.RelatedTo).
-				AND(thumbnail.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Asset.String())))),
+				AND(thumbnail.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Asset.String())))).
+			LEFT_JOIN(mediaPerson, mediaPerson.MediaID.EQ(media.ID)).
+			INNER_JOIN(person, person.ID.EQ(mediaPerson.PersonID)),
 		).
-		WHERE(media.ID.EQ(postgres.UUID(id))).
-		LIMIT(1)
+		WHERE(media.ID.EQ(postgres.UUID(id)))
 
-	util.DebugCheck(r.Env, statement)
+	util.DebugCheck(r.env, statement)
 
 	var result models.Media
 	if err := statement.QueryContext(r.ctx, r.db, &result); err != nil {
@@ -229,7 +232,7 @@ func (r *MediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 	return &result, nil
 }
 
-func (r *MediaRepository) Relate(m model.MediaRelation) (*model.MediaRelation, error) {
+func (r *mediaRepository) Relate(m model.MediaRelation) (*model.MediaRelation, error) {
 	// TODO: add constraint on unique combination of media ids
 	relation := table.MediaRelation
 	statement := relation.INSERT(
@@ -240,7 +243,7 @@ func (r *MediaRepository) Relate(m model.MediaRelation) (*model.MediaRelation, e
 		MODEL(m).
 		RETURNING(relation.AllColumns)
 
-	util.DebugCheck(r.Env, statement)
+	util.DebugCheck(r.env, statement)
 
 	if err := statement.Query(r.db, &m); err != nil {
 		return nil, errs.BuildError(err, "could not insert media models")

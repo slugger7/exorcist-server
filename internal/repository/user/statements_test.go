@@ -9,8 +9,8 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 )
 
-var s = UserRepository{
-	Env: &environment.EnvironmentVariables{DebugSql: false},
+var s = userRepository{
+	env: &environment.EnvironmentVariables{DebugSql: false},
 }
 
 func Test_GetUserByUsernameAndPassword(t *testing.T) {

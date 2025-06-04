@@ -10,17 +10,17 @@ import (
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
-func (s *Server) withLibraryPost(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withLibraryPost(r *gin.RouterGroup, route Route) *server {
 	r.POST(route, s.CreateLibrary)
 	return s
 }
 
-func (s *Server) withLibraryGet(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withLibraryGet(r *gin.RouterGroup, route Route) *server {
 	r.GET(route, s.GetLibraries)
 	return s
 }
 
-func (s *Server) withLibraryGetPaths(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withLibraryGetPaths(r *gin.RouterGroup, route Route) *server {
 	r.GET(fmt.Sprintf("%v/:id/libraryPaths", route), s.LibraryGetPaths)
 	return s
 }
@@ -30,7 +30,7 @@ const (
 	ErrIdParse                ApiError = "could not parse id: %v"
 )
 
-func (s *Server) LibraryGetPaths(c *gin.Context) {
+func (s *server) LibraryGetPaths(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		e := fmt.Sprintf(ErrIdParse, c.Param("id"))
@@ -56,7 +56,7 @@ func (s *Server) LibraryGetPaths(c *gin.Context) {
 
 const ErrCreatingLibrary ApiError = "could not create new library"
 
-func (s *Server) CreateLibrary(c *gin.Context) {
+func (s *server) CreateLibrary(c *gin.Context) {
 	var cm dto.CreateLibraryDTO
 	if err := c.ShouldBindBodyWithJSON(&cm); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err})
@@ -81,7 +81,7 @@ func (s *Server) CreateLibrary(c *gin.Context) {
 
 const ErrGetLibraries ApiError = "could not fetch libraries"
 
-func (s *Server) GetLibraries(c *gin.Context) {
+func (s *server) GetLibraries(c *gin.Context) {
 	libs, err := s.service.Library().GetAll()
 	if err != nil {
 		s.logger.Errorf("could not get libraries: %v", err)

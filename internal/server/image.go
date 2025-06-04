@@ -8,12 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Server) withImageGet(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withImageGet(r *gin.RouterGroup, route Route) *server {
 	r.GET(fmt.Sprintf("%v/:id", route), s.getImage)
 	return s
 }
 
-func (s *Server) getImage(c *gin.Context) {
+func (s *server) getImage(c *gin.Context) {
 	idString := c.Param("id")
 
 	id, err := uuid.Parse(idString)

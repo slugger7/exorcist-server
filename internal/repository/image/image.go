@@ -24,14 +24,14 @@ type IImageRepository interface {
 	GetByMediaId(uuid.UUID) (*MediaImage, error)
 }
 
-type ImageRepository struct {
+type imageRepository struct {
 	db  *sql.DB
-	Env *environment.EnvironmentVariables
+	env *environment.EnvironmentVariables
 	ctx context.Context
 }
 
 // GetByMediaId implements IImageRepository.
-func (i *ImageRepository) GetByMediaId(id uuid.UUID) (*MediaImage, error) {
+func (i *imageRepository) GetByMediaId(id uuid.UUID) (*MediaImage, error) {
 	media := table.Media
 	image := table.Image
 
@@ -43,7 +43,7 @@ func (i *ImageRepository) GetByMediaId(id uuid.UUID) (*MediaImage, error) {
 		WHERE(media.ID.EQ(postgres.UUID(id))).
 		LIMIT(1)
 
-	util.DebugCheck(i.Env, statement)
+	util.DebugCheck(i.env, statement)
 
 	var result MediaImage
 	if err := statement.QueryContext(i.ctx, i.db, &result); err != nil {
@@ -53,23 +53,23 @@ func (i *ImageRepository) GetByMediaId(id uuid.UUID) (*MediaImage, error) {
 	return &result, nil
 }
 
-var imageRepoInstance *ImageRepository
+var imageRepoInstance *imageRepository
 
 func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IImageRepository {
 	if imageRepoInstance != nil {
 		return imageRepoInstance
 	}
 
-	imageRepoInstance = &ImageRepository{
+	imageRepoInstance = &imageRepository{
 		db:  db,
-		Env: env,
+		env: env,
 		ctx: context,
 	}
 
 	return imageRepoInstance
 }
 
-func (i *ImageRepository) Create(m *model.Image) (*model.Image, error) {
+func (i *imageRepository) Create(m *model.Image) (*model.Image, error) {
 	image := table.Image
 	var img model.Image
 	statement := image.INSERT(
@@ -80,7 +80,7 @@ func (i *ImageRepository) Create(m *model.Image) (*model.Image, error) {
 		MODEL(m).
 		RETURNING(image.AllColumns)
 
-	util.DebugCheck(i.Env, statement)
+	util.DebugCheck(i.env, statement)
 
 	if err := statement.QueryContext(i.ctx, i.db, &img); err != nil {
 		return nil, errs.BuildError(err, "error creating image")
@@ -89,7 +89,7 @@ func (i *ImageRepository) Create(m *model.Image) (*model.Image, error) {
 	return &img, nil
 }
 
-func (i *ImageRepository) GetById(id uuid.UUID) (*MediaImage, error) {
+func (i *imageRepository) GetById(id uuid.UUID) (*MediaImage, error) {
 	var img MediaImage
 	statement := table.Image.SELECT(table.Image.AllColumns, table.Media.AllColumns).
 		FROM(table.Image.INNER_JOIN(

@@ -17,6 +17,7 @@ import (
 	libraryRepository "github.com/slugger7/exorcist/internal/repository/library"
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 	mediaRepository "github.com/slugger7/exorcist/internal/repository/media"
+	personRepository "github.com/slugger7/exorcist/internal/repository/person"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 	gomock "go.uber.org/mock/gomock"
@@ -142,6 +143,20 @@ func (m *MockIRepository) Media() mediaRepository.IMediaRepository {
 func (mr *MockIRepositoryMockRecorder) Media() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Media", reflect.TypeOf((*MockIRepository)(nil).Media))
+}
+
+// Person mocks base method.
+func (m *MockIRepository) Person() personRepository.IPersonRepository {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Person")
+	ret0, _ := ret[0].(personRepository.IPersonRepository)
+	return ret0
+}
+
+// Person indicates an expected call of Person.
+func (mr *MockIRepositoryMockRecorder) Person() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Person", reflect.TypeOf((*MockIRepository)(nil).Person))
 }
 
 // User mocks base method.

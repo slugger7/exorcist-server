@@ -35,7 +35,7 @@ type TestCookie struct {
 }
 
 type TestServer struct {
-	server                 *Server
+	server                 *server
 	mockService            *mock_service.MockIService
 	mockUserService        *mock_userService.MockIUserService
 	mockLibraryService     *mock_libraryService.MockILibraryService
@@ -50,7 +50,7 @@ func setupServer(t *testing.T) *TestServer {
 	ctrl := gomock.NewController(t)
 	svc := mock_service.NewMockIService(ctrl)
 	env := environment.EnvironmentVariables{LogLevel: "none"}
-	server := &Server{logger: logger.New(&env), service: svc}
+	server := &server{logger: logger.New(&env), service: svc}
 	engine := setupEngine()
 	return &TestServer{server: server, mockService: svc, engine: engine, ctrl: ctrl}
 }

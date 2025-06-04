@@ -24,4 +24,5 @@ type Media struct {
 	*model.Image
 	*model.Video
 	*Thumbnail
+	People []model.Person
 }

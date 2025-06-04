@@ -10,21 +10,21 @@ import (
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
-func (s *Server) withLibraryPathCreate(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withLibraryPathCreate(r *gin.RouterGroup, route Route) *server {
 	r.POST(route, s.CreateLibraryPath)
 	return s
 }
-func (s *Server) withLibraryPathGetAll(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withLibraryPathGetAll(r *gin.RouterGroup, route Route) *server {
 	r.GET(route, s.GetAllLibraryPaths)
 	return s
 }
 
-func (s *Server) withLibraryPathGet(r *gin.RouterGroup, route Route) *Server {
+func (s *server) withLibraryPathGet(r *gin.RouterGroup, route Route) *server {
 	r.GET(fmt.Sprintf("%v/:id", route), s.GetLibraryPath)
 	return s
 }
 
-func (s *Server) GetLibraryPath(c *gin.Context) {
+func (s *server) GetLibraryPath(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		e := fmt.Sprintf(ErrIdParse, c.Param("id"))
@@ -47,7 +47,7 @@ func (s *Server) GetLibraryPath(c *gin.Context) {
 
 const ErrCreatingLibraryPath string = "colud not create new library path"
 
-func (s *Server) CreateLibraryPath(c *gin.Context) {
+func (s *server) CreateLibraryPath(c *gin.Context) {
 	var body dto.CreateLibraryPathModelDTO
 
 	if err := c.ShouldBindBodyWithJSON(&body); err != nil {
@@ -70,7 +70,7 @@ func (s *Server) CreateLibraryPath(c *gin.Context) {
 
 const ErrGetAllLibraryPathsService = "could not get all library paths"
 
-func (s *Server) GetAllLibraryPaths(c *gin.Context) {
+func (s *server) GetAllLibraryPaths(c *gin.Context) {
 	libraryPaths, err := s.service.LibraryPath().GetAll()
 	if err != nil {
 		s.logger.Errorf("Error getting all libraries\n%v", err)

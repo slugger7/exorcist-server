@@ -19,9 +19,17 @@ const (
 	media       Route = "/media"
 	jobs        Route = "/jobs"
 	libraryPath Route = "/libraryPaths"
+	people      Route = "/people"
 )
 
-func (s *Server) RegisterRoutes() http.Handler {
+type key = string
+
+const (
+	nameKey key = "name"
+	idKey   key = "id"
+)
+
+func (s *server) RegisterRoutes() http.Handler {
 	if s.env.AppEnv == environment.AppEnvEnum.Prod {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
@@ -56,7 +64,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	// Register media controller routes
 	s.withMediaSearch(authenticated, media).
-		withMediaGet(authenticated, media)
+		withMediaGet(authenticated, media).
+		withMediaPutPeople(authenticated, media)
 
 	s.withImageGet(authenticated, images).
 		withVideoGet(authenticated, videos)
@@ -66,12 +75,15 @@ func (s *Server) RegisterRoutes() http.Handler {
 		withJobCreate(authenticated, jobs).
 		withJobGetAll(authenticated, jobs)
 
+	// Register person controller routes
+	s.withPersonUpsert(authenticated, people)
+
 	s.withWS(authenticated, root)
 
 	r.GET("/health", s.HealthHandler)
 	return r
 }
 
-func (s *Server) HealthHandler(c *gin.Context) {
+func (s *server) HealthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.repo.Health())
 }

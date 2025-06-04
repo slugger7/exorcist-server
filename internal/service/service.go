@@ -7,6 +7,8 @@ import (
 	jobService "github.com/slugger7/exorcist/internal/service/job"
 	libraryService "github.com/slugger7/exorcist/internal/service/library"
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
+	mediaService "github.com/slugger7/exorcist/internal/service/media"
+	personService "github.com/slugger7/exorcist/internal/service/person"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 )
 
@@ -15,28 +17,35 @@ type IService interface {
 	Library() libraryService.ILibraryService
 	LibraryPath() libraryPathService.ILibraryPathService
 	Job() jobService.IJobService
+	Person() personService.IPersonService
+	Media() mediaService.MediaService
 }
 
-type Service struct {
+type service struct {
 	env         *environment.EnvironmentVariables
 	logger      logger.ILogger
 	user        userService.IUserService
 	library     libraryService.ILibraryService
 	libraryPath libraryPathService.ILibraryPathService
 	job         jobService.IJobService
+	person      personService.IPersonService
+	media       mediaService.MediaService
 }
 
-var serviceInstance *Service
+var serviceInstance *service
 
 func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool) IService {
 	if serviceInstance == nil {
-		serviceInstance = &Service{
+		personService := personService.New(repo, env)
+		serviceInstance = &service{
 			env:         env,
 			logger:      logger.New(env),
 			user:        userService.New(repo, env),
 			library:     libraryService.New(repo, env),
 			libraryPath: libraryPathService.New(repo, env),
 			job:         jobService.New(repo, env, jobCh),
+			person:      personService,
+			media:       mediaService.New(env, repo, personService),
 		}
 
 		serviceInstance.logger.Info("Service instance created")
@@ -44,22 +53,32 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 	return serviceInstance
 }
 
-func (s *Service) User() userService.IUserService {
+func (s *service) User() userService.IUserService {
 	s.logger.Debug("Getting UserService")
 	return s.user
 }
 
-func (s *Service) Library() libraryService.ILibraryService {
+func (s *service) Library() libraryService.ILibraryService {
 	s.logger.Debug("Getting LibraryService")
 	return s.library
 }
 
-func (s *Service) LibraryPath() libraryPathService.ILibraryPathService {
+func (s *service) LibraryPath() libraryPathService.ILibraryPathService {
 	s.logger.Debug("Getting LibraryPathService")
 	return s.libraryPath
 }
 
-func (s *Service) Job() jobService.IJobService {
+func (s *service) Job() jobService.IJobService {
 	s.logger.Debug("Getting jobService")
 	return s.job
+}
+
+func (s *service) Person() personService.IPersonService {
+	s.logger.Debug("Getting personService")
+	return s.person
+}
+
+func (s *service) Media() mediaService.MediaService {
+	s.logger.Debug("Getting mediaService")
+	return s.media
 }

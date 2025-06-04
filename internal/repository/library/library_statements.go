@@ -17,7 +17,7 @@ type LibraryStatement struct {
 	ctx context.Context
 }
 
-func (ls *LibraryRepository) createLibraryStatement(name string) *LibraryStatement {
+func (ls *libraryRepository) createLibraryStatement(name string) *LibraryStatement {
 	newLibrary := model.Library{
 		Name: name,
 	}
@@ -26,35 +26,35 @@ func (ls *LibraryRepository) createLibraryStatement(name string) *LibraryStateme
 		MODEL(newLibrary).
 		RETURNING(table.Library.ID)
 
-	util.DebugCheck(ls.Env, insertStatement)
+	util.DebugCheck(ls.env, insertStatement)
 
 	return &LibraryStatement{insertStatement, ls.db, ls.ctx}
 }
 
-func (i *LibraryRepository) getLibraryByNameStatement(name string) *LibraryStatement {
+func (i *libraryRepository) getLibraryByNameStatement(name string) *LibraryStatement {
 	statement := table.Library.SELECT(table.Library.ID).
 		FROM(table.Library).
 		WHERE(table.Library.Name.EQ(postgres.String(name)))
 
-	util.DebugCheck(i.Env, statement)
+	util.DebugCheck(i.env, statement)
 	return &LibraryStatement{statement, i.db, i.ctx}
 }
 
-func (ls *LibraryRepository) getLibrariesStatement() *LibraryStatement {
+func (ls *libraryRepository) getLibrariesStatement() *LibraryStatement {
 	statement := table.Library.SELECT(table.Library.AllColumns).
 		FROM(table.Library)
 
-	util.DebugCheck(ls.Env, statement)
+	util.DebugCheck(ls.env, statement)
 
 	return &LibraryStatement{statement, ls.db, ls.ctx}
 }
 
-func (ls *LibraryRepository) getById(id uuid.UUID) *LibraryStatement {
+func (ls *libraryRepository) getById(id uuid.UUID) *LibraryStatement {
 	statement := table.Library.SELECT(table.Library.ID, table.Library.Name).
 		FROM(table.Library).
 		WHERE(table.Library.ID.EQ(postgres.UUID(id)))
 
-	util.DebugCheck(ls.Env, statement)
+	util.DebugCheck(ls.env, statement)
 
 	return &LibraryStatement{statement, ls.db, ls.ctx}
 }
