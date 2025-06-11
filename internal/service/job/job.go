@@ -1,6 +1,7 @@
 package jobService
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -21,17 +22,19 @@ type jobService struct {
 	repo   repository.IRepository
 	logger logger.ILogger
 	jobCh  chan bool
+	ctx    context.Context
 }
 
 var jobServiceInstance *jobService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool) IJobService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool, ctx context.Context) IJobService {
 	if jobServiceInstance == nil {
 		jobServiceInstance = &jobService{
 			env:    env,
 			repo:   repo,
 			logger: logger.New(env),
 			jobCh:  jobCh,
+			ctx:    ctx,
 		}
 
 		jobServiceInstance.logger.Info("UserService instance created")
@@ -127,7 +130,17 @@ func (i *jobService) scanPath(data string, priority int16) (*model.Job, error) {
 
 // We do this at the moment to stack a signal to the job runner if it is already running
 func (i *jobService) startJobRunner() {
-	if i.env.JobRunner {
-		i.jobCh <- true
+	i.logger.Debug("Starting a job runner")
+	select {
+	case <-i.ctx.Done():
+		i.logger.Debug("Shutdown signal recieved. Not starting job runner")
+		return
+	default:
+		i.logger.Debug("Starting job runner")
+		if i.env.JobRunner {
+			i.jobCh <- true
+			i.logger.Debug("Job runner signal sent")
+		}
 	}
+
 }

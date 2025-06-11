@@ -51,6 +51,7 @@ func New(
 			wss:         wss,
 		}
 
+		logger.Debug("Job runner instance created")
 		wg.Add(1)
 		go jobRunnerInstance.loop()
 	}
@@ -108,6 +109,7 @@ func (jr *JobRunner) loop() {
 			jr.logger.Debug("Shutdown signal received. Shutting down")
 			return
 		case _, ok := <-jr.ch:
+			jr.logger.Debug("Job runner reading from channel")
 			if !ok {
 				jr.logger.Debug("Channel closed. stopping loop")
 				return

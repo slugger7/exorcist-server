@@ -51,7 +51,7 @@ func New(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server
 	if env.JobRunner {
 		newServer.withJobRunner(shutdownCtx, wg, newServer.websockets)
 	}
-	newServer.service = service.New(repo, env, newServer.jobCh)
+	newServer.service = service.New(repo, env, newServer.jobCh, shutdownCtx)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", env.Port),
@@ -66,9 +66,12 @@ func New(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server
 		cancel()
 		close(newServer.jobCh)
 
+		newServer.logger.Debug("Cancelled and closed")
+
 		newServer.websocketMutex.Lock()
 		defer newServer.websocketMutex.Unlock()
 
+		newServer.logger.Debug("Closing websockets")
 		for _, i := range newServer.websockets {
 			for _, s := range i {
 				s.Mu.Lock()
@@ -76,9 +79,9 @@ func New(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server
 				s.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 				s.Conn.Close()
 			}
-
 		}
 
+		newServer.logger.Debug("Websockets closed")
 	})
 
 	return server
