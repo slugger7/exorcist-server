@@ -24,12 +24,19 @@ const batchSize = 100
 func (jr *JobRunner) getFilesByExtension(path string, extensions []string, ch chan []media.File) {
 	defer jr.wg.Done()
 
-	values, err := media.GetFilesByExtensions(path, extensions)
-	if err != nil {
-		jr.logger.Errorf("could not get files by extension: %v", err)
-		ch <- nil
+	select {
+	case <-jr.shutdownCtx.Done():
+		jr.logger.Debugf("Shutdown context called")
+		return
+	default:
+		values, err := media.GetFilesByExtensions(path, extensions)
+		if err != nil {
+			jr.logger.Errorf("could not get files by extension: %v", err)
+			ch <- nil
+		}
+		ch <- values
 	}
-	ch <- values
+
 }
 
 func (jr *JobRunner) ScanPath(job *model.Job) error {
@@ -67,122 +74,132 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		return errs.BuildError(err, "could not get existing videos for library path: %v", libPath.ID)
 	}
 
-	select {
-	case <-jr.shutdownCtx.Done():
-		const msg string = "shutdown signal received. stopping"
-		jr.logger.Warning(msg)
-		return errors.New(msg)
-	case imagesOnDisk := <-imageChan:
-		_ = imagesOnDisk
-		// TODO: handle images on disk
-		return nil
-	case videosOnDisk := <-videoChan:
-		nonExistentMedia := media.FindNonExistentMedia(existingMedia, videosOnDisk)
-		if len(nonExistentMedia) > 0 {
-			jr.removeMedia(nonExistentMedia)
+	for range 2 { // need to connsume off of each channel once
+		select {
+		case <-jr.shutdownCtx.Done():
+			const msg string = "shutdown signal received. stopping"
+			jr.logger.Warning(msg)
+			return errors.New(msg)
+		case imagesOnDisk := <-imageChan:
+			_ = imagesOnDisk
+			// TODO: handle images on disk
+			continue
+		case videosOnDisk := <-videoChan:
+			err := jr.handleVideosOnDisk(*job, *libPath, existingMedia, videosOnDisk)
+			if err != nil {
+				continue // TODO: concat errors to bigger errors object to return
+			}
 		}
+	}
+	return nil
+}
 
-		accErrs := []error{}
-		for _, v := range videosOnDisk {
-			select {
-			case <-jr.shutdownCtx.Done():
-				return fmt.Errorf("partially done, ended due to shutdown")
-			default:
-				if mediaExists(existingMedia, v.Path) {
-					continue
-				}
+func (jr *JobRunner) handleVideosOnDisk(job model.Job, libPath model.LibraryPath, existingMedia []model.Media, videosOnDisk []media.File) error {
+	nonExistentMedia := media.FindNonExistentMedia(existingMedia, videosOnDisk)
+	if len(nonExistentMedia) > 0 {
+		jr.removeMedia(nonExistentMedia)
+	}
 
-				data, err := ffmpeg.UnmarshalledProbe(v.Path)
-				if err != nil {
-					accErrs = append(accErrs, errs.BuildError(err, "could not get unmarshalled probe data: %v", v.Path))
-					continue
-				}
-
-				newMediaModel := model.Media{
-					LibraryPathID: libPath.ID,
-					Title:         v.Name,
-					Size:          v.Size,
-					Path:          v.Path,
-					MediaType:     model.MediaTypeEnum_Primary,
-				}
-
-				createdMedia, err := jr.repo.Media().Create([]model.Media{newMediaModel})
-				if err != nil {
-					accErrs = append(accErrs, errs.BuildError(err, "could not create media"))
-					continue
-				}
-				if len(createdMedia) != 1 {
-					accErrs = append(accErrs, fmt.Errorf("expected a created media but there was none"))
-					continue
-				}
-
-				width, height, err := ffmpeg.GetDimensions(data.Streams)
-				if err != nil {
-					jr.logger.Warningf("could not extract dimensions for %v. Setting to 0. Reason: %v", v.Path, err)
-				}
-
-				runtime, err := strconv.ParseFloat(data.Format.Duration, 32)
-				if err != nil {
-					jr.logger.Warningf("could not convert duration from string (%v) to float for video %v. Setting runtime to 0. Reason: %v", data.Format.Duration, v.Path, err)
-				}
-
-				mediaId := createdMedia[0].ID
-
-				newVideoModel := model.Video{
-					MediaID: mediaId,
-					Height:  int32(height),
-					Width:   int32(width),
-					Runtime: float64(runtime),
-				}
-
-				createdVideos, err := jr.repo.Video().Insert([]model.Video{newVideoModel})
-				if err != nil {
-					accErrs = append(accErrs, errs.BuildError(err, "could not create video"))
-				}
-
-				dto := (&dto.MediaOverviewDTO{}).FromModel(models.MediaOverviewModel{
-					Media: createdMedia[0],
-				})
-				jr.wsVideoCreate(*dto)
-
-				checksumJob, err := CreateGenerateChecksumJob(mediaId, job.ID)
-				if err != nil {
-					accErrs = append(accErrs, errs.BuildError(err, "could not create checksum job for media %v in job %v", mediaId, job.ID))
-				}
-
-				maxDimension := 400
-				if width > maxDimension {
-					height = ffmpeg.ScaleHeightByWidth(height, width, maxDimension)
-					width = maxDimension
-				}
-
-				if height > maxDimension {
-					width = ffmpeg.ScaleWidthByHeight(height, width, maxDimension)
-					height = maxDimension
-				}
-
-				assetPath := filepath.Join(jr.env.Assets, mediaId.String(), fmt.Sprintf(`%v.webp`, v.FileName))
-				thumbnailJob, err := CreateGenerateThumbnailJob(createdVideos[0], job.ID, assetPath, 0, height, width)
-				if err != nil {
-					return errs.BuildError(err, "could not create generate thumbnail job")
-				}
-
-				jobs := []model.Job{*checksumJob, *thumbnailJob}
-
-				jobs, err = jr.repo.Job().CreateAll(jobs)
-				if err != nil {
-					accErrs = append(accErrs, errs.BuildError(err, "could not create checksum and thumbnail job for video: %v", createdVideos[0].ID))
-				}
+	accErrs := []error{}
+	for _, v := range videosOnDisk {
+		select {
+		case <-jr.shutdownCtx.Done():
+			return fmt.Errorf("partially done, ended due to shutdown")
+		default:
+			if mediaExists(existingMedia, v.Path) {
+				continue
 			}
 
+			data, err := ffmpeg.UnmarshalledProbe(v.Path)
+			if err != nil {
+				accErrs = append(accErrs, errs.BuildError(err, "could not get unmarshalled probe data: %v", v.Path))
+				continue
+			}
+
+			newMediaModel := model.Media{
+				LibraryPathID: libPath.ID,
+				Title:         v.Name,
+				Size:          v.Size,
+				Path:          v.Path,
+				MediaType:     model.MediaTypeEnum_Primary,
+			}
+
+			createdMedia, err := jr.repo.Media().Create([]model.Media{newMediaModel})
+			if err != nil {
+				accErrs = append(accErrs, errs.BuildError(err, "could not create media"))
+				continue
+			}
+			if len(createdMedia) != 1 {
+				accErrs = append(accErrs, fmt.Errorf("expected a created media but there was none"))
+				continue
+			}
+
+			width, height, err := ffmpeg.GetDimensions(data.Streams)
+			if err != nil {
+				jr.logger.Warningf("could not extract dimensions for %v. Setting to 0. Reason: %v", v.Path, err)
+			}
+
+			runtime, err := strconv.ParseFloat(data.Format.Duration, 32)
+			if err != nil {
+				jr.logger.Warningf("could not convert duration from string (%v) to float for video %v. Setting runtime to 0. Reason: %v", data.Format.Duration, v.Path, err)
+			}
+
+			mediaId := createdMedia[0].ID
+
+			newVideoModel := model.Video{
+				MediaID: mediaId,
+				Height:  int32(height),
+				Width:   int32(width),
+				Runtime: float64(runtime),
+			}
+
+			createdVideos, err := jr.repo.Video().Insert([]model.Video{newVideoModel})
+			if err != nil {
+				accErrs = append(accErrs, errs.BuildError(err, "could not create video"))
+			}
+
+			dto := (&dto.MediaOverviewDTO{}).FromModel(models.MediaOverviewModel{
+				Media: createdMedia[0],
+			})
+			jr.wsVideoCreate(*dto)
+
+			checksumJob, err := CreateGenerateChecksumJob(mediaId, job.ID)
+			if err != nil {
+				accErrs = append(accErrs, errs.BuildError(err, "could not create checksum job for media %v in job %v", mediaId, job.ID))
+			}
+
+			maxDimension := 400
+			if width > maxDimension {
+				height = ffmpeg.ScaleHeightByWidth(height, width, maxDimension)
+				width = maxDimension
+			}
+
+			if height > maxDimension {
+				width = ffmpeg.ScaleWidthByHeight(height, width, maxDimension)
+				height = maxDimension
+			}
+
+			assetPath := filepath.Join(jr.env.Assets, mediaId.String(), fmt.Sprintf(`%v.webp`, v.FileName))
+			thumbnailJob, err := CreateGenerateThumbnailJob(createdVideos[0], job.ID, assetPath, 0, height, width)
+			if err != nil {
+				return errs.BuildError(err, "could not create generate thumbnail job")
+			}
+
+			jobs := []model.Job{*checksumJob, *thumbnailJob}
+
+			jobs, err = jr.repo.Job().CreateAll(jobs)
+			if err != nil {
+				accErrs = append(accErrs, errs.BuildError(err, "could not create checksum and thumbnail job for video: %v", createdVideos[0].ID))
+			}
 		}
 
-		if len(accErrs) > 0 {
-			return errors.Join(accErrs...)
-		}
-
-		return nil
 	}
+
+	if len(accErrs) > 0 {
+		return errors.Join(accErrs...)
+	}
+
+	return nil
 }
 
 func (jr *JobRunner) removeMedia(nonExistentMedia []model.Media) {

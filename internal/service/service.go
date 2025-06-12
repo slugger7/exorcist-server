@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/repository"
@@ -33,11 +35,12 @@ type service struct {
 	person      personService.IPersonService
 	tag         tagService.TagService
 	media       mediaService.MediaService
+	ctx         context.Context
 }
 
 var serviceInstance *service
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool) IService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool, ctx context.Context) IService {
 	if serviceInstance == nil {
 		personService := personService.New(repo, env)
 		tagService := tagService.New(repo, env)
@@ -47,10 +50,11 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 			user:        userService.New(repo, env),
 			library:     libraryService.New(repo, env),
 			libraryPath: libraryPathService.New(repo, env),
-			job:         jobService.New(repo, env, jobCh),
+			job:         jobService.New(repo, env, jobCh, ctx),
 			person:      personService,
 			tag:         tagService,
 			media:       mediaService.New(env, repo, personService, tagService),
+			ctx:         ctx,
 		}
 
 		serviceInstance.logger.Info("Service instance created")
