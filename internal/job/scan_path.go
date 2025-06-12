@@ -24,12 +24,19 @@ const batchSize = 100
 func (jr *JobRunner) getFilesByExtension(path string, extensions []string, ch chan []media.File) {
 	defer jr.wg.Done()
 
-	values, err := media.GetFilesByExtensions(path, extensions)
-	if err != nil {
-		jr.logger.Errorf("could not get files by extension: %v", err)
-		ch <- nil
+	select {
+	case <-jr.shutdownCtx.Done():
+		jr.logger.Debugf("Shutdown context called")
+		return
+	default:
+		values, err := media.GetFilesByExtensions(path, extensions)
+		if err != nil {
+			jr.logger.Errorf("could not get files by extension: %v", err)
+			ch <- nil
+		}
+		ch <- values
 	}
-	ch <- values
+
 }
 
 func (jr *JobRunner) ScanPath(job *model.Job) error {
