@@ -10,19 +10,21 @@ func blockingChannel(ch chan bool, ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	fmt.Println("In Blocking channel")
-	// select {
-	// case <-ctx.Done():
-	// 	fmt.Println("Context done returning")
-	// 	return
-	// default:
-	// 	fmt.Println("About to write to channel")
-	// 	ch <- true
-	// 	fmt.Println("Written to channel")
-	// }
+	// Working example
+	select {
+	case <-ctx.Done():
+		fmt.Println("Context done returning")
+		return
+	default:
+		fmt.Println("About to write to channel")
+		ch <- true
+		fmt.Println("Written to channel")
+	}
 
-	fmt.Println("About to write to channel")
-	ch <- true
-	fmt.Println("Written to channel")
+	// Broken example
+	// fmt.Println("About to write to channel")
+	// ch <- true
+	// fmt.Println("Written to channel")
 
 }
 
