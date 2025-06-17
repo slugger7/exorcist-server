@@ -1,0 +1,2 @@
+### Get All Tags
+GET {{host}}:{{port}}/api/tags

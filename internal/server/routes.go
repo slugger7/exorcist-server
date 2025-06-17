@@ -20,6 +20,7 @@ const (
 	jobs        Route = "/jobs"
 	libraryPath Route = "/libraryPaths"
 	people      Route = "/people"
+	tags        Route = "/tags"
 )
 
 type key = string
@@ -78,6 +79,9 @@ func (s *server) RegisterRoutes() http.Handler {
 
 	// Register person controller routes
 	s.withPersonUpsert(authenticated, people)
+
+	// Regsiter tags controller routes
+	s.withTagsGetAll(authenticated, tags)
 
 	s.withWS(authenticated, root)
 

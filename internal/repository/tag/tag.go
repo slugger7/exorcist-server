@@ -22,6 +22,7 @@ type TagRepository interface {
 	Create(names []string) ([]model.Tag, error)
 	AddToMedia(mediaPeople []model.MediaTag) ([]model.MediaTag, error)
 	RemoveFromMedia(mediaTag model.MediaTag) error
+	GetAll() ([]model.Tag, error)
 }
 
 type tagRepository struct {
@@ -29,6 +30,18 @@ type tagRepository struct {
 	db     *sql.DB
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// GetAll implements TagRepository.
+func (p *tagRepository) GetAll() ([]model.Tag, error) {
+	statement := tag.SELECT(tag.AllColumns)
+
+	var tags []model.Tag
+	if err := statement.Query(p.db, &tags); err != nil {
+		return nil, errs.BuildError(err, "could not fetch tags from database")
+	}
+
+	return tags, nil
 }
 
 // RemoveFromMedia implements ITagRepository.
@@ -116,16 +129,17 @@ func (p *tagRepository) GetByName(name string) (*model.Tag, error) {
 var tagRepositoryInstance *tagRepository
 
 func New(env *environment.EnvironmentVariables, db *sql.DB, context context.Context) TagRepository {
-	if tagRepositoryInstance == nil {
-		tagRepositoryInstance = &tagRepository{
-			env:    env,
-			db:     db,
-			logger: logger.New(env),
-			ctx:    context,
-		}
-
-		tagRepositoryInstance.logger.Info("TagRepository instance created")
+	if tagRepositoryInstance != nil {
+		return tagRepositoryInstance
 	}
+	tagRepositoryInstance = &tagRepository{
+		env:    env,
+		db:     db,
+		logger: logger.New(env),
+		ctx:    context,
+	}
+
+	tagRepositoryInstance.logger.Info("TagRepository instance created")
 
 	return tagRepositoryInstance
 }

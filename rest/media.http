@@ -17,9 +17,11 @@ Content-Type: application/json
 ]
 
 ### Add Tags to media
-PUT {{host}}:{{port}}/api/media/eff222d5-54bf-47ab-88d5-b54baf085284/tags
+PUT {{host}}:{{port}}/api/media/b879594f-431b-43e4-8e2c-c4e91796426e/tags
 Content-Type: application/json
 
 [
-  "tag 1"
+  "tag 1",
+  "tag 2",
+  "tag 3"
 ]
