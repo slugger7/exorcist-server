@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
@@ -29,10 +30,67 @@ func (s *server) withMediaPutTags(r *gin.RouterGroup, route Route) *server {
 	return s
 }
 
+func (s *server) withMediaPutTag(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v/tags/:%v", route, idKey, tagIdKey), s.putMediaTag)
+	return s
+}
+
+func (s *server) withMediaDeleteTag(r *gin.RouterGroup, route Route) *server {
+	r.DELETE(fmt.Sprintf("%v/:%v/tags/:%v", route, idKey, tagIdKey), s.deleteMediaTag)
+	return s
+}
+
+func (s *server) deleteMediaTag(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	tagId, err := uuid.Parse(c.Param(tagIdKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse tag id"})
+		return
+	}
+
+	err = s.repo.Tag().RemoveFromMedia(model.MediaTag{MediaID: id, TagID: tagId})
+	if err != nil {
+		s.logger.Errorf("error while removing tag (%v) from media (%v): %v", tagId, id, err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "error while removing tag from media"})
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func (s *server) putMediaTag(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	tagId, err := uuid.Parse(c.Param(tagIdKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse tag id"})
+		return
+	}
+
+	m, err := s.service.Media().AddTag(id, tagId)
+	if err != nil {
+		s.logger.Errorf("could not add tag %v to media %v: %v", tagId.String(), id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, m)
+}
+
 func (s *server) putMediaTags(c *gin.Context) {
 	id, err := uuid.Parse(c.Param(idKey))
 	if err != nil {
 		c.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
 	}
 
 	var tags []string
@@ -45,6 +103,7 @@ func (s *server) putMediaTags(c *gin.Context) {
 	if err != nil {
 		s.logger.Errorf("could not set tags for media %v: %v", id.String(), err.Error())
 		c.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
 }
@@ -53,6 +112,7 @@ func (s *server) putMediaPeople(c *gin.Context) {
 	id, err := uuid.Parse(c.Param(idKey))
 	if err != nil {
 		c.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
 	}
 
 	var people []string

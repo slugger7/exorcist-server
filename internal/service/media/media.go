@@ -20,6 +20,7 @@ import (
 type MediaService interface {
 	SetPeople(id uuid.UUID, people []string) (*models.Media, error)
 	SetTags(id uuid.UUID, tags []string) (*models.Media, error)
+	AddTag(id uuid.UUID, tagId uuid.UUID) (*model.MediaTag, error)
 }
 
 type mediaService struct {
@@ -30,6 +31,46 @@ type mediaService struct {
 	tagService    tagService.TagService
 }
 
+// AddTag implements MediaService.
+func (m *mediaService) AddTag(id uuid.UUID, tagId uuid.UUID) (*model.MediaTag, error) {
+	mediaModel, err := m.repo.Media().GetById(id)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get media by id from repo: %v", id.String())
+	}
+
+	if mediaModel == nil {
+		return nil, fmt.Errorf("could not find media by id: %v", id)
+	}
+
+	tagModel, err := m.repo.Tag().GetById(tagId)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get tag by id from repo: %v", id.String())
+	}
+
+	if tagModel == nil {
+		return nil, fmt.Errorf("could not find tag by id: %v", tagId)
+	}
+
+	for _, t := range mediaModel.Tags {
+		if t.ID == tagId {
+			return nil, nil
+		}
+	}
+
+	mediaTagModels := []model.MediaTag{
+		{
+			TagID:   tagId,
+			MediaID: id,
+		},
+	}
+	createdMediaModelTags, err := m.repo.Tag().AddToMedia(mediaTagModels)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not add tag (%v)to media (%v)", tagId, id)
+	}
+
+	return &createdMediaModelTags[0], nil
+}
+
 // SetTags implements MediaService.
 func (m *mediaService) SetTags(id uuid.UUID, tags []string) (*models.Media, error) {
 	mediaModel, err := m.repo.Media().GetById(id)
@@ -38,7 +79,7 @@ func (m *mediaService) SetTags(id uuid.UUID, tags []string) (*models.Media, erro
 	}
 
 	if mediaModel == nil {
-		return nil, fmt.Errorf("could not find media by id")
+		return nil, fmt.Errorf("could not find media by id: %v", id)
 	}
 
 	if len(tags) == 0 {

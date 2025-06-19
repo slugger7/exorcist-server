@@ -12,6 +12,33 @@ func (s *server) withTagsGetAll(r *gin.RouterGroup, route Route) *server {
 	return s
 }
 
+func (s *server) withTagsCreate(r *gin.RouterGroup, route Route) *server {
+	r.POST(route, s.createTags)
+	return s
+}
+
+func (s *server) createTags(c *gin.Context) {
+	var tags []string
+	if err := c.ShouldBindBodyWithJSON(&tags); err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	var createdTags []dto.TagDTO
+	var accErrs []error
+	for _, t := range tags {
+		createdTag, err := s.service.Tag().Upsert(t)
+		if err != nil {
+			accErrs = append(accErrs, err)
+			continue
+		}
+
+		createdTags = append(createdTags, *(&dto.TagDTO{}).FromModel(createdTag))
+	}
+
+	c.JSON(http.StatusCreated, createdTags)
+}
+
 func (s *server) getAllTags(c *gin.Context) {
 	tags, err := s.repo.Tag().GetAll()
 	if err != nil {
