@@ -1,7 +1,9 @@
 package server
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/dto"
@@ -25,15 +27,18 @@ func (s *server) createTags(c *gin.Context) {
 	}
 
 	var createdTags []dto.TagDTO
-	var accErrs []error
+	var accErrs error
 	for _, t := range tags {
-		createdTag, err := s.service.Tag().Upsert(t)
+		createdTag, err := s.service.Tag().Upsert(strings.Trim(t, " \n\t"))
 		if err != nil {
-			accErrs = append(accErrs, err)
+			accErrs = errors.Join(accErrs, err)
 			continue
 		}
 
 		createdTags = append(createdTags, *(&dto.TagDTO{}).FromModel(createdTag))
+	}
+	if accErrs != nil {
+		s.logger.Errorf("some errors while creating tags: %v", accErrs.Error())
 	}
 
 	c.JSON(http.StatusCreated, createdTags)
