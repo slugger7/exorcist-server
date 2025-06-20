@@ -1,0 +1,10 @@
+### Get All Tags
+GET {{host}}:{{port}}/api/tags
+
+### Create Tags
+POST {{host}}:{{port}}/api/tags
+Content-Type: application/json
+
+[
+  "new tag"
+]

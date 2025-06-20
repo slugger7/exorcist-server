@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
@@ -20,8 +21,10 @@ var mediaTag = table.MediaTag
 type TagRepository interface {
 	GetByName(name string) (*model.Tag, error)
 	Create(names []string) ([]model.Tag, error)
-	AddToMedia(mediaPeople []model.MediaTag) ([]model.MediaTag, error)
+	AddToMedia(mediaTags []model.MediaTag) ([]model.MediaTag, error)
 	RemoveFromMedia(mediaTag model.MediaTag) error
+	GetAll() ([]model.Tag, error)
+	GetById(id uuid.UUID) (*model.Tag, error)
 }
 
 type tagRepository struct {
@@ -29,6 +32,35 @@ type tagRepository struct {
 	db     *sql.DB
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// GetById implements TagRepository.
+func (p *tagRepository) GetById(id uuid.UUID) (*model.Tag, error) {
+	statement := tag.SELECT(tag.AllColumns).
+		WHERE(tag.ID.EQ(postgres.UUID(id)))
+
+	var tagModels []model.Tag
+	if err := statement.QueryContext(p.ctx, p.db, &tagModels); err != nil {
+		return nil, errs.BuildError(err, "colud not get tag by id from db %v", id)
+	}
+
+	if len(tagModels) == 0 {
+		return nil, nil
+	}
+
+	return &tagModels[0], nil
+}
+
+// GetAll implements TagRepository.
+func (p *tagRepository) GetAll() ([]model.Tag, error) {
+	statement := tag.SELECT(tag.AllColumns)
+
+	var tags []model.Tag
+	if err := statement.Query(p.db, &tags); err != nil {
+		return nil, errs.BuildError(err, "could not fetch tags from database")
+	}
+
+	return tags, nil
 }
 
 // RemoveFromMedia implements ITagRepository.
@@ -47,13 +79,13 @@ func (p *tagRepository) RemoveFromMedia(mp model.MediaTag) error {
 }
 
 // AddToMedia implements ITagRepository.
-func (p *tagRepository) AddToMedia(mediaPeople []model.MediaTag) ([]model.MediaTag, error) {
-	if len(mediaPeople) == 0 {
+func (p *tagRepository) AddToMedia(mediaTags []model.MediaTag) ([]model.MediaTag, error) {
+	if len(mediaTags) == 0 {
 		return nil, nil
 	}
 
 	statement := mediaTag.INSERT(mediaTag.MediaID, mediaTag.TagID).
-		MODELS(mediaPeople).
+		MODELS(mediaTags).
 		RETURNING(mediaTag.AllColumns)
 
 	util.DebugCheck(p.env, statement)
@@ -116,16 +148,17 @@ func (p *tagRepository) GetByName(name string) (*model.Tag, error) {
 var tagRepositoryInstance *tagRepository
 
 func New(env *environment.EnvironmentVariables, db *sql.DB, context context.Context) TagRepository {
-	if tagRepositoryInstance == nil {
-		tagRepositoryInstance = &tagRepository{
-			env:    env,
-			db:     db,
-			logger: logger.New(env),
-			ctx:    context,
-		}
-
-		tagRepositoryInstance.logger.Info("TagRepository instance created")
+	if tagRepositoryInstance != nil {
+		return tagRepositoryInstance
 	}
+	tagRepositoryInstance = &tagRepository{
+		env:    env,
+		db:     db,
+		logger: logger.New(env),
+		ctx:    context,
+	}
+
+	tagRepositoryInstance.logger.Info("TagRepository instance created")
 
 	return tagRepositoryInstance
 }

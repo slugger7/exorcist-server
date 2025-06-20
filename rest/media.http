@@ -2,7 +2,7 @@
 GET {{host}}:{{port}}/api/media?limit=100
 
 ### Get video by id
-GET {{host}}:{{port}}/api/media/eff222d5-54bf-47ab-88d5-b54baf085284
+GET {{host}}:{{port}}/api/media/b879594f-431b-43e4-8e2c-c4e91796426e
 
 ### Get video media by id
 GET {{host}}:{{port}}/api/media/video/064eb817-2347-4648-9608-84a86f7b303d
@@ -17,9 +17,18 @@ Content-Type: application/json
 ]
 
 ### Add Tags to media
-PUT {{host}}:{{port}}/api/media/eff222d5-54bf-47ab-88d5-b54baf085284/tags
+PUT {{host}}:{{port}}/api/media/b879594f-431b-43e4-8e2c-c4e91796426e/tags
 Content-Type: application/json
 
 [
-  "tag 1"
+  "tag 1",
+  "tag 2",
+  "tag 3"
 ]
+
+### Add Tag to media
+PUT {{host}}:{{port}}/api/media/b879594f-431b-43e4-8e2c-c4e91796426e/tags/d242b4a1-90d0-4db5-a59e-f62984401600
+
+### Remove tag from media
+DELETE {{host}}:{{port}}/api/media/b879594f-431b-43e4-8e2c-c4e91796426e/tags/d242b4a1-90d0-4db5-a59e-f62984401600
+

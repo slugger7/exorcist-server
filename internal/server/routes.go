@@ -20,13 +20,15 @@ const (
 	jobs        Route = "/jobs"
 	libraryPath Route = "/libraryPaths"
 	people      Route = "/people"
+	tags        Route = "/tags"
 )
 
 type key = string
 
 const (
-	nameKey key = "name"
-	idKey   key = "id"
+	nameKey  key = "name"
+	idKey    key = "id"
+	tagIdKey key = "tagIdKey"
 )
 
 func (s *server) RegisterRoutes() http.Handler {
@@ -66,7 +68,9 @@ func (s *server) RegisterRoutes() http.Handler {
 	s.withMediaSearch(authenticated, media).
 		withMediaGet(authenticated, media).
 		withMediaPutPeople(authenticated, media).
-		withMediaPutTags(authenticated, media)
+		withMediaPutTags(authenticated, media). // TODO: this will probably be removed
+		withMediaPutTag(authenticated, media).
+		withMediaDeleteTag(authenticated, media)
 
 	s.withImageGet(authenticated, images).
 		withVideoGet(authenticated, videos)
@@ -78,6 +82,10 @@ func (s *server) RegisterRoutes() http.Handler {
 
 	// Register person controller routes
 	s.withPersonUpsert(authenticated, people)
+
+	// Regsiter tags controller routes
+	s.withTagsGetAll(authenticated, tags).
+		withTagsCreate(authenticated, tags)
 
 	s.withWS(authenticated, root)
 
