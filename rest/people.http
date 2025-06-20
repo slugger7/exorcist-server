@@ -1,2 +1,11 @@
-### Upsert person
-PUT {{host}}:{{port}}/api/people/kevin
+### Get All People
+GET {{host}}:{{port}}/api/people
+
+### Create people
+POST {{host}}:{{port}}/api/people
+Content-Type: application/json
+
+[
+  "\nkevin\t",
+  " david "
+]
