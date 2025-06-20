@@ -81,7 +81,7 @@ func (s *server) RegisterRoutes() http.Handler {
 		withJobGetAll(authenticated, jobs)
 
 	// Register person controller routes
-	s.withPersonUpsert(authenticated, people)
+	s.withPersonGetAll(authenticated, people)
 
 	// Regsiter tags controller routes
 	s.withTagsGetAll(authenticated, tags).

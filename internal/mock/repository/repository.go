@@ -147,10 +147,10 @@ func (mr *MockIRepositoryMockRecorder) Media() *gomock.Call {
 }
 
 // Person mocks base method.
-func (m *MockIRepository) Person() personRepository.IPersonRepository {
+func (m *MockIRepository) Person() personRepository.PersonRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Person")
-	ret0, _ := ret[0].(personRepository.IPersonRepository)
+	ret0, _ := ret[0].(personRepository.PersonRepository)
 	return ret0
 }
 

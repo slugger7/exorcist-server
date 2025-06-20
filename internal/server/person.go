@@ -1,32 +1,29 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
-func (s *server) withPersonUpsert(r *gin.RouterGroup, route Route) *server {
-	r.PUT(fmt.Sprintf("%v/:%v", route, nameKey), s.putPerson)
+func (s *server) withPersonGetAll(r *gin.RouterGroup, route Route) *server {
+	r.GET(route, s.getAllPeople)
 	return s
 }
 
-func (s *server) putPerson(c *gin.Context) {
-	name := c.Param(nameKey)
-	if name == "" {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	person, err := s.service.Person().Upsert(name)
+func (s *server) getAllPeople(c *gin.Context) {
+	people, err := s.repo.Person().GetAll()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not upsert person by name"})
+		s.logger.Errorf("could not fetch people from repo: %v", err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not fetch people"})
 		return
 	}
 
-	personDto := (&dto.PersonDTO{}).FromModel(person)
+	peopleDtos := make([]dto.PersonDTO, len(people))
+	for i, p := range people {
+		peopleDtos[i] = *(&dto.PersonDTO{}).FromModel(&p)
+	}
 
-	c.JSON(http.StatusOK, personDto)
+	c.JSON(http.StatusOK, peopleDtos)
 }

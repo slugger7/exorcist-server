@@ -17,11 +17,12 @@ import (
 var person = table.Person
 var mediaPerson = table.MediaPerson
 
-type IPersonRepository interface {
+type PersonRepository interface {
 	GetByName(name string) (*model.Person, error)
 	Create(names []string) ([]model.Person, error)
 	AddToMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error)
 	RemoveFromMedia(mediaPerson model.MediaPerson) error
+	GetAll() ([]model.Person, error)
 }
 
 type personRepository struct {
@@ -29,6 +30,18 @@ type personRepository struct {
 	db     *sql.DB
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// GetAll implements PersonRepository.
+func (p *personRepository) GetAll() ([]model.Person, error) {
+	statement := person.SELECT(person.AllColumns)
+
+	var people []model.Person
+	if err := statement.QueryContext(p.ctx, p.db, &people); err != nil {
+		return nil, errs.BuildError(err, "could not fetch people from database")
+	}
+
+	return people, nil
 }
 
 // RemoveFromMedia implements IPersonRepository.
@@ -115,7 +128,7 @@ func (p *personRepository) GetByName(name string) (*model.Person, error) {
 
 var personRepositoryInstance *personRepository
 
-func New(env *environment.EnvironmentVariables, db *sql.DB, context context.Context) IPersonRepository {
+func New(env *environment.EnvironmentVariables, db *sql.DB, context context.Context) PersonRepository {
 	if personRepositoryInstance == nil {
 		personRepositoryInstance = &personRepository{
 			env:    env,
