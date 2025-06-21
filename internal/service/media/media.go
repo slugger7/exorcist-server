@@ -18,9 +18,12 @@ import (
 )
 
 type MediaService interface {
+	// Deprecated
 	SetPeople(id uuid.UUID, people []string) (*models.Media, error)
+	// Deprecated
 	SetTags(id uuid.UUID, tags []string) (*models.Media, error)
 	AddTag(id uuid.UUID, tagId uuid.UUID) (*model.MediaTag, error)
+	AddPerson(id uuid.UUID, personId uuid.UUID) (*model.MediaPerson, error)
 }
 
 type mediaService struct {
@@ -29,6 +32,46 @@ type mediaService struct {
 	logger        logger.ILogger
 	personService personService.IPersonService
 	tagService    tagService.TagService
+}
+
+// AddPerson implements MediaService.
+func (m *mediaService) AddPerson(id uuid.UUID, personId uuid.UUID) (*model.MediaPerson, error) {
+	mediaModel, err := m.repo.Media().GetById(id)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get media by id from repo: %v", id.String())
+	}
+
+	if mediaModel == nil {
+		return nil, fmt.Errorf("could not find media by id: %v", id)
+	}
+
+	personModel, err := m.repo.Person().GetById(personId)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get person by id from repo: %v", personId.String())
+	}
+
+	if personModel == nil {
+		return nil, fmt.Errorf("colud not find person by id: %v", personId)
+	}
+
+	for _, p := range mediaModel.People {
+		if p.ID == personId {
+			return &model.MediaPerson{MediaID: id, PersonID: personId}, nil
+		}
+	}
+
+	mediaPeopleModels := []model.MediaPerson{
+		{
+			PersonID: personId,
+			MediaID:  id,
+		},
+	}
+	createdMediaModelPeople, err := m.repo.Person().AddToMedia(mediaPeopleModels)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not add person (%v) to media (%v)", personId, id)
+	}
+
+	return &createdMediaModelPeople[0], nil
 }
 
 // AddTag implements MediaService.
@@ -53,7 +96,7 @@ func (m *mediaService) AddTag(id uuid.UUID, tagId uuid.UUID) (*model.MediaTag, e
 
 	for _, t := range mediaModel.Tags {
 		if t.ID == tagId {
-			return nil, nil
+			return &model.MediaTag{MediaID: id, TagID: tagId}, nil
 		}
 	}
 
@@ -65,7 +108,7 @@ func (m *mediaService) AddTag(id uuid.UUID, tagId uuid.UUID) (*model.MediaTag, e
 	}
 	createdMediaModelTags, err := m.repo.Tag().AddToMedia(mediaTagModels)
 	if err != nil {
-		return nil, errs.BuildError(err, "could not add tag (%v)to media (%v)", tagId, id)
+		return nil, errs.BuildError(err, "could not add tag (%v) to media (%v)", tagId, id)
 	}
 
 	return &createdMediaModelTags[0], nil

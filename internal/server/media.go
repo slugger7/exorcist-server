@@ -20,11 +20,13 @@ func (s *server) withMediaGet(r *gin.RouterGroup, route Route) *server {
 	return s
 }
 
+// Deprecated
 func (s *server) withMediaPutPeople(r *gin.RouterGroup, route Route) *server {
 	r.PUT(fmt.Sprintf("%v/:%v/people", route, idKey), s.putMediaPeople)
 	return s
 }
 
+// Deprecated
 func (s *server) withMediaPutTags(r *gin.RouterGroup, route Route) *server {
 	r.PUT(fmt.Sprintf("%v/:%v/tags", route, idKey), s.putMediaTags)
 	return s
@@ -38,6 +40,33 @@ func (s *server) withMediaPutTag(r *gin.RouterGroup, route Route) *server {
 func (s *server) withMediaDeleteTag(r *gin.RouterGroup, route Route) *server {
 	r.DELETE(fmt.Sprintf("%v/:%v/tags/:%v", route, idKey, tagIdKey), s.deleteMediaTag)
 	return s
+}
+
+func (s *server) withMediaPutPerson(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v/people/:%v", route, idKey, personIdKey), s.putMediaPerson)
+	return s
+}
+
+func (s *server) putMediaPerson(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	personId, err := uuid.Parse(c.Param(personIdKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse person id"})
+		return
+	}
+
+	m, err := s.service.Media().AddPerson(id, personId)
+	if err != nil {
+		s.logger.Errorf("error while adding person (%v) to media (%v): %v", personId.String(), id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
+
+	c.JSON(http.StatusOK, m)
 }
 
 func (s *server) deleteMediaTag(c *gin.Context) {
@@ -55,7 +84,7 @@ func (s *server) deleteMediaTag(c *gin.Context) {
 
 	err = s.repo.Tag().RemoveFromMedia(model.MediaTag{MediaID: id, TagID: tagId})
 	if err != nil {
-		s.logger.Errorf("error while removing tag (%v) from media (%v): %v", tagId, id, err)
+		s.logger.Errorf("error while removing tag (%v) from media (%v): %v", tagId.String(), id.String(), err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "error while removing tag from media"})
 		return
 	}
@@ -86,6 +115,7 @@ func (s *server) putMediaTag(c *gin.Context) {
 	c.JSON(http.StatusOK, m)
 }
 
+// Deprecated
 func (s *server) putMediaTags(c *gin.Context) {
 	id, err := uuid.Parse(c.Param(idKey))
 	if err != nil {
@@ -108,6 +138,7 @@ func (s *server) putMediaTags(c *gin.Context) {
 	c.JSON(http.StatusOK, (&dto.MediaDTO{}).FromModel(*m))
 }
 
+// Deprecated
 func (s *server) putMediaPeople(c *gin.Context) {
 	id, err := uuid.Parse(c.Param(idKey))
 	if err != nil {

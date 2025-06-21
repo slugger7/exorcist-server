@@ -32,3 +32,5 @@ PUT {{host}}:{{port}}/api/media/b879594f-431b-43e4-8e2c-c4e91796426e/tags/d242b4
 ### Remove tag from media
 DELETE {{host}}:{{port}}/api/media/b879594f-431b-43e4-8e2c-c4e91796426e/tags/d242b4a1-90d0-4db5-a59e-f62984401600
 
+### Add Person to Media
+PUT {{host}}:{{port}}/api/media/b879594f-431b-43e4-8e2c-c4e91796426e/people/47f31a90-18e4-4d27-b6fb-ac63d58ad514
