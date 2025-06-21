@@ -26,9 +26,10 @@ const (
 type key = string
 
 const (
-	nameKey  key = "name"
-	idKey    key = "id"
-	tagIdKey key = "tagIdKey"
+	nameKey     key = "name"
+	idKey       key = "id"
+	tagIdKey    key = "tagIdKey"
+	personIdKey key = "personIdKey"
 )
 
 func (s *server) RegisterRoutes() http.Handler {
@@ -67,10 +68,10 @@ func (s *server) RegisterRoutes() http.Handler {
 	// Register media controller routes
 	s.withMediaSearch(authenticated, media).
 		withMediaGet(authenticated, media).
-		withMediaPutPeople(authenticated, media).
-		withMediaPutTags(authenticated, media). // TODO: this will probably be removed
 		withMediaPutTag(authenticated, media).
-		withMediaDeleteTag(authenticated, media)
+		withMediaDeleteTag(authenticated, media).
+		withMediaPutPerson(authenticated, media).
+		withMediaDeletePerson(authenticated, media)
 
 	s.withImageGet(authenticated, images).
 		withVideoGet(authenticated, videos)
@@ -81,7 +82,8 @@ func (s *server) RegisterRoutes() http.Handler {
 		withJobGetAll(authenticated, jobs)
 
 	// Register person controller routes
-	s.withPersonUpsert(authenticated, people)
+	s.withPersonGetAll(authenticated, people).
+		withPersonCreate(authenticated, people)
 
 	// Regsiter tags controller routes
 	s.withTagsGetAll(authenticated, tags).

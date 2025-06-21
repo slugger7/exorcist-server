@@ -56,7 +56,7 @@ func (p *tagRepository) GetAll() ([]model.Tag, error) {
 	statement := tag.SELECT(tag.AllColumns)
 
 	var tags []model.Tag
-	if err := statement.Query(p.db, &tags); err != nil {
+	if err := statement.QueryContext(p.ctx, p.db, &tags); err != nil {
 		return nil, errs.BuildError(err, "could not fetch tags from database")
 	}
 

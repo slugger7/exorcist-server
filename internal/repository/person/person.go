@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
@@ -17,11 +18,13 @@ import (
 var person = table.Person
 var mediaPerson = table.MediaPerson
 
-type IPersonRepository interface {
+type PersonRepository interface {
+	GetById(id uuid.UUID) (*model.Person, error)
 	GetByName(name string) (*model.Person, error)
 	Create(names []string) ([]model.Person, error)
 	AddToMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error)
 	RemoveFromMedia(mediaPerson model.MediaPerson) error
+	GetAll() ([]model.Person, error)
 }
 
 type personRepository struct {
@@ -29,6 +32,35 @@ type personRepository struct {
 	db     *sql.DB
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// GetById implements PersonRepository.
+func (p *personRepository) GetById(id uuid.UUID) (*model.Person, error) {
+	statement := person.SELECT(person.AllColumns).
+		WHERE(person.ID.EQ(postgres.UUID(id)))
+
+	var peopleModels []model.Person
+	if err := statement.QueryContext(p.ctx, p.db, &peopleModels); err != nil {
+		return nil, errs.BuildError(err, "could not fetch person by id from db %v", id)
+	}
+
+	if len(peopleModels) == 0 {
+		return nil, nil
+	}
+
+	return &peopleModels[0], nil
+}
+
+// GetAll implements PersonRepository.
+func (p *personRepository) GetAll() ([]model.Person, error) {
+	statement := person.SELECT(person.AllColumns)
+
+	var people []model.Person
+	if err := statement.QueryContext(p.ctx, p.db, &people); err != nil {
+		return nil, errs.BuildError(err, "could not fetch people from database")
+	}
+
+	return people, nil
 }
 
 // RemoveFromMedia implements IPersonRepository.
@@ -115,17 +147,19 @@ func (p *personRepository) GetByName(name string) (*model.Person, error) {
 
 var personRepositoryInstance *personRepository
 
-func New(env *environment.EnvironmentVariables, db *sql.DB, context context.Context) IPersonRepository {
-	if personRepositoryInstance == nil {
-		personRepositoryInstance = &personRepository{
-			env:    env,
-			db:     db,
-			logger: logger.New(env),
-			ctx:    context,
-		}
-
-		personRepositoryInstance.logger.Info("PersonRepository instance created")
+func New(env *environment.EnvironmentVariables, db *sql.DB, context context.Context) PersonRepository {
+	if personRepositoryInstance != nil {
+		return personRepositoryInstance
 	}
+
+	personRepositoryInstance = &personRepository{
+		env:    env,
+		db:     db,
+		logger: logger.New(env),
+		ctx:    context,
+	}
+
+	personRepositoryInstance.logger.Info("PersonRepository instance created")
 
 	return personRepositoryInstance
 }
