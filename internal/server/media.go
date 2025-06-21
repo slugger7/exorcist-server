@@ -47,6 +47,34 @@ func (s *server) withMediaPutPerson(r *gin.RouterGroup, route Route) *server {
 	return s
 }
 
+func (s *server) withMediaDeletePerson(r *gin.RouterGroup, route Route) *server {
+	r.DELETE(fmt.Sprintf("%v/:%v/people/:%v", route, idKey, personIdKey), s.deleteMediaPerson)
+	return s
+}
+
+func (s *server) deleteMediaPerson(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	personId, err := uuid.Parse(c.Param(personIdKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse person id"})
+		return
+	}
+
+	err = s.repo.Person().RemoveFromMedia(model.MediaPerson{MediaID: id, PersonID: personId})
+	if err != nil {
+		s.logger.Errorf("error removing person (%v) from media (%v): %v", personId.String(), id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
 func (s *server) putMediaPerson(c *gin.Context) {
 	id, err := uuid.Parse(c.Param(idKey))
 	if err != nil {
