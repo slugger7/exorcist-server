@@ -1,21 +1,44 @@
 package personService
 
 import (
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
 type IPersonService interface {
 	Upsert(name string) (*model.Person, error)
+	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type personService struct {
 	env    *environment.EnvironmentVariables
 	repo   repository.IRepository
 	logger logger.ILogger
+}
+
+// GetMedia implements IPersonService.
+func (p *personService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	person, err := p.repo.Person().GetById(id)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get person by id from repo: %v", id)
+	}
+
+	if person == nil {
+		return nil, errs.BuildError(err, "no person found with id: %v", id)
+	}
+
+	media, err := p.repo.Person().GetMedia(id, search)
+	if err != nil {
+		return nil, errs.BuildError(err, "colud not get media by person id from repo: %v", id)
+	}
+
+	return media, nil
 }
 
 // Upsert implements IPersonService.

@@ -83,7 +83,8 @@ func (s *server) RegisterRoutes() http.Handler {
 
 	// Register person controller routes
 	s.withPersonGetAll(authenticated, people).
-		withPersonCreate(authenticated, people)
+		withPersonCreate(authenticated, people).
+		withPersonGetMedia(authenticated, people)
 
 	// Regsiter tags controller routes
 	s.withTagsGetAll(authenticated, tags).
