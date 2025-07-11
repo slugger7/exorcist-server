@@ -3,15 +3,19 @@ package tagRepository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/repository/helpers"
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
@@ -25,6 +29,7 @@ type TagRepository interface {
 	RemoveFromMedia(mediaTag model.MediaTag) error
 	GetAll() ([]model.Tag, error)
 	GetById(id uuid.UUID) (*model.Tag, error)
+	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type tagRepository struct {
@@ -32,6 +37,82 @@ type tagRepository struct {
 	db     *sql.DB
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+func innerJoinMediaTag(id uuid.UUID, t postgres.ReadableTable) postgres.ReadableTable {
+	media := table.Media
+	mediaTag := table.MediaTag
+	return t.INNER_JOIN(
+		mediaTag,
+		media.ID.EQ(mediaTag.MediaID).
+			AND(mediaTag.TagID.EQ(postgres.UUID(id))),
+	)
+}
+
+// GetMedia implements TagRepository.
+func (r *tagRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	media := table.Media
+	mediaRelation := table.MediaRelation
+	thumbnail := table.Media.AS("thumbnail")
+
+	selectStatement := media.SELECT(
+		media.ID,
+		media.Title,
+		media.MediaType,
+		thumbnail.ID,
+	).
+		FROM(
+			innerJoinMediaTag(id, media.LEFT_JOIN(
+				mediaRelation, media.ID.EQ(mediaRelation.MediaID).
+					AND(mediaRelation.RelationType.EQ(postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String()))),
+			).LEFT_JOIN(
+				thumbnail,
+				thumbnail.ID.EQ(mediaRelation.RelatedTo),
+			))).
+		LIMIT(int64(search.Limit)).
+		OFFSET(int64(search.Skip))
+
+	selectStatement = helpers.OrderByDirectionColumn(search.Asc, search.OrderBy.ToColumn(), selectStatement)
+	countStatement := media.SELECT(postgres.COUNT(media.ID).AS("total")).FROM(innerJoinMediaTag(id, media))
+
+	whr := media.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Primary.String())).
+		AND(media.Deleted.IS_FALSE()).
+		AND(media.Exists.IS_TRUE())
+
+	if search.Search != "" {
+		caseInsensitive := strings.ToLower(search.Search)
+		likeExpression := fmt.Sprintf("%%%v%%", caseInsensitive)
+		whr = whr.
+			AND(
+				postgres.LOWER(media.Title).LIKE(postgres.String(likeExpression)).
+					OR(postgres.LOWER(media.Path).LIKE(postgres.String(likeExpression))),
+			)
+	}
+
+	selectStatement = selectStatement.WHERE(whr)
+	countStatement = countStatement.WHERE(whr)
+
+	util.DebugCheck(r.env, countStatement)
+	util.DebugCheck(r.env, selectStatement)
+
+	var total struct {
+		Total int
+	}
+	if err := countStatement.QueryContext(r.ctx, r.db, &total); err != nil {
+		return nil, errs.BuildError(err, "could not query media for total")
+	}
+
+	var mediaResult []models.MediaOverviewModel
+	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
+		return nil, errs.BuildError(err, "could not query media")
+	}
+
+	return &dto.PageDTO[models.MediaOverviewModel]{
+		Data:  mediaResult,
+		Limit: search.Limit,
+		Skip:  search.Skip,
+		Total: total.Total,
+	}, nil
 }
 
 // GetById implements TagRepository.
@@ -148,17 +229,16 @@ func (p *tagRepository) GetByName(name string) (*model.Tag, error) {
 var tagRepositoryInstance *tagRepository
 
 func New(env *environment.EnvironmentVariables, db *sql.DB, context context.Context) TagRepository {
-	if tagRepositoryInstance != nil {
-		return tagRepositoryInstance
-	}
-	tagRepositoryInstance = &tagRepository{
-		env:    env,
-		db:     db,
-		logger: logger.New(env),
-		ctx:    context,
-	}
+	if tagRepositoryInstance == nil {
+		tagRepositoryInstance = &tagRepository{
+			env:    env,
+			db:     db,
+			logger: logger.New(env),
+			ctx:    context,
+		}
 
-	tagRepositoryInstance.logger.Info("TagRepository instance created")
+		tagRepositoryInstance.logger.Info("TagRepository instance created")
+	}
 
 	return tagRepositoryInstance
 }
