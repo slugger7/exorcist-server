@@ -9,3 +9,6 @@ Content-Type: application/json
   "\nkevin\t",
   " david "
 ]
+
+### Get Persons media
+GET {{host}}:{{port}}/api/people/6635eea7-0b14-47d9-b50e-fecc41e1c2b1/media

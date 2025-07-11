@@ -3,15 +3,19 @@ package personRepository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/repository/helpers"
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
@@ -25,6 +29,7 @@ type PersonRepository interface {
 	AddToMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error)
 	RemoveFromMedia(mediaPerson model.MediaPerson) error
 	GetAll() ([]model.Person, error)
+	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type personRepository struct {
@@ -32,6 +37,76 @@ type personRepository struct {
 	db     *sql.DB
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// GetMedia implements PersonRepository.
+func (r *personRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	media := table.Media
+	mediaRelation := table.MediaRelation
+	mediaPerson := table.MediaPerson
+	thumbnail := table.Media.AS("thumbnail")
+	selectStatement := media.SELECT(
+		media.ID,
+		media.Title,
+		media.MediaType,
+		thumbnail.ID,
+	).
+		FROM(
+			media.LEFT_JOIN(
+				mediaRelation, media.ID.EQ(mediaRelation.MediaID).
+					AND(mediaRelation.RelationType.EQ(postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String()))),
+			).LEFT_JOIN(
+				thumbnail,
+				thumbnail.ID.EQ(mediaRelation.RelatedTo),
+			).INNER_JOIN(
+				mediaPerson,
+				media.ID.EQ(mediaPerson.MediaID).
+					AND(mediaPerson.PersonID.EQ(postgres.UUID(id))),
+			)).
+		LIMIT(int64(search.Limit)).
+		OFFSET(int64(search.Skip))
+
+	selectStatement = helpers.OrderByDirectionColumn(search.Asc, search.OrderBy.ToColumn(), selectStatement)
+	countStatement := media.SELECT(postgres.COUNT(media.ID).AS("total")).FROM(media)
+
+	whr := media.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Primary.String())).
+		AND(media.Deleted.IS_FALSE()).
+		AND(media.Exists.IS_TRUE())
+
+	if search.Search != "" {
+		caseInsensitive := strings.ToLower(search.Search)
+		likeExpression := fmt.Sprintf("%%%v%%", caseInsensitive)
+		whr = whr.
+			AND(
+				postgres.LOWER(media.Title).LIKE(postgres.String(likeExpression)).
+					OR(postgres.LOWER(media.Path).LIKE(postgres.String(likeExpression))),
+			)
+	}
+
+	selectStatement = selectStatement.WHERE(whr)
+	countStatement = countStatement.WHERE(whr)
+
+	util.DebugCheck(r.env, countStatement)
+	util.DebugCheck(r.env, selectStatement)
+
+	var total struct {
+		Total int
+	}
+	if err := countStatement.QueryContext(r.ctx, r.db, &total); err != nil {
+		return nil, errs.BuildError(err, "could not query media for total")
+	}
+
+	var mediaResult []models.MediaOverviewModel
+	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
+		return nil, errs.BuildError(err, "could not query media")
+	}
+
+	return &dto.PageDTO[models.MediaOverviewModel]{
+		Data:  mediaResult,
+		Limit: search.Limit,
+		Skip:  search.Skip,
+		Total: total.Total,
+	}, nil
 }
 
 // GetById implements PersonRepository.
