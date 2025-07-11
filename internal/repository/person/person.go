@@ -39,12 +39,22 @@ type personRepository struct {
 	ctx    context.Context
 }
 
+func innerJoinMediaPerson(id uuid.UUID, t postgres.ReadableTable) postgres.ReadableTable {
+	media := table.Media
+	mediaPerson := table.MediaPerson
+	return t.INNER_JOIN(
+		mediaPerson,
+		media.ID.EQ(mediaPerson.MediaID).
+			AND(mediaPerson.PersonID.EQ(postgres.UUID(id))),
+	)
+}
+
 // GetMedia implements PersonRepository.
 func (r *personRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	media := table.Media
 	mediaRelation := table.MediaRelation
-	mediaPerson := table.MediaPerson
 	thumbnail := table.Media.AS("thumbnail")
+
 	selectStatement := media.SELECT(
 		media.ID,
 		media.Title,
@@ -52,22 +62,18 @@ func (r *personRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*d
 		thumbnail.ID,
 	).
 		FROM(
-			media.LEFT_JOIN(
+			innerJoinMediaPerson(id, media.LEFT_JOIN(
 				mediaRelation, media.ID.EQ(mediaRelation.MediaID).
 					AND(mediaRelation.RelationType.EQ(postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String()))),
 			).LEFT_JOIN(
 				thumbnail,
 				thumbnail.ID.EQ(mediaRelation.RelatedTo),
-			).INNER_JOIN(
-				mediaPerson,
-				media.ID.EQ(mediaPerson.MediaID).
-					AND(mediaPerson.PersonID.EQ(postgres.UUID(id))),
-			)).
+			))).
 		LIMIT(int64(search.Limit)).
 		OFFSET(int64(search.Skip))
 
 	selectStatement = helpers.OrderByDirectionColumn(search.Asc, search.OrderBy.ToColumn(), selectStatement)
-	countStatement := media.SELECT(postgres.COUNT(media.ID).AS("total")).FROM(media)
+	countStatement := media.SELECT(postgres.COUNT(media.ID).AS("total")).FROM(innerJoinMediaPerson(id, media))
 
 	whr := media.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Primary.String())).
 		AND(media.Deleted.IS_FALSE()).

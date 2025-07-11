@@ -1,6 +1,8 @@
 package personService
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/dto"
@@ -30,7 +32,7 @@ func (p *personService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.
 	}
 
 	if person == nil {
-		return nil, errs.BuildError(err, "no person found with id: %v", id)
+		return nil, fmt.Errorf("no person found with id: %v", id)
 	}
 
 	media, err := p.repo.Person().GetMedia(id, search)

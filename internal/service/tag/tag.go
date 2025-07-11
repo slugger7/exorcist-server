@@ -1,21 +1,46 @@
 package tagService
 
 import (
+	"fmt"
+
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
 type TagService interface {
 	Upsert(name string) (*model.Tag, error)
+	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type tagService struct {
 	env    *environment.EnvironmentVariables
 	repo   repository.IRepository
 	logger logger.ILogger
+}
+
+// GetMedia implements TagService.
+func (p *tagService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	tag, err := p.repo.Tag().GetById(id)
+	if err != nil {
+		return nil, errs.BuildError(err, "could net get tag by id from repo: %v", id)
+	}
+
+	if tag == nil {
+		return nil, fmt.Errorf("no tag found with id: %v", id)
+	}
+
+	media, err := p.repo.Tag().GetMedia(id, search)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get media by tag id from repo: %v", id)
+	}
+
+	return media, nil
 }
 
 // Upsert implements TagService.
