@@ -1,5 +1,5 @@
 ### Get All Tags
-GET {{host}}:{{port}}/api/tags
+GET {{host}}:{{port}}/api/tags?search=tag
 
 ### Create Tags
 POST {{host}}:{{port}}/api/tags
