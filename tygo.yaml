@@ -6,9 +6,20 @@ packages:
   - path: "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
     output_path: "ts/model.d.ts"
     indent: "  "
+    frontmatter: |
+      /**
+        * GENERATED FILE
+        * 
+        * DO NOT EDIT
+        */
   - path: "github.com/slugger7/exorcist/internal/dto"
     output_path: "ts/index.d.ts"
     indent: "  "
     frontmatter: |
+      /**
+        * GENERATED FILE
+        * 
+        * DO NOT EDIT
+        */
       import * as model from "./model.d.ts"
       export * from "./enum.d.ts"
