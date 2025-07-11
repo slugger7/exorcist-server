@@ -85,7 +85,16 @@ func (s *server) createPeople(c *gin.Context) {
 }
 
 func (s *server) getAllPeople(c *gin.Context) {
-	people, err := s.repo.Person().GetAll()
+	var search struct {
+		Search string `json:"search" form:"search"`
+	}
+
+	if err := c.ShouldBindQuery(&search); err != nil {
+		s.logger.Warningf("could not bind search from query for people: %v", err.Error())
+		search.Search = ""
+	}
+
+	people, err := s.repo.Person().GetAll(search.Search)
 	if err != nil {
 		s.logger.Errorf("could not fetch people from repo: %v", err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not fetch people"})

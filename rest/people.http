@@ -1,5 +1,5 @@
 ### Get All People
-GET {{host}}:{{port}}/api/people
+GET {{host}}:{{port}}/api/people?search=kev
 
 ### Create people
 POST {{host}}:{{port}}/api/people

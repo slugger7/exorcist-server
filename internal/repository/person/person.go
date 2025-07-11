@@ -28,7 +28,7 @@ type PersonRepository interface {
 	Create(names []string) ([]model.Person, error)
 	AddToMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error)
 	RemoveFromMedia(mediaPerson model.MediaPerson) error
-	GetAll() ([]model.Person, error)
+	GetAll(search string) ([]model.Person, error)
 	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
@@ -133,8 +133,13 @@ func (p *personRepository) GetById(id uuid.UUID) (*model.Person, error) {
 }
 
 // GetAll implements PersonRepository.
-func (p *personRepository) GetAll() ([]model.Person, error) {
+func (p *personRepository) GetAll(search string) ([]model.Person, error) {
 	statement := person.SELECT(person.AllColumns)
+
+	if search != "" {
+		caseInsensitive := strings.ToLower(search)
+		statement = statement.WHERE(postgres.LOWER(person.Name).LIKE(postgres.String(fmt.Sprintf("%%%v%%", caseInsensitive))))
+	}
 
 	var people []model.Person
 	if err := statement.QueryContext(p.ctx, p.db, &people); err != nil {
