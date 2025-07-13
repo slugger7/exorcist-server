@@ -39,58 +39,19 @@ type personRepository struct {
 	ctx    context.Context
 }
 
-func innerJoinMediaPerson(id uuid.UUID, t postgres.ReadableTable) postgres.ReadableTable {
-	media := table.Media
-	mediaPerson := table.MediaPerson
-	return t.INNER_JOIN(
-		mediaPerson,
-		media.ID.EQ(mediaPerson.MediaID).
-			AND(mediaPerson.PersonID.EQ(postgres.UUID(id))),
-	)
-}
-
 // GetMedia implements PersonRepository.
 func (r *personRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
-	media := table.Media
-	mediaRelation := table.MediaRelation
-	thumbnail := table.Media.AS("thumbnail")
-
-	selectStatement := media.SELECT(
-		media.ID,
-		media.Title,
-		media.MediaType,
-		thumbnail.ID,
-	).
-		FROM(
-			innerJoinMediaPerson(id, media.LEFT_JOIN(
-				mediaRelation, media.ID.EQ(mediaRelation.MediaID).
-					AND(mediaRelation.RelationType.EQ(postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String()))),
-			).LEFT_JOIN(
-				thumbnail,
-				thumbnail.ID.EQ(mediaRelation.RelatedTo),
-			))).
-		LIMIT(int64(search.Limit)).
-		OFFSET(int64(search.Skip))
-
-	selectStatement = helpers.OrderByDirectionColumn(search.Asc, search.OrderBy.ToColumn(), selectStatement)
-	countStatement := media.SELECT(postgres.COUNT(media.ID).AS("total")).FROM(innerJoinMediaPerson(id, media))
-
-	whr := media.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Primary.String())).
-		AND(media.Deleted.IS_FALSE()).
-		AND(media.Exists.IS_TRUE())
-
-	if search.Search != "" {
-		caseInsensitive := strings.ToLower(search.Search)
-		likeExpression := fmt.Sprintf("%%%v%%", caseInsensitive)
-		whr = whr.
-			AND(
-				postgres.LOWER(media.Title).LIKE(postgres.String(likeExpression)).
-					OR(postgres.LOWER(media.Path).LIKE(postgres.String(likeExpression))),
-			)
+	relationFunc := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
+		media := table.Media
+		mediaPerson := table.MediaPerson
+		return relationTable.INNER_JOIN(
+			mediaPerson,
+			media.ID.EQ(mediaPerson.MediaID).
+				AND(mediaPerson.PersonID.EQ(postgres.UUID(id))),
+		)
 	}
 
-	selectStatement = selectStatement.WHERE(whr)
-	countStatement = countStatement.WHERE(whr)
+	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFunc)
 
 	util.DebugCheck(r.env, countStatement)
 	util.DebugCheck(r.env, selectStatement)
