@@ -105,10 +105,10 @@ func (mr *MockIRepositoryMockRecorder) Job() *gomock.Call {
 }
 
 // Library mocks base method.
-func (m *MockIRepository) Library() libraryRepository.ILibraryRepository {
+func (m *MockIRepository) Library() libraryRepository.LibraryRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Library")
-	ret0, _ := ret[0].(libraryRepository.ILibraryRepository)
+	ret0, _ := ret[0].(libraryRepository.LibraryRepository)
 	return ret0
 }
 

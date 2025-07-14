@@ -12,7 +12,10 @@ package mock_tagService
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	dto "github.com/slugger7/exorcist/internal/dto"
+	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -38,6 +41,21 @@ func NewMockTagService(ctrl *gomock.Controller) *MockTagService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTagService) EXPECT() *MockTagServiceMockRecorder {
 	return m.recorder
+}
+
+// GetMedia mocks base method.
+func (m *MockTagService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMedia", id, search)
+	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMedia indicates an expected call of GetMedia.
+func (mr *MockTagServiceMockRecorder) GetMedia(id, search any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockTagService)(nil).GetMedia), id, search)
 }
 
 // Upsert mocks base method.

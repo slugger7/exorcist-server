@@ -61,10 +61,10 @@ func (mr *MockIServiceMockRecorder) Job() *gomock.Call {
 }
 
 // Library mocks base method.
-func (m *MockIService) Library() libraryService.ILibraryService {
+func (m *MockIService) Library() libraryService.LibraryService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Library")
-	ret0, _ := ret[0].(libraryService.ILibraryService)
+	ret0, _ := ret[0].(libraryService.LibraryService)
 	return ret0
 }
 

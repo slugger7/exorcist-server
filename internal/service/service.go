@@ -17,7 +17,7 @@ import (
 
 type IService interface {
 	User() userService.IUserService
-	Library() libraryService.ILibraryService
+	Library() libraryService.LibraryService
 	LibraryPath() libraryPathService.ILibraryPathService
 	Job() jobService.IJobService
 	Person() personService.IPersonService
@@ -29,7 +29,7 @@ type service struct {
 	env         *environment.EnvironmentVariables
 	logger      logger.ILogger
 	user        userService.IUserService
-	library     libraryService.ILibraryService
+	library     libraryService.LibraryService
 	libraryPath libraryPathService.ILibraryPathService
 	job         jobService.IJobService
 	person      personService.IPersonService
@@ -67,7 +67,7 @@ func (s *service) User() userService.IUserService {
 	return s.user
 }
 
-func (s *service) Library() libraryService.ILibraryService {
+func (s *service) Library() libraryService.LibraryService {
 	s.logger.Debug("Getting LibraryService")
 	return s.library
 }

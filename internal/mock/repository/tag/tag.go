@@ -12,7 +12,10 @@ package mock_tagRepository
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	dto "github.com/slugger7/exorcist/internal/dto"
+	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -41,18 +44,18 @@ func (m *MockTagRepository) EXPECT() *MockTagRepositoryMockRecorder {
 }
 
 // AddToMedia mocks base method.
-func (m *MockTagRepository) AddToMedia(mediaPeople []model.MediaTag) ([]model.MediaTag, error) {
+func (m *MockTagRepository) AddToMedia(mediaTags []model.MediaTag) ([]model.MediaTag, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddToMedia", mediaPeople)
+	ret := m.ctrl.Call(m, "AddToMedia", mediaTags)
 	ret0, _ := ret[0].([]model.MediaTag)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddToMedia indicates an expected call of AddToMedia.
-func (mr *MockTagRepositoryMockRecorder) AddToMedia(mediaPeople any) *gomock.Call {
+func (mr *MockTagRepositoryMockRecorder) AddToMedia(mediaTags any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToMedia", reflect.TypeOf((*MockTagRepository)(nil).AddToMedia), mediaPeople)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToMedia", reflect.TypeOf((*MockTagRepository)(nil).AddToMedia), mediaTags)
 }
 
 // Create mocks base method.
@@ -70,6 +73,36 @@ func (mr *MockTagRepositoryMockRecorder) Create(names any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTagRepository)(nil).Create), names)
 }
 
+// GetAll mocks base method.
+func (m *MockTagRepository) GetAll(search string) ([]model.Tag, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll", search)
+	ret0, _ := ret[0].([]model.Tag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockTagRepositoryMockRecorder) GetAll(search any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockTagRepository)(nil).GetAll), search)
+}
+
+// GetById mocks base method.
+func (m *MockTagRepository) GetById(id uuid.UUID) (*model.Tag, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetById", id)
+	ret0, _ := ret[0].(*model.Tag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetById indicates an expected call of GetById.
+func (mr *MockTagRepositoryMockRecorder) GetById(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockTagRepository)(nil).GetById), id)
+}
+
 // GetByName mocks base method.
 func (m *MockTagRepository) GetByName(name string) (*model.Tag, error) {
 	m.ctrl.T.Helper()
@@ -83,6 +116,21 @@ func (m *MockTagRepository) GetByName(name string) (*model.Tag, error) {
 func (mr *MockTagRepositoryMockRecorder) GetByName(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockTagRepository)(nil).GetByName), name)
+}
+
+// GetMedia mocks base method.
+func (m *MockTagRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMedia", id, search)
+	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMedia indicates an expected call of GetMedia.
+func (mr *MockTagRepositoryMockRecorder) GetMedia(id, search any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockTagRepository)(nil).GetMedia), id, search)
 }
 
 // RemoveFromMedia mocks base method.

@@ -58,7 +58,8 @@ func (s *server) RegisterRoutes() http.Handler {
 	// Register library controller routes
 	s.withLibraryGet(authenticated, libraries).
 		withLibraryPost(authenticated, libraries).
-		withLibraryGetPaths(authenticated, libraries)
+		withLibraryGetPaths(authenticated, libraries).
+		withLibraryGetMedia(authenticated, libraries)
 
 	// Register library path controller routes
 	s.withLibraryPathCreate(authenticated, libraryPath).

@@ -32,7 +32,7 @@ type IRepository interface {
 	Close() error
 
 	Job() jobRepository.IJobRepository
-	Library() libraryRepository.ILibraryRepository
+	Library() libraryRepository.LibraryRepository
 	LibraryPath() libraryPathRepository.ILibraryPathRepository
 	Video() videoRepository.IVideoRepository
 	User() userRepository.IUserRepository
@@ -47,7 +47,7 @@ type repository struct {
 	logger          logger.ILogger
 	env             *environment.EnvironmentVariables
 	jobRepo         jobRepository.IJobRepository
-	libraryRepo     libraryRepository.ILibraryRepository
+	libraryRepo     libraryRepository.LibraryRepository
 	libraryPathRepo libraryPathRepository.ILibraryPathRepository
 	videoRepo       videoRepository.IVideoRepository
 	userRepo        userRepository.IUserRepository
@@ -103,7 +103,7 @@ func (s *repository) Job() jobRepository.IJobRepository {
 	return s.jobRepo
 }
 
-func (s *repository) Library() libraryRepository.ILibraryRepository {
+func (s *repository) Library() libraryRepository.LibraryRepository {
 	s.logger.Debug("Getting library repo")
 	return s.libraryRepo
 }

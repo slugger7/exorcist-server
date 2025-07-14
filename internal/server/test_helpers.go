@@ -38,7 +38,7 @@ type TestServer struct {
 	server                 *server
 	mockService            *mock_service.MockIService
 	mockUserService        *mock_userService.MockIUserService
-	mockLibraryService     *mock_libraryService.MockILibraryService
+	mockLibraryService     *mock_libraryService.MockLibraryService
 	mockLibraryPathService *mock_libraryPathService.MockILibraryPathService
 	ctrl                   *gomock.Controller
 	engine                 *gin.Engine
@@ -71,11 +71,11 @@ func (s *TestServer) withUserService() *TestServer {
 }
 
 func (s *TestServer) withLibraryService() *TestServer {
-	ls := mock_libraryService.NewMockILibraryService(s.ctrl)
+	ls := mock_libraryService.NewMockLibraryService(s.ctrl)
 
 	s.mockService.EXPECT().
 		Library().
-		DoAndReturn(func() libraryService.ILibraryService {
+		DoAndReturn(func() libraryService.LibraryService {
 			return ls
 		}).
 		AnyTimes()
