@@ -60,12 +60,12 @@ func (r *tagRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.
 		Total int
 	}
 	if err := countStatement.QueryContext(r.ctx, r.db, &total); err != nil {
-		return nil, errs.BuildError(err, "could not query media for total")
+		return nil, errs.BuildError(err, "could not query media total by tag id: %v", id.String())
 	}
 
 	var mediaResult []models.MediaOverviewModel
 	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
-		return nil, errs.BuildError(err, "could not query media")
+		return nil, errs.BuildError(err, "could not query media by tag id: %v", id.String())
 	}
 
 	return &dto.PageDTO[models.MediaOverviewModel]{

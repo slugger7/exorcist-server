@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
+	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -39,6 +40,36 @@ func NewMockMediaService(ctrl *gomock.Controller) *MockMediaService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMediaService) EXPECT() *MockMediaServiceMockRecorder {
 	return m.recorder
+}
+
+// AddPerson mocks base method.
+func (m *MockMediaService) AddPerson(id, personId uuid.UUID) (*model.MediaPerson, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddPerson", id, personId)
+	ret0, _ := ret[0].(*model.MediaPerson)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddPerson indicates an expected call of AddPerson.
+func (mr *MockMediaServiceMockRecorder) AddPerson(id, personId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPerson", reflect.TypeOf((*MockMediaService)(nil).AddPerson), id, personId)
+}
+
+// AddTag mocks base method.
+func (m *MockMediaService) AddTag(id, tagId uuid.UUID) (*model.MediaTag, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddTag", id, tagId)
+	ret0, _ := ret[0].(*model.MediaTag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddTag indicates an expected call of AddTag.
+func (mr *MockMediaServiceMockRecorder) AddTag(id, tagId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTag", reflect.TypeOf((*MockMediaService)(nil).AddTag), id, tagId)
 }
 
 // SetPeople mocks base method.

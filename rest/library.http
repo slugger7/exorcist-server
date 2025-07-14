@@ -29,3 +29,6 @@ GET {{host}}:{{port}}/api/libraryPaths
 
 ### Get library paths for library
 GET {{host}}:{{port}}/api/libraries/7f3f673d-3e00-45cf-b2bc-064c79fe9539/libraryPaths
+
+### Get library media
+GET {{host}}:{{port}}/api/libraries/4825a44e-7067-4bf0-a755-57ae47117f68/media

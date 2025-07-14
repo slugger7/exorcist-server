@@ -14,35 +14,37 @@ import (
 
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	dto "github.com/slugger7/exorcist/internal/dto"
+	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockILibraryRepository is a mock of ILibraryRepository interface.
-type MockILibraryRepository struct {
+// MockLibraryRepository is a mock of LibraryRepository interface.
+type MockLibraryRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockILibraryRepositoryMockRecorder
+	recorder *MockLibraryRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockILibraryRepositoryMockRecorder is the mock recorder for MockILibraryRepository.
-type MockILibraryRepositoryMockRecorder struct {
-	mock *MockILibraryRepository
+// MockLibraryRepositoryMockRecorder is the mock recorder for MockLibraryRepository.
+type MockLibraryRepositoryMockRecorder struct {
+	mock *MockLibraryRepository
 }
 
-// NewMockILibraryRepository creates a new mock instance.
-func NewMockILibraryRepository(ctrl *gomock.Controller) *MockILibraryRepository {
-	mock := &MockILibraryRepository{ctrl: ctrl}
-	mock.recorder = &MockILibraryRepositoryMockRecorder{mock}
+// NewMockLibraryRepository creates a new mock instance.
+func NewMockLibraryRepository(ctrl *gomock.Controller) *MockLibraryRepository {
+	mock := &MockLibraryRepository{ctrl: ctrl}
+	mock.recorder = &MockLibraryRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockILibraryRepository) EXPECT() *MockILibraryRepositoryMockRecorder {
+func (m *MockLibraryRepository) EXPECT() *MockLibraryRepositoryMockRecorder {
 	return m.recorder
 }
 
 // Create mocks base method.
-func (m *MockILibraryRepository) Create(name string) (*model.Library, error) {
+func (m *MockLibraryRepository) Create(name string) (*model.Library, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", name)
 	ret0, _ := ret[0].(*model.Library)
@@ -51,13 +53,13 @@ func (m *MockILibraryRepository) Create(name string) (*model.Library, error) {
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockILibraryRepositoryMockRecorder) Create(name any) *gomock.Call {
+func (mr *MockLibraryRepositoryMockRecorder) Create(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockILibraryRepository)(nil).Create), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLibraryRepository)(nil).Create), name)
 }
 
 // GetAll mocks base method.
-func (m *MockILibraryRepository) GetAll() ([]model.Library, error) {
+func (m *MockLibraryRepository) GetAll() ([]model.Library, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll")
 	ret0, _ := ret[0].([]model.Library)
@@ -66,13 +68,13 @@ func (m *MockILibraryRepository) GetAll() ([]model.Library, error) {
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockILibraryRepositoryMockRecorder) GetAll() *gomock.Call {
+func (mr *MockLibraryRepositoryMockRecorder) GetAll() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockILibraryRepository)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockLibraryRepository)(nil).GetAll))
 }
 
 // GetById mocks base method.
-func (m *MockILibraryRepository) GetById(arg0 uuid.UUID) (*model.Library, error) {
+func (m *MockLibraryRepository) GetById(arg0 uuid.UUID) (*model.Library, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", arg0)
 	ret0, _ := ret[0].(*model.Library)
@@ -81,13 +83,13 @@ func (m *MockILibraryRepository) GetById(arg0 uuid.UUID) (*model.Library, error)
 }
 
 // GetById indicates an expected call of GetById.
-func (mr *MockILibraryRepositoryMockRecorder) GetById(arg0 any) *gomock.Call {
+func (mr *MockLibraryRepositoryMockRecorder) GetById(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockILibraryRepository)(nil).GetById), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockLibraryRepository)(nil).GetById), arg0)
 }
 
 // GetByName mocks base method.
-func (m *MockILibraryRepository) GetByName(name string) (*model.Library, error) {
+func (m *MockLibraryRepository) GetByName(name string) (*model.Library, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByName", name)
 	ret0, _ := ret[0].(*model.Library)
@@ -96,7 +98,22 @@ func (m *MockILibraryRepository) GetByName(name string) (*model.Library, error) 
 }
 
 // GetByName indicates an expected call of GetByName.
-func (mr *MockILibraryRepositoryMockRecorder) GetByName(name any) *gomock.Call {
+func (mr *MockLibraryRepositoryMockRecorder) GetByName(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockILibraryRepository)(nil).GetByName), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockLibraryRepository)(nil).GetByName), name)
+}
+
+// GetMedia mocks base method.
+func (m *MockLibraryRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMedia", id, search)
+	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMedia indicates an expected call of GetMedia.
+func (mr *MockLibraryRepositoryMockRecorder) GetMedia(id, search any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockLibraryRepository)(nil).GetMedia), id, search)
 }

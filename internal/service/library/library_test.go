@@ -20,7 +20,7 @@ import (
 type testService struct {
 	svc             *libraryService
 	repo            *mock_repository.MockIRepository
-	libraryRepo     *mock_libraryRepository.MockILibraryRepository
+	libraryRepo     *mock_libraryRepository.MockLibraryRepository
 	libraryPathRepo *mock_libraryPathRepository.MockILibraryPathRepository
 	jobRepo         *mock_jobRepository.MockIJobRepository
 }
@@ -29,13 +29,13 @@ func setup(t *testing.T) *testService {
 	ctrl := gomock.NewController(t)
 
 	mockRepo := mock_repository.NewMockIRepository(ctrl)
-	mockLibraryRepo := mock_libraryRepository.NewMockILibraryRepository(ctrl)
+	mockLibraryRepo := mock_libraryRepository.NewMockLibraryRepository(ctrl)
 	mockLibraryPathRepo := mock_libraryPathRepository.NewMockILibraryPathRepository(ctrl)
 	mockJobRepo := mock_jobRepository.NewMockIJobRepository(ctrl)
 
 	mockRepo.EXPECT().
 		Library().
-		DoAndReturn(func() libraryRepository.ILibraryRepository {
+		DoAndReturn(func() libraryRepository.LibraryRepository {
 			return mockLibraryRepo
 		}).
 		AnyTimes()

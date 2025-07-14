@@ -3,16 +3,20 @@ package libraryService
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
+	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
-type ILibraryService interface {
+type LibraryService interface {
 	Create(newLibrary *model.Library) (*model.Library, error)
 	GetAll() ([]model.Library, error)
+	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type libraryService struct {
@@ -21,9 +25,28 @@ type libraryService struct {
 	logger logger.ILogger
 }
 
+// GetMedia implements LibraryService.
+func (i *libraryService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	library, err := i.repo.Library().GetById(id)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get library by id from repo: %v", id)
+	}
+
+	if library == nil {
+		return nil, fmt.Errorf("no library found with id: %v", id)
+	}
+
+	media, err := i.repo.Library().GetMedia(id, search)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get media for library (%v) from repo", id.String())
+	}
+
+	return media, nil
+}
+
 var libraryServiceInstance *libraryService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILibraryService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables) LibraryService {
 	if libraryServiceInstance == nil {
 		libraryServiceInstance = &libraryService{
 			env:    env,

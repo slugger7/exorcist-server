@@ -12,36 +12,39 @@ package mock_libraryService
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	dto "github.com/slugger7/exorcist/internal/dto"
+	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockILibraryService is a mock of ILibraryService interface.
-type MockILibraryService struct {
+// MockLibraryService is a mock of LibraryService interface.
+type MockLibraryService struct {
 	ctrl     *gomock.Controller
-	recorder *MockILibraryServiceMockRecorder
+	recorder *MockLibraryServiceMockRecorder
 	isgomock struct{}
 }
 
-// MockILibraryServiceMockRecorder is the mock recorder for MockILibraryService.
-type MockILibraryServiceMockRecorder struct {
-	mock *MockILibraryService
+// MockLibraryServiceMockRecorder is the mock recorder for MockLibraryService.
+type MockLibraryServiceMockRecorder struct {
+	mock *MockLibraryService
 }
 
-// NewMockILibraryService creates a new mock instance.
-func NewMockILibraryService(ctrl *gomock.Controller) *MockILibraryService {
-	mock := &MockILibraryService{ctrl: ctrl}
-	mock.recorder = &MockILibraryServiceMockRecorder{mock}
+// NewMockLibraryService creates a new mock instance.
+func NewMockLibraryService(ctrl *gomock.Controller) *MockLibraryService {
+	mock := &MockLibraryService{ctrl: ctrl}
+	mock.recorder = &MockLibraryServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockILibraryService) EXPECT() *MockILibraryServiceMockRecorder {
+func (m *MockLibraryService) EXPECT() *MockLibraryServiceMockRecorder {
 	return m.recorder
 }
 
 // Create mocks base method.
-func (m *MockILibraryService) Create(newLibrary *model.Library) (*model.Library, error) {
+func (m *MockLibraryService) Create(newLibrary *model.Library) (*model.Library, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", newLibrary)
 	ret0, _ := ret[0].(*model.Library)
@@ -50,13 +53,13 @@ func (m *MockILibraryService) Create(newLibrary *model.Library) (*model.Library,
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockILibraryServiceMockRecorder) Create(newLibrary any) *gomock.Call {
+func (mr *MockLibraryServiceMockRecorder) Create(newLibrary any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockILibraryService)(nil).Create), newLibrary)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLibraryService)(nil).Create), newLibrary)
 }
 
 // GetAll mocks base method.
-func (m *MockILibraryService) GetAll() ([]model.Library, error) {
+func (m *MockLibraryService) GetAll() ([]model.Library, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll")
 	ret0, _ := ret[0].([]model.Library)
@@ -65,7 +68,22 @@ func (m *MockILibraryService) GetAll() ([]model.Library, error) {
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockILibraryServiceMockRecorder) GetAll() *gomock.Call {
+func (mr *MockLibraryServiceMockRecorder) GetAll() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockILibraryService)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockLibraryService)(nil).GetAll))
+}
+
+// GetMedia mocks base method.
+func (m *MockLibraryService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMedia", id, search)
+	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMedia indicates an expected call of GetMedia.
+func (mr *MockLibraryServiceMockRecorder) GetMedia(id, search any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockLibraryService)(nil).GetMedia), id, search)
 }
