@@ -35,7 +35,7 @@ func (ls *libraryRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (
 	relationFn := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
 		return relationTable.INNER_JOIN(
 			table.LibraryPath,
-			table.Media.LibraryPathID.EQ(table.Media.LibraryPathID).
+			table.Media.LibraryPathID.EQ(table.LibraryPath.ID).
 				AND(table.LibraryPath.LibraryID.EQ(postgres.UUID(id))),
 		)
 	}
