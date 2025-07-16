@@ -46,6 +46,7 @@ const ErrGetLibraryById = "could not get library by id: %v"
 const ErrCreateLibraryPath = "could not create new library path"
 
 func (lps *libraryPathService) Create(libPathModel *model.LibraryPath) (*model.LibraryPath, error) {
+	// TODO: find any library path that has the same path in it of this library path and prevent it from being created
 	if libPathModel == nil {
 		return nil, fmt.Errorf(LibraryPathWasNilErr)
 	}

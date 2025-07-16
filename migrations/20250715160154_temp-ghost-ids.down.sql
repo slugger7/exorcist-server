@@ -4,6 +4,9 @@ alter table library drop column ghost_id;
 alter table library_path drop constraint library_path_unique_ghost_id;
 alter table library_path drop column ghost_id;
 
+alter table media drop constraint media_unique_ghost_id;
+alter table media drop column ghost_id;
+
 alter table video drop constraint video_unique_ghost_id;
 alter table video drop column ghost_id;
 

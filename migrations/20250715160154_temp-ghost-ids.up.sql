@@ -1,10 +1,13 @@
 alter table library add column ghost_id integer null;
 alter table library add constraint library_unique_ghost_id unique (ghost_id);
 
-alter table library_path add column ghost_id integer;
+alter table library_path add column ghost_id integer null;
 alter table library_path add constraint library_path_unique_ghost_id unique (ghost_id);
 
-alter table video add column ghost_id integer;
+alter table media add column ghost_id integer null;
+alter table media add constraint media_unique_ghost_id unique (ghost_id);
+
+alter table video add column ghost_id integer null;
 alter table video add constraint video_unique_ghost_id unique (ghost_id);
 
 alter table media_relation add column ghost_id integer;
