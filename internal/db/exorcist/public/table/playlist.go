@@ -22,6 +22,7 @@ type playlistTable struct {
 	UserID   postgres.ColumnString
 	Created  postgres.ColumnTimestamp
 	Modified postgres.ColumnTimestamp
+	GhostID  postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -67,8 +68,9 @@ func newPlaylistTableImpl(schemaName, tableName, alias string) playlistTable {
 		UserIDColumn   = postgres.StringColumn("user_id")
 		CreatedColumn  = postgres.TimestampColumn("created")
 		ModifiedColumn = postgres.TimestampColumn("modified")
-		allColumns     = postgres.ColumnList{IDColumn, NameColumn, UserIDColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns = postgres.ColumnList{NameColumn, UserIDColumn, CreatedColumn, ModifiedColumn}
+		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
+		allColumns     = postgres.ColumnList{IDColumn, NameColumn, UserIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		mutableColumns = postgres.ColumnList{NameColumn, UserIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 	)
 
 	return playlistTable{
@@ -80,6 +82,7 @@ func newPlaylistTableImpl(schemaName, tableName, alias string) playlistTable {
 		UserID:   UserIDColumn,
 		Created:  CreatedColumn,
 		Modified: ModifiedColumn,
+		GhostID:  GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

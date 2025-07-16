@@ -23,6 +23,7 @@ type userTable struct {
 	Active   postgres.ColumnBool
 	Created  postgres.ColumnTimestamp
 	Modified postgres.ColumnTimestamp
+	GhostID  postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -69,8 +70,9 @@ func newUserTableImpl(schemaName, tableName, alias string) userTable {
 		ActiveColumn   = postgres.BoolColumn("active")
 		CreatedColumn  = postgres.TimestampColumn("created")
 		ModifiedColumn = postgres.TimestampColumn("modified")
-		allColumns     = postgres.ColumnList{IDColumn, UsernameColumn, PasswordColumn, ActiveColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns = postgres.ColumnList{UsernameColumn, PasswordColumn, ActiveColumn, CreatedColumn, ModifiedColumn}
+		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
+		allColumns     = postgres.ColumnList{IDColumn, UsernameColumn, PasswordColumn, ActiveColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		mutableColumns = postgres.ColumnList{UsernameColumn, PasswordColumn, ActiveColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 	)
 
 	return userTable{
@@ -83,6 +85,7 @@ func newUserTableImpl(schemaName, tableName, alias string) userTable {
 		Active:   ActiveColumn,
 		Created:  CreatedColumn,
 		Modified: ModifiedColumn,
+		GhostID:  GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

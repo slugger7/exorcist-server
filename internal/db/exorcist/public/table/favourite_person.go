@@ -22,6 +22,7 @@ type favouritePersonTable struct {
 	PersonID postgres.ColumnString
 	Created  postgres.ColumnTimestamp
 	Modified postgres.ColumnTimestamp
+	GhostID  postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -67,8 +68,9 @@ func newFavouritePersonTableImpl(schemaName, tableName, alias string) favouriteP
 		PersonIDColumn = postgres.StringColumn("person_id")
 		CreatedColumn  = postgres.TimestampColumn("created")
 		ModifiedColumn = postgres.TimestampColumn("modified")
-		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, PersonIDColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns = postgres.ColumnList{UserIDColumn, PersonIDColumn, CreatedColumn, ModifiedColumn}
+		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
+		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, PersonIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		mutableColumns = postgres.ColumnList{UserIDColumn, PersonIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 	)
 
 	return favouritePersonTable{
@@ -80,6 +82,7 @@ func newFavouritePersonTableImpl(schemaName, tableName, alias string) favouriteP
 		PersonID: PersonIDColumn,
 		Created:  CreatedColumn,
 		Modified: ModifiedColumn,
+		GhostID:  GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

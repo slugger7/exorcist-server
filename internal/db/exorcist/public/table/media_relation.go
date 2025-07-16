@@ -23,6 +23,7 @@ type mediaRelationTable struct {
 	RelationType postgres.ColumnString
 	Created      postgres.ColumnTimestamp
 	Modified     postgres.ColumnTimestamp
+	GhostID      postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -69,8 +70,9 @@ func newMediaRelationTableImpl(schemaName, tableName, alias string) mediaRelatio
 		RelationTypeColumn = postgres.StringColumn("relation_type")
 		CreatedColumn      = postgres.TimestampColumn("created")
 		ModifiedColumn     = postgres.TimestampColumn("modified")
-		allColumns         = postgres.ColumnList{IDColumn, MediaIDColumn, RelatedToColumn, RelationTypeColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns     = postgres.ColumnList{MediaIDColumn, RelatedToColumn, RelationTypeColumn, CreatedColumn, ModifiedColumn}
+		GhostIDColumn      = postgres.IntegerColumn("ghost_id")
+		allColumns         = postgres.ColumnList{IDColumn, MediaIDColumn, RelatedToColumn, RelationTypeColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		mutableColumns     = postgres.ColumnList{MediaIDColumn, RelatedToColumn, RelationTypeColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 	)
 
 	return mediaRelationTable{
@@ -83,6 +85,7 @@ func newMediaRelationTableImpl(schemaName, tableName, alias string) mediaRelatio
 		RelationType: RelationTypeColumn,
 		Created:      CreatedColumn,
 		Modified:     ModifiedColumn,
+		GhostID:      GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

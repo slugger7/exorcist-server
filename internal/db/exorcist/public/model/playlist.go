@@ -18,4 +18,5 @@ type Playlist struct {
 	UserID   uuid.UUID
 	Created  time.Time
 	Modified time.Time
+	GhostID  *int32
 }

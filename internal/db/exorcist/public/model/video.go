@@ -17,4 +17,5 @@ type Video struct {
 	Height  int32
 	Width   int32
 	Runtime float64
+	GhostID *int32
 }

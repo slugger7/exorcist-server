@@ -18,4 +18,5 @@ type PlaylistMedia struct {
 	MediaID    uuid.UUID
 	Created    time.Time
 	Modified   time.Time
+	GhostID    *int32
 }

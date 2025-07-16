@@ -18,4 +18,5 @@ type Library struct {
 	LibraryType LibraryTypeEnum
 	Created     time.Time
 	Modified    time.Time
+	GhostID     *int32
 }

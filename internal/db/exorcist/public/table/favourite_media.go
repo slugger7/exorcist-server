@@ -22,6 +22,7 @@ type favouriteMediaTable struct {
 	MediaID  postgres.ColumnString
 	Created  postgres.ColumnTimestamp
 	Modified postgres.ColumnTimestamp
+	GhostID  postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -67,8 +68,9 @@ func newFavouriteMediaTableImpl(schemaName, tableName, alias string) favouriteMe
 		MediaIDColumn  = postgres.StringColumn("media_id")
 		CreatedColumn  = postgres.TimestampColumn("created")
 		ModifiedColumn = postgres.TimestampColumn("modified")
-		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns = postgres.ColumnList{UserIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn}
+		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
+		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		mutableColumns = postgres.ColumnList{UserIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 	)
 
 	return favouriteMediaTable{
@@ -80,6 +82,7 @@ func newFavouriteMediaTableImpl(schemaName, tableName, alias string) favouriteMe
 		MediaID:  MediaIDColumn,
 		Created:  CreatedColumn,
 		Modified: ModifiedColumn,
+		GhostID:  GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

@@ -18,4 +18,5 @@ type MediaPerson struct {
 	Modified time.Time
 	MediaID  uuid.UUID
 	PersonID uuid.UUID
+	GhostID  *int32
 }

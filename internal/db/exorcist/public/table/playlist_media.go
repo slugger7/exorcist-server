@@ -22,6 +22,7 @@ type playlistMediaTable struct {
 	MediaID    postgres.ColumnString
 	Created    postgres.ColumnTimestamp
 	Modified   postgres.ColumnTimestamp
+	GhostID    postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -67,8 +68,9 @@ func newPlaylistMediaTableImpl(schemaName, tableName, alias string) playlistMedi
 		MediaIDColumn    = postgres.StringColumn("media_id")
 		CreatedColumn    = postgres.TimestampColumn("created")
 		ModifiedColumn   = postgres.TimestampColumn("modified")
-		allColumns       = postgres.ColumnList{IDColumn, PlaylistIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns   = postgres.ColumnList{PlaylistIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn}
+		GhostIDColumn    = postgres.IntegerColumn("ghost_id")
+		allColumns       = postgres.ColumnList{IDColumn, PlaylistIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		mutableColumns   = postgres.ColumnList{PlaylistIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 	)
 
 	return playlistMediaTable{
@@ -80,6 +82,7 @@ func newPlaylistMediaTableImpl(schemaName, tableName, alias string) playlistMedi
 		MediaID:    MediaIDColumn,
 		Created:    CreatedColumn,
 		Modified:   ModifiedColumn,
+		GhostID:    GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
