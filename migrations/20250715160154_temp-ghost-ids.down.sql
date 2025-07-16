@@ -21,7 +21,7 @@ alter table media_person drop column ghost_id;
 
 alter table tag drop constraint tag_unique_ghost_id;
 alter table tag drop column ghost_id;
-
+ 
 alter table media_tag drop constraint media_tag_unique_ghost_id;
 alter table media_tag drop column ghost_id;
 
