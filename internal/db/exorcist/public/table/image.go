@@ -24,6 +24,7 @@ type imageTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type ImageTable struct {
@@ -67,6 +68,7 @@ func newImageTableImpl(schemaName, tableName, alias string) imageTable {
 		WidthColumn    = postgres.IntegerColumn("width")
 		allColumns     = postgres.ColumnList{IDColumn, MediaIDColumn, HeightColumn, WidthColumn}
 		mutableColumns = postgres.ColumnList{MediaIDColumn, HeightColumn, WidthColumn}
+		defaultColumns = postgres.ColumnList{IDColumn}
 	)
 
 	return imageTable{
@@ -80,5 +82,6 @@ func newImageTableImpl(schemaName, tableName, alias string) imageTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

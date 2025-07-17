@@ -26,6 +26,7 @@ type playlistMediaTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type PlaylistMediaTable struct {
@@ -71,6 +72,7 @@ func newPlaylistMediaTableImpl(schemaName, tableName, alias string) playlistMedi
 		GhostIDColumn    = postgres.IntegerColumn("ghost_id")
 		allColumns       = postgres.ColumnList{IDColumn, PlaylistIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 		mutableColumns   = postgres.ColumnList{PlaylistIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		defaultColumns   = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return playlistMediaTable{
@@ -86,5 +88,6 @@ func newPlaylistMediaTableImpl(schemaName, tableName, alias string) playlistMedi
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

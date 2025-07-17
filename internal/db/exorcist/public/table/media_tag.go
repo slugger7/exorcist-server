@@ -26,6 +26,7 @@ type mediaTagTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type MediaTagTable struct {
@@ -71,6 +72,7 @@ func newMediaTagTableImpl(schemaName, tableName, alias string) mediaTagTable {
 		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
 		allColumns     = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn, MediaIDColumn, TagIDColumn, GhostIDColumn}
 		mutableColumns = postgres.ColumnList{CreatedColumn, ModifiedColumn, MediaIDColumn, TagIDColumn, GhostIDColumn}
+		defaultColumns = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return mediaTagTable{
@@ -86,5 +88,6 @@ func newMediaTagTableImpl(schemaName, tableName, alias string) mediaTagTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

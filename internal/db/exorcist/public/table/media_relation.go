@@ -27,6 +27,7 @@ type mediaRelationTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type MediaRelationTable struct {
@@ -73,6 +74,7 @@ func newMediaRelationTableImpl(schemaName, tableName, alias string) mediaRelatio
 		GhostIDColumn      = postgres.IntegerColumn("ghost_id")
 		allColumns         = postgres.ColumnList{IDColumn, MediaIDColumn, RelatedToColumn, RelationTypeColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 		mutableColumns     = postgres.ColumnList{MediaIDColumn, RelatedToColumn, RelationTypeColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		defaultColumns     = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return mediaRelationTable{
@@ -89,5 +91,6 @@ func newMediaRelationTableImpl(schemaName, tableName, alias string) mediaRelatio
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

@@ -17,15 +17,17 @@ type mediaProgressTable struct {
 	postgres.Table
 
 	// Columns
-	ID       postgres.ColumnString
-	UserID   postgres.ColumnString
-	MediaID  postgres.ColumnString
-	Created  postgres.ColumnTimestamp
-	Modified postgres.ColumnTimestamp
-	GhostID  postgres.ColumnInteger
+	ID        postgres.ColumnString
+	UserID    postgres.ColumnString
+	MediaID   postgres.ColumnString
+	Timestamp postgres.ColumnFloat
+	Created   postgres.ColumnTimestamp
+	Modified  postgres.ColumnTimestamp
+	GhostID   postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type MediaProgressTable struct {
@@ -63,28 +65,32 @@ func newMediaProgressTable(schemaName, tableName, alias string) *MediaProgressTa
 
 func newMediaProgressTableImpl(schemaName, tableName, alias string) mediaProgressTable {
 	var (
-		IDColumn       = postgres.StringColumn("id")
-		UserIDColumn   = postgres.StringColumn("user_id")
-		MediaIDColumn  = postgres.StringColumn("media_id")
-		CreatedColumn  = postgres.TimestampColumn("created")
-		ModifiedColumn = postgres.TimestampColumn("modified")
-		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
-		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
-		mutableColumns = postgres.ColumnList{UserIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		IDColumn        = postgres.StringColumn("id")
+		UserIDColumn    = postgres.StringColumn("user_id")
+		MediaIDColumn   = postgres.StringColumn("media_id")
+		TimestampColumn = postgres.FloatColumn("timestamp")
+		CreatedColumn   = postgres.TimestampColumn("created")
+		ModifiedColumn  = postgres.TimestampColumn("modified")
+		GhostIDColumn   = postgres.IntegerColumn("ghost_id")
+		allColumns      = postgres.ColumnList{IDColumn, UserIDColumn, MediaIDColumn, TimestampColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		mutableColumns  = postgres.ColumnList{UserIDColumn, MediaIDColumn, TimestampColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		defaultColumns  = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return mediaProgressTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:       IDColumn,
-		UserID:   UserIDColumn,
-		MediaID:  MediaIDColumn,
-		Created:  CreatedColumn,
-		Modified: ModifiedColumn,
-		GhostID:  GhostIDColumn,
+		ID:        IDColumn,
+		UserID:    UserIDColumn,
+		MediaID:   MediaIDColumn,
+		Timestamp: TimestampColumn,
+		Created:   CreatedColumn,
+		Modified:  ModifiedColumn,
+		GhostID:   GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

@@ -26,6 +26,7 @@ type favouriteMediaTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type FavouriteMediaTable struct {
@@ -71,6 +72,7 @@ func newFavouriteMediaTableImpl(schemaName, tableName, alias string) favouriteMe
 		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
 		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 		mutableColumns = postgres.ColumnList{UserIDColumn, MediaIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		defaultColumns = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return favouriteMediaTable{
@@ -86,5 +88,6 @@ func newFavouriteMediaTableImpl(schemaName, tableName, alias string) favouriteMe
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }
