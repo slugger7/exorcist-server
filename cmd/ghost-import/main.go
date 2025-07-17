@@ -449,7 +449,6 @@ func (ctx Context) transferPlaylists() error {
 
 	playlists := []model.Playlist{}
 	for id := range userPlaylistMap {
-		log.Println(id)
 		userStmnt := table.User.SELECT(table.User.ID, table.User.GhostID).
 			WHERE(table.User.GhostID.EQ(postgres.Int32(id)))
 
@@ -591,6 +590,196 @@ func (ctx Context) transferPlaylistVideos() error {
 	return nil
 }
 
+func (ctx Context) transferFavouriteActors() error {
+	log.Println("Transferring favourite actors")
+
+	favouriteActorsStmnt := gtable.FavouriteActors.SELECT(gtable.FavouriteActors.AllColumns)
+
+	var gFavouriteActors []gmodel.FavouriteActors
+	if err := favouriteActorsStmnt.Query(ctx.GhostDb, &gFavouriteActors); err != nil {
+		return err
+	}
+
+	if len(gFavouriteActors) == 0 {
+		log.Println("No favourite actors in ghost")
+		return nil
+	}
+
+	log.Printf("Found %v favourite actors in ghost", len(gFavouriteActors))
+
+	userStmnt := table.User.SELECT(table.User.ID, table.User.GhostID)
+
+	var users []model.User
+	if err := userStmnt.Query(ctx.ExorcistDb, &users); err != nil {
+		return err
+	}
+
+	if len(users) == 0 {
+		log.Println("No users in exorcist")
+		return nil
+	}
+
+	peopleStmnt := table.Person.SELECT(table.Person.AllColumns)
+
+	var people []model.Person
+	if err := peopleStmnt.Query(ctx.ExorcistDb, &people); err != nil {
+		return err
+	}
+
+	if len(people) == 0 {
+		log.Println("No people in exorcist")
+		return nil
+	}
+
+	favouritePeople := []model.FavouritePerson{}
+	for _, fa := range gFavouriteActors {
+		var user *model.User
+		for _, u := range users {
+			if fa.UserId == *u.GhostID {
+				user = &u
+				break
+			}
+		}
+
+		if user == nil {
+			continue
+		}
+
+		var person *model.Person
+		for _, p := range people {
+			if fa.ActorId == *p.GhostID {
+				person = &p
+				break
+			}
+		}
+
+		if person == nil {
+			continue
+		}
+
+		favouritePeople = append(favouritePeople, model.FavouritePerson{
+			GhostID:  &fa.ID,
+			UserID:   user.ID,
+			PersonID: person.ID,
+		})
+	}
+
+	if len(favouritePeople) == 0 {
+		log.Println("No favourite people to add into exorcist")
+		return nil
+	}
+
+	insertStmnt := table.FavouritePerson.INSERT(table.FavouritePerson.GhostID, table.FavouritePerson.UserID, table.FavouritePerson.PersonID).
+		MODELS(favouritePeople).
+		ON_CONFLICT(table.FavouritePerson.GhostID).DO_NOTHING()
+
+	res, err := insertStmnt.Exec(ctx.ExorcistDb)
+	if err != nil {
+		return err
+	}
+
+	rows, _ := res.RowsAffected()
+
+	log.Printf("Altered %v rows in favourite people in exorcist", rows)
+
+	return nil
+}
+
+func (ctx Context) transferFavouriteVideos() error {
+	log.Println("Transferring favourite videos")
+
+	favouriteVideosStmnt := gtable.FavouriteVideos.SELECT(gtable.FavouriteVideos.AllColumns)
+
+	var favouriteVideos []gmodel.FavouriteVideos
+	if err := favouriteVideosStmnt.Query(ctx.GhostDb, &favouriteVideos); err != nil {
+		return err
+	}
+
+	if len(favouriteVideos) == 0 {
+		log.Println("No favourite videos in ghost")
+		return nil
+	}
+
+	log.Printf("Found %v favourite videos in ghost", len(favouriteVideos))
+
+	userStmnt := table.User.SELECT(table.User.ID, table.User.GhostID)
+
+	var users []model.User
+	if err := userStmnt.Query(ctx.ExorcistDb, &users); err != nil {
+		return err
+	}
+
+	if len(users) == 0 {
+		log.Println("No users in exorcist")
+		return nil
+	}
+
+	mediaStmnt := table.Media.SELECT(table.Media.AllColumns)
+
+	var mediaList []model.Media
+	if err := mediaStmnt.Query(ctx.ExorcistDb, &mediaList); err != nil {
+		return err
+	}
+
+	if len(mediaList) == 0 {
+		log.Println("No media in exorcist")
+		return nil
+	}
+
+	favouriteMedia := []model.FavouriteMedia{}
+	for _, fa := range favouriteVideos {
+		var user *model.User
+		for _, u := range users {
+			if fa.UserId == *u.GhostID {
+				user = &u
+				break
+			}
+		}
+
+		if user == nil {
+			continue
+		}
+
+		var media *model.Media
+		for _, p := range mediaList {
+			if fa.VideoId == *p.GhostID {
+				media = &p
+				break
+			}
+		}
+
+		if media == nil {
+			continue
+		}
+
+		favouriteMedia = append(favouriteMedia, model.FavouriteMedia{
+			GhostID: &fa.ID,
+			UserID:  user.ID,
+			MediaID: media.ID,
+		})
+	}
+
+	if len(favouriteMedia) == 0 {
+		log.Println("No favourite media to add into exorcist")
+		return nil
+	}
+
+	insertStmnt := table.FavouriteMedia.INSERT(table.FavouriteMedia.GhostID, table.FavouriteMedia.UserID, table.FavouriteMedia.MediaID).
+		MODELS(favouriteMedia).
+		ON_CONFLICT(table.FavouriteMedia.GhostID).DO_NOTHING()
+
+	res, err := insertStmnt.Exec(ctx.ExorcistDb)
+	if err != nil {
+		return err
+	}
+
+	rows, _ := res.RowsAffected()
+
+	log.Printf("Altered %v rows in favourite media in exorcist", rows)
+
+	return nil
+}
+
 func main() {
 	err := godotenv.Load()
 	errs.PanicError(err)
@@ -658,8 +847,16 @@ func main() {
 		errs.PanicError(err)
 	}
 
-	// TODO: favourite_actors
-	// TODO: favourite_videos
+	err = ctx.transferFavouriteActors()
+	if err != nil {
+		errs.PanicError(err)
+	}
+
+	err = ctx.transferFavouriteVideos()
+	if err != nil {
+		errs.PanicError(err)
+	}
+
 	// TODO: progress
 	// TODO: related video
 	// TODO: video actors
