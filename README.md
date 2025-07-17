@@ -79,3 +79,21 @@ We are using a mock generating library to prevent us having to create these mock
 
 - Install the cli tool [mockgen](https://github.com/uber-go/mock)
 - When an interface has changed you should be able to run `make mocks` and the mocks will be regenerated for you
+
+
+## Troubleshooting
+
+### zsh
+
+Add the following to your `.zshrc`
+
+```bash
+GOPATH=$HOME/go  PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+```
+
+To activate it on the current shell:
+
+```bash
+source .zshrc
+```
+
