@@ -780,6 +780,101 @@ func (ctx Context) transferFavouriteVideos() error {
 	return nil
 }
 
+func (ctx Context) transferProgress() error {
+	log.Println("Transferring progress")
+	progressStmnt := gtable.Progress.SELECT(gtable.Progress.AllColumns)
+
+	var gProgress []gmodel.Progress
+	if err := progressStmnt.Query(ctx.GhostDb, &gProgress); err != nil {
+		return err
+	}
+
+	if len(gProgress) == 0 {
+		log.Println("No progress found in ghost")
+		return nil
+	}
+
+	userStmnt := table.User.SELECT(table.User.GhostID, table.User.ID)
+
+	var users []model.User
+	if err := userStmnt.Query(ctx.ExorcistDb, &users); err != nil {
+		return err
+	}
+
+	if len(users) == 0 {
+		log.Println("No users found in exorcist")
+		return nil
+	}
+
+	mediaStatement := table.Media.SELECT(table.Media.ID, table.Media.GhostID)
+
+	var mediaList []model.Media
+	if err := mediaStatement.Query(ctx.ExorcistDb, &mediaList); err != nil {
+		return err
+	}
+
+	if len(mediaList) == 0 {
+		log.Println("No media found in exorcist")
+		return nil
+	}
+
+	var accErrs error
+	var progressList []model.MediaProgress
+	for _, gp := range gProgress {
+		var user *model.User
+		for _, u := range users {
+			if gp.UserId == *u.GhostID {
+				user = &u
+				break
+			}
+		}
+
+		if user == nil {
+			accErrs = fmt.Errorf("no user found in exorcist while transferring progress for ghost id: %v\n %w", gp.UserId, accErrs)
+			continue
+		}
+
+		var media *model.Media
+		for _, m := range mediaList {
+			if gp.VideoId == *m.GhostID {
+				media = &m
+				break
+			}
+		}
+
+		if media == nil {
+			accErrs = fmt.Errorf("no media found in exorcist while transferring progress for ghost id: %v\n%w", gp.VideoId, accErrs)
+			continue
+		}
+
+		progressList = append(progressList, model.MediaProgress{
+			GhostID:   &gp.ID,
+			UserID:    user.ID,
+			MediaID:   media.ID,
+			Timestamp: float64(gp.Timestamp), // TODO: these might not be compatible with each other
+		})
+	}
+
+	if len(progressList) == 0 {
+		log.Println("Progress list was empty to insert to exorcist")
+	}
+
+	insertStmnt := table.MediaProgress.INSERT(table.MediaProgress.GhostID, table.MediaProgress.UserID, table.MediaProgress.MediaID, table.MediaProgress.Timestamp).
+		MODELS(progressList).
+		ON_CONFLICT(table.MediaProgress.GhostID).DO_NOTHING()
+
+	res, err := insertStmnt.Exec(ctx.ExorcistDb)
+	if err != nil {
+		return err
+	}
+
+	rows, _ := res.RowsAffected()
+
+	log.Printf("Altered %v rows in media pgrogress exorcist", rows)
+
+	return nil
+}
+
 func main() {
 	err := godotenv.Load()
 	errs.PanicError(err)
@@ -857,7 +952,11 @@ func main() {
 		errs.PanicError(err)
 	}
 
-	// TODO: progress
+	err = ctx.transferProgress()
+	if err != nil {
+		errs.PanicError(err)
+	}
+
 	// TODO: related video
 	// TODO: video actors
 	// TODO: video genres
