@@ -912,10 +912,10 @@ func (ctx Context) transferRelatedVideos() error {
 		var media *model.Media
 		var relatedTo *model.Media
 		for _, m := range mediaList {
-			if m.GhostID == &rv.VideoId {
+			if *m.GhostID == rv.VideoId {
 				media = &m
 			}
-			if m.GhostID == &rv.RelatedToId {
+			if *m.GhostID == rv.RelatedToId {
 				relatedTo = &m
 			}
 
@@ -925,12 +925,12 @@ func (ctx Context) transferRelatedVideos() error {
 		}
 
 		if media == nil {
-			accErrs = fmt.Errorf("media was not found by ghost id in exorcist: %v\n%w", rv.VideoId, accErrs)
+			accErrs = fmt.Errorf("media was not found while transferring relations by ghost id in exorcist: %v\n%w", rv.VideoId, accErrs)
 			continue
 		}
 
 		if relatedTo == nil {
-			accErrs = fmt.Errorf("relatedTo was not found by ghost id in exorcist: %v\n%w", rv.RelatedToId, accErrs)
+			accErrs = fmt.Errorf("relatedTo was not found while transferring relations by ghost id in exorcist: %v\n%w", rv.RelatedToId, accErrs)
 			continue
 		}
 
@@ -962,6 +962,206 @@ func (ctx Context) transferRelatedVideos() error {
 
 	rows, _ := res.RowsAffected()
 	log.Printf("Altered %v rows in media relation exorcist", rows)
+
+	return nil
+}
+
+func (ctx Context) transferVideoActors() error {
+	log.Println("Transferring video actors")
+
+	stmnt := gtable.VideoActors.SELECT(gtable.VideoActors.AllColumns)
+
+	var videoActors []gmodel.VideoActors
+	if err := stmnt.Query(ctx.GhostDb, &videoActors); err != nil {
+		return err
+	}
+
+	if len(videoActors) == 0 {
+		log.Println("No video actors found in ghost")
+		return nil
+	}
+
+	mediaStmnt := table.Media.SELECT(table.Media.ID, table.Media.GhostID)
+
+	var mediaList []model.Media
+	if err := mediaStmnt.Query(ctx.ExorcistDb, &mediaList); err != nil {
+		return err
+	}
+
+	if len(mediaList) == 0 {
+		log.Println("No media found in exorcist")
+		return nil
+	}
+
+	peopleStmnt := table.Person.SELECT(table.Person.ID, table.Person.GhostID)
+
+	var people []model.Person
+	if err := peopleStmnt.Query(ctx.ExorcistDb, &people); err != nil {
+		return err
+	}
+
+	if len(people) == 0 {
+		log.Println("No people found in exorcist")
+		return nil
+	}
+
+	var accErrs error
+	var mediaPeople []model.MediaPerson
+	for _, va := range videoActors {
+		var person *model.Person
+		for _, p := range people {
+			if va.ActorId == *p.GhostID {
+				person = &p
+				break
+			}
+		}
+
+		if person == nil {
+			accErrs = fmt.Errorf("no person found while transferring video actors in exorcist: %v\n%w", va.ActorId, accErrs)
+			continue
+		}
+
+		var media *model.Media
+		for _, m := range mediaList {
+			if va.VideoId == *m.GhostID {
+				media = &m
+				break
+			}
+		}
+
+		if media == nil {
+			accErrs = fmt.Errorf("no media found while transferring video actors in exorcist: %v\n%w", va.VideoId, accErrs)
+			continue
+		}
+
+		mediaPeople = append(mediaPeople, model.MediaPerson{
+			GhostID:  &va.ID,
+			PersonID: person.ID,
+			MediaID:  media.ID,
+		})
+	}
+
+	if accErrs != nil {
+		log.Printf("warning: some errors were found while creating media person entities for exorcist: %v", accErrs.Error())
+	}
+
+	if len(mediaPeople) == 0 {
+		log.Println("No media person entities created while transferring video actors")
+		return nil
+	}
+
+	insertStmnt := table.MediaPerson.INSERT(table.MediaPerson.GhostID, table.MediaPerson.PersonID, table.MediaPerson.MediaID).
+		MODELS(mediaPeople).
+		ON_CONFLICT(table.MediaPerson.GhostID).DO_NOTHING()
+
+	res, err := insertStmnt.Exec(ctx.ExorcistDb)
+	if err != nil {
+		return err
+	}
+
+	rows, _ := res.RowsAffected()
+
+	log.Printf("Altered %v rows while transferring video actors to exorcist", rows)
+
+	return nil
+}
+
+func (ctx Context) transferVideoGenres() error {
+	log.Println("Transferring video genres")
+
+	stmnt := gtable.VideoGenres.SELECT(gtable.VideoGenres.AllColumns)
+
+	var videoGenres []gmodel.VideoGenres
+	if err := stmnt.Query(ctx.GhostDb, &videoGenres); err != nil {
+		return err
+	}
+
+	if len(videoGenres) == 0 {
+		log.Println("No video genres found in ghost")
+		return nil
+	}
+
+	mediaStmnt := table.Media.SELECT(table.Media.ID, table.Media.GhostID)
+
+	var mediaList []model.Media
+	if err := mediaStmnt.Query(ctx.ExorcistDb, &mediaList); err != nil {
+		return err
+	}
+
+	if len(mediaList) == 0 {
+		log.Println("No media found in exorcist")
+		return nil
+	}
+
+	tagStmnt := table.Tag.SELECT(table.Tag.ID, table.Tag.GhostID)
+
+	var tags []model.Tag
+	if err := tagStmnt.Query(ctx.ExorcistDb, &tags); err != nil {
+		return err
+	}
+
+	if len(tags) == 0 {
+		log.Println("No tags found in exorcist")
+		return nil
+	}
+
+	var accErrs error
+	var mediaTags []model.MediaTag
+	for _, va := range videoGenres {
+		var tag *model.Tag
+		for _, p := range tags {
+			if va.GenreId == *p.GhostID {
+				tag = &p
+				break
+			}
+		}
+
+		if tag == nil {
+			accErrs = fmt.Errorf("no tag found while transferring video genres in exorcist: %v\n%w", va.GenreId, accErrs)
+			continue
+		}
+
+		var media *model.Media
+		for _, m := range mediaList {
+			if va.VideoId == *m.GhostID {
+				media = &m
+				break
+			}
+		}
+
+		if media == nil {
+			accErrs = fmt.Errorf("no media found while transferring video genres in exorcist: %v\n%w", va.VideoId, accErrs)
+			continue
+		}
+
+		mediaTags = append(mediaTags, model.MediaTag{
+			GhostID: &va.ID,
+			TagID:   tag.ID,
+			MediaID: media.ID,
+		})
+	}
+
+	if accErrs != nil {
+		log.Printf("warning: some errors were found while creating media tag entities for exorcist: %v", accErrs.Error())
+	}
+
+	if len(mediaTags) == 0 {
+		log.Println("No media tag entities created while transferring video genres")
+		return nil
+	}
+
+	insertStmnt := table.MediaTag.INSERT(table.MediaTag.GhostID, table.MediaTag.TagID, table.MediaTag.MediaID).
+		MODELS(mediaTags).
+		ON_CONFLICT(table.MediaTag.GhostID).DO_NOTHING()
+
+	res, err := insertStmnt.Exec(ctx.ExorcistDb)
+	if err != nil {
+		return err
+	}
+
+	rows, _ := res.RowsAffected()
+
+	log.Printf("Altered %v rows while transferring video genres to exorcist", rows)
 
 	return nil
 }
@@ -1053,7 +1253,13 @@ func main() {
 		errs.PanicError(err)
 	}
 
-	// TODO: related video
-	// TODO: video actors
-	// TODO: video genres
+	err = ctx.transferVideoActors()
+	if err != nil {
+		errs.PanicError(err)
+	}
+
+	err = ctx.transferVideoGenres()
+	if err != nil {
+		errs.PanicError(err)
+	}
 }
