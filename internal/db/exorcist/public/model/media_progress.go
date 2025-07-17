@@ -13,10 +13,11 @@ import (
 )
 
 type MediaProgress struct {
-	ID       uuid.UUID `sql:"primary_key"`
-	UserID   uuid.UUID
-	MediaID  uuid.UUID
-	Created  time.Time
-	Modified time.Time
-	GhostID  *int32
+	ID        uuid.UUID `sql:"primary_key"`
+	UserID    uuid.UUID
+	MediaID   uuid.UUID
+	Timestamp float64
+	Created   time.Time
+	Modified  time.Time
+	GhostID   *int32
 }

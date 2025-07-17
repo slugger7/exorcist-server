@@ -67,6 +67,7 @@ begin;
     id uuid primary key default gen_random_uuid(),
     user_id uuid not null,
     media_id uuid not null,
+    "timestamp" double precision not null,
     created timestamp default current_timestamp not null,
     modified timestamp default current_timestamp not null,
     constraint fk_media_progress_user
