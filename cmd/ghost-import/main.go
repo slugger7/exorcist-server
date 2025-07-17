@@ -855,6 +855,10 @@ func (ctx Context) transferProgress() error {
 		})
 	}
 
+	if accErrs != nil {
+		log.Printf("warning: errors found while creating media progress entities: %v", accErrs.Error())
+	}
+
 	if len(progressList) == 0 {
 		log.Println("Progress list was empty to insert to exorcist")
 	}
@@ -871,6 +875,93 @@ func (ctx Context) transferProgress() error {
 	rows, _ := res.RowsAffected()
 
 	log.Printf("Altered %v rows in media pgrogress exorcist", rows)
+
+	return nil
+}
+
+func (ctx Context) transferRelatedVideos() error {
+	log.Println("Transferring related videos")
+
+	relatedVideosStmnt := gtable.RelatedVideos.SELECT(gtable.RelatedVideos.AllColumns)
+
+	var relatedVideos []gmodel.RelatedVideos
+	if err := relatedVideosStmnt.Query(ctx.GhostDb, &relatedVideos); err != nil {
+		return err
+	}
+
+	if len(relatedVideos) == 0 {
+		log.Println("No related videos found in ghost")
+		return nil
+	}
+
+	mediaStmnt := table.Media.SELECT(table.Media.GhostID, table.Media.ID)
+
+	var mediaList []model.Media
+	if err := mediaStmnt.Query(ctx.ExorcistDb, &mediaList); err != nil {
+		return err
+	}
+
+	if len(mediaList) == 0 {
+		log.Println("No media in exorcist")
+		return nil
+	}
+
+	var accErrs error
+	var relatedMediaList []model.MediaRelation
+	for _, rv := range relatedVideos {
+		var media *model.Media
+		var relatedTo *model.Media
+		for _, m := range mediaList {
+			if m.GhostID == &rv.VideoId {
+				media = &m
+			}
+			if m.GhostID == &rv.RelatedToId {
+				relatedTo = &m
+			}
+
+			if media != nil && relatedTo != nil {
+				break
+			}
+		}
+
+		if media == nil {
+			accErrs = fmt.Errorf("media was not found by ghost id in exorcist: %v\n%w", rv.VideoId, accErrs)
+			continue
+		}
+
+		if relatedTo == nil {
+			accErrs = fmt.Errorf("relatedTo was not found by ghost id in exorcist: %v\n%w", rv.RelatedToId, accErrs)
+			continue
+		}
+
+		relatedMediaList = append(relatedMediaList, model.MediaRelation{
+			GhostID:      &rv.ID,
+			MediaID:      media.ID,
+			RelatedTo:    relatedTo.ID,
+			RelationType: model.MediaRelationTypeEnum_Media,
+		})
+	}
+
+	if accErrs != nil {
+		log.Printf("warning: some errors while creating media relation entities: %v", accErrs.Error())
+	}
+
+	if len(relatedMediaList) == 0 {
+		log.Println("no media relations to add into exorcist")
+		return nil
+	}
+
+	insertStmnt := table.MediaRelation.INSERT(table.MediaRelation.GhostID, table.MediaRelation.MediaID, table.MediaRelation.RelatedTo, table.MediaRelation.RelationType).
+		MODELS(relatedMediaList).
+		ON_CONFLICT(table.MediaRelation.GhostID).DO_NOTHING()
+
+	res, err := insertStmnt.Exec(ctx.ExorcistDb)
+	if err != nil {
+		return err
+	}
+
+	rows, _ := res.RowsAffected()
+	log.Printf("Altered %v rows in media relation exorcist", rows)
 
 	return nil
 }
@@ -953,6 +1044,11 @@ func main() {
 	}
 
 	err = ctx.transferProgress()
+	if err != nil {
+		errs.PanicError(err)
+	}
+
+	err = ctx.transferRelatedVideos()
 	if err != nil {
 		errs.PanicError(err)
 	}
