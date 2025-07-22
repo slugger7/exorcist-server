@@ -25,4 +25,5 @@ type Media struct {
 	Exists        bool
 	Created       time.Time
 	Modified      time.Time
+	GhostID       *int32
 }

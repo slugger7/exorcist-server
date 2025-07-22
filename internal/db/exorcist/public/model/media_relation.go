@@ -19,4 +19,5 @@ type MediaRelation struct {
 	RelationType MediaRelationTypeEnum
 	Created      time.Time
 	Modified     time.Time
+	GhostID      *int32
 }

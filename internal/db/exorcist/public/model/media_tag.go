@@ -18,4 +18,5 @@ type MediaTag struct {
 	Modified time.Time
 	MediaID  uuid.UUID
 	TagID    uuid.UUID
+	GhostID  *int32
 }

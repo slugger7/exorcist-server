@@ -103,7 +103,9 @@ func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
 	d.Added = m.Added
 	d.Created = m.Created
 	d.Modified = m.Modified
-	d.ThumbnailID = m.Thumbnail.ID
+	if m.Thumbnail != nil {
+		d.ThumbnailID = m.Thumbnail.ID
+	}
 
 	d.Image = (&ImageDTO{}).FromModel(m.Image)
 	d.Video = (&VideoDTO{}).FromModel(m.Video)

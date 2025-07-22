@@ -17,4 +17,5 @@ type Tag struct {
 	Name     string
 	Created  time.Time
 	Modified time.Time
+	GhostID  *int32
 }

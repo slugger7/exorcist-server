@@ -22,9 +22,11 @@ type libraryTable struct {
 	LibraryType postgres.ColumnString
 	Created     postgres.ColumnTimestamp
 	Modified    postgres.ColumnTimestamp
+	GhostID     postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type LibraryTable struct {
@@ -67,8 +69,10 @@ func newLibraryTableImpl(schemaName, tableName, alias string) libraryTable {
 		LibraryTypeColumn = postgres.StringColumn("library_type")
 		CreatedColumn     = postgres.TimestampColumn("created")
 		ModifiedColumn    = postgres.TimestampColumn("modified")
-		allColumns        = postgres.ColumnList{IDColumn, NameColumn, LibraryTypeColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns    = postgres.ColumnList{NameColumn, LibraryTypeColumn, CreatedColumn, ModifiedColumn}
+		GhostIDColumn     = postgres.IntegerColumn("ghost_id")
+		allColumns        = postgres.ColumnList{IDColumn, NameColumn, LibraryTypeColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		mutableColumns    = postgres.ColumnList{NameColumn, LibraryTypeColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		defaultColumns    = postgres.ColumnList{IDColumn, LibraryTypeColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return libraryTable{
@@ -80,8 +84,10 @@ func newLibraryTableImpl(schemaName, tableName, alias string) libraryTable {
 		LibraryType: LibraryTypeColumn,
 		Created:     CreatedColumn,
 		Modified:    ModifiedColumn,
+		GhostID:     GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

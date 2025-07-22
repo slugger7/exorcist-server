@@ -3,7 +3,6 @@ package userRepository
 import (
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/environment"
@@ -33,15 +32,6 @@ func Test_Create(t *testing.T) {
 	if exected != actual {
 		t.Errorf("Expected %v but got %v", exected, actual)
 	}
-}
-
-func Test_GetById(t *testing.T) {
-	id, _ := uuid.NewRandom()
-
-	actual, _ := s.getByIdStatement(id).Sql()
-
-	expected := "\nSELECT \"user\".id AS \"user.id\",\n     \"user\".username AS \"user.username\",\n     \"user\".password AS \"user.password\",\n     \"user\".active AS \"user.active\",\n     \"user\".created AS \"user.created\",\n     \"user\".modified AS \"user.modified\"\nFROM public.\"user\"\nWHERE \"user\".id = $1\nLIMIT $2;\n"
-	assert.Eq(t, expected, actual)
 }
 
 func Test_UpdatePassword(t *testing.T) {

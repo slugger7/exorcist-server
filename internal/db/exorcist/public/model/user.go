@@ -19,4 +19,5 @@ type User struct {
 	Active   bool
 	Created  time.Time
 	Modified time.Time
+	GhostID  *int32
 }

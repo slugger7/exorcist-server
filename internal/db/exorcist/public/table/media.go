@@ -29,9 +29,11 @@ type mediaTable struct {
 	Exists        postgres.ColumnBool
 	Created       postgres.ColumnTimestamp
 	Modified      postgres.ColumnTimestamp
+	GhostID       postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type MediaTable struct {
@@ -81,8 +83,10 @@ func newMediaTableImpl(schemaName, tableName, alias string) mediaTable {
 		ExistsColumn        = postgres.BoolColumn("exists")
 		CreatedColumn       = postgres.TimestampColumn("created")
 		ModifiedColumn      = postgres.TimestampColumn("modified")
-		allColumns          = postgres.ColumnList{IDColumn, LibraryPathIDColumn, PathColumn, TitleColumn, MediaTypeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns      = postgres.ColumnList{LibraryPathIDColumn, PathColumn, TitleColumn, MediaTypeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
+		GhostIDColumn       = postgres.IntegerColumn("ghost_id")
+		allColumns          = postgres.ColumnList{IDColumn, LibraryPathIDColumn, PathColumn, TitleColumn, MediaTypeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		mutableColumns      = postgres.ColumnList{LibraryPathIDColumn, PathColumn, TitleColumn, MediaTypeColumn, SizeColumn, ChecksumColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
+		defaultColumns      = postgres.ColumnList{IDColumn, MediaTypeColumn, AddedColumn, DeletedColumn, ExistsColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return mediaTable{
@@ -101,8 +105,10 @@ func newMediaTableImpl(schemaName, tableName, alias string) mediaTable {
 		Exists:        ExistsColumn,
 		Created:       CreatedColumn,
 		Modified:      ModifiedColumn,
+		GhostID:       GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

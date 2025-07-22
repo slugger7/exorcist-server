@@ -28,23 +28,20 @@ func (s *server) webSocketHeartbeat() {
 	ticker := time.NewTicker(tickerDuration)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			for i, ws := range s.websockets {
-				for _, c := range ws {
-					c.Mu.Lock()
+	for range ticker.C {
+		for i, ws := range s.websockets {
+			for _, c := range ws {
+				c.Mu.Lock()
 
-					c.Conn.SetWriteDeadline(time.Now().Add(s.pongDuration()))
-					s.logger.Debug("protocol ping")
-					if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-						s.logger.Warningf("could not write ping message to %v: %v", i, err.Error())
-						s.websocketMutex.Lock()
-						delete(s.websockets, i)
-						s.websocketMutex.Unlock()
-					}
-					c.Mu.Unlock()
+				c.Conn.SetWriteDeadline(time.Now().Add(s.pongDuration()))
+				s.logger.Debug("protocol ping")
+				if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+					s.logger.Warningf("could not write ping message to %v: %v", i, err.Error())
+					s.websocketMutex.Lock()
+					delete(s.websockets, i)
+					s.websocketMutex.Unlock()
 				}
+				c.Mu.Unlock()
 			}
 		}
 	}

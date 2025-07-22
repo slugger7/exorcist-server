@@ -22,9 +22,11 @@ type mediaPersonTable struct {
 	Modified postgres.ColumnTimestamp
 	MediaID  postgres.ColumnString
 	PersonID postgres.ColumnString
+	GhostID  postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type MediaPersonTable struct {
@@ -67,8 +69,10 @@ func newMediaPersonTableImpl(schemaName, tableName, alias string) mediaPersonTab
 		ModifiedColumn = postgres.TimestampColumn("modified")
 		MediaIDColumn  = postgres.StringColumn("media_id")
 		PersonIDColumn = postgres.StringColumn("person_id")
-		allColumns     = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn, MediaIDColumn, PersonIDColumn}
-		mutableColumns = postgres.ColumnList{CreatedColumn, ModifiedColumn, MediaIDColumn, PersonIDColumn}
+		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
+		allColumns     = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn, MediaIDColumn, PersonIDColumn, GhostIDColumn}
+		mutableColumns = postgres.ColumnList{CreatedColumn, ModifiedColumn, MediaIDColumn, PersonIDColumn, GhostIDColumn}
+		defaultColumns = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return mediaPersonTable{
@@ -80,8 +84,10 @@ func newMediaPersonTableImpl(schemaName, tableName, alias string) mediaPersonTab
 		Modified: ModifiedColumn,
 		MediaID:  MediaIDColumn,
 		PersonID: PersonIDColumn,
+		GhostID:  GhostIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }
