@@ -119,10 +119,10 @@ func (mr *MockIRepositoryMockRecorder) Library() *gomock.Call {
 }
 
 // LibraryPath mocks base method.
-func (m *MockIRepository) LibraryPath() libraryPathRepository.ILibraryPathRepository {
+func (m *MockIRepository) LibraryPath() libraryPathRepository.LibraryPathRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LibraryPath")
-	ret0, _ := ret[0].(libraryPathRepository.ILibraryPathRepository)
+	ret0, _ := ret[0].(libraryPathRepository.LibraryPathRepository)
 	return ret0
 }
 

@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockILibraryPathRepository is a mock of ILibraryPathRepository interface.
-type MockILibraryPathRepository struct {
+// MockLibraryPathRepository is a mock of LibraryPathRepository interface.
+type MockLibraryPathRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockILibraryPathRepositoryMockRecorder
+	recorder *MockLibraryPathRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockILibraryPathRepositoryMockRecorder is the mock recorder for MockILibraryPathRepository.
-type MockILibraryPathRepositoryMockRecorder struct {
-	mock *MockILibraryPathRepository
+// MockLibraryPathRepositoryMockRecorder is the mock recorder for MockLibraryPathRepository.
+type MockLibraryPathRepositoryMockRecorder struct {
+	mock *MockLibraryPathRepository
 }
 
-// NewMockILibraryPathRepository creates a new mock instance.
-func NewMockILibraryPathRepository(ctrl *gomock.Controller) *MockILibraryPathRepository {
-	mock := &MockILibraryPathRepository{ctrl: ctrl}
-	mock.recorder = &MockILibraryPathRepositoryMockRecorder{mock}
+// NewMockLibraryPathRepository creates a new mock instance.
+func NewMockLibraryPathRepository(ctrl *gomock.Controller) *MockLibraryPathRepository {
+	mock := &MockLibraryPathRepository{ctrl: ctrl}
+	mock.recorder = &MockLibraryPathRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockILibraryPathRepository) EXPECT() *MockILibraryPathRepositoryMockRecorder {
+func (m *MockLibraryPathRepository) EXPECT() *MockLibraryPathRepositoryMockRecorder {
 	return m.recorder
 }
 
 // Create mocks base method.
-func (m *MockILibraryPathRepository) Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error) {
+func (m *MockLibraryPathRepository) Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", path, libraryId)
 	ret0, _ := ret[0].(*model.LibraryPath)
@@ -51,13 +51,13 @@ func (m *MockILibraryPathRepository) Create(path string, libraryId uuid.UUID) (*
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockILibraryPathRepositoryMockRecorder) Create(path, libraryId any) *gomock.Call {
+func (mr *MockLibraryPathRepositoryMockRecorder) Create(path, libraryId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockILibraryPathRepository)(nil).Create), path, libraryId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLibraryPathRepository)(nil).Create), path, libraryId)
 }
 
 // GetAll mocks base method.
-func (m *MockILibraryPathRepository) GetAll() ([]model.LibraryPath, error) {
+func (m *MockLibraryPathRepository) GetAll() ([]model.LibraryPath, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll")
 	ret0, _ := ret[0].([]model.LibraryPath)
@@ -66,13 +66,13 @@ func (m *MockILibraryPathRepository) GetAll() ([]model.LibraryPath, error) {
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockILibraryPathRepositoryMockRecorder) GetAll() *gomock.Call {
+func (mr *MockLibraryPathRepositoryMockRecorder) GetAll() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockILibraryPathRepository)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockLibraryPathRepository)(nil).GetAll))
 }
 
 // GetById mocks base method.
-func (m *MockILibraryPathRepository) GetById(id uuid.UUID) (*model.LibraryPath, error) {
+func (m *MockLibraryPathRepository) GetById(id uuid.UUID) (*model.LibraryPath, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", id)
 	ret0, _ := ret[0].(*model.LibraryPath)
@@ -81,13 +81,13 @@ func (m *MockILibraryPathRepository) GetById(id uuid.UUID) (*model.LibraryPath, 
 }
 
 // GetById indicates an expected call of GetById.
-func (mr *MockILibraryPathRepositoryMockRecorder) GetById(id any) *gomock.Call {
+func (mr *MockLibraryPathRepositoryMockRecorder) GetById(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockILibraryPathRepository)(nil).GetById), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockLibraryPathRepository)(nil).GetById), id)
 }
 
 // GetByLibraryId mocks base method.
-func (m *MockILibraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error) {
+func (m *MockLibraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByLibraryId", libraryId)
 	ret0, _ := ret[0].([]model.LibraryPath)
@@ -96,7 +96,22 @@ func (m *MockILibraryPathRepository) GetByLibraryId(libraryId uuid.UUID) ([]mode
 }
 
 // GetByLibraryId indicates an expected call of GetByLibraryId.
-func (mr *MockILibraryPathRepositoryMockRecorder) GetByLibraryId(libraryId any) *gomock.Call {
+func (mr *MockLibraryPathRepositoryMockRecorder) GetByLibraryId(libraryId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLibraryId", reflect.TypeOf((*MockILibraryPathRepository)(nil).GetByLibraryId), libraryId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLibraryId", reflect.TypeOf((*MockLibraryPathRepository)(nil).GetByLibraryId), libraryId)
+}
+
+// GetContainingPath mocks base method.
+func (m *MockLibraryPathRepository) GetContainingPath(path string) ([]model.LibraryPath, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetContainingPath", path)
+	ret0, _ := ret[0].([]model.LibraryPath)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetContainingPath indicates an expected call of GetContainingPath.
+func (mr *MockLibraryPathRepositoryMockRecorder) GetContainingPath(path any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContainingPath", reflect.TypeOf((*MockLibraryPathRepository)(nil).GetContainingPath), path)
 }
