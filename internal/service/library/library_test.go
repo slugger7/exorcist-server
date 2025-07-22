@@ -21,7 +21,7 @@ type testService struct {
 	svc             *libraryService
 	repo            *mock_repository.MockIRepository
 	libraryRepo     *mock_libraryRepository.MockLibraryRepository
-	libraryPathRepo *mock_libraryPathRepository.MockILibraryPathRepository
+	libraryPathRepo *mock_libraryPathRepository.MockLibraryPathRepository
 	jobRepo         *mock_jobRepository.MockIJobRepository
 }
 
@@ -30,7 +30,7 @@ func setup(t *testing.T) *testService {
 
 	mockRepo := mock_repository.NewMockIRepository(ctrl)
 	mockLibraryRepo := mock_libraryRepository.NewMockLibraryRepository(ctrl)
-	mockLibraryPathRepo := mock_libraryPathRepository.NewMockILibraryPathRepository(ctrl)
+	mockLibraryPathRepo := mock_libraryPathRepository.NewMockLibraryPathRepository(ctrl)
 	mockJobRepo := mock_jobRepository.NewMockIJobRepository(ctrl)
 
 	mockRepo.EXPECT().
@@ -42,7 +42,7 @@ func setup(t *testing.T) *testService {
 
 	mockRepo.EXPECT().
 		LibraryPath().
-		DoAndReturn(func() libraryPathRepository.ILibraryPathRepository {
+		DoAndReturn(func() libraryPathRepository.LibraryPathRepository {
 			return mockLibraryPathRepo
 		}).
 		AnyTimes()

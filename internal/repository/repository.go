@@ -33,7 +33,7 @@ type IRepository interface {
 
 	Job() jobRepository.IJobRepository
 	Library() libraryRepository.LibraryRepository
-	LibraryPath() libraryPathRepository.ILibraryPathRepository
+	LibraryPath() libraryPathRepository.LibraryPathRepository
 	Video() videoRepository.IVideoRepository
 	User() userRepository.IUserRepository
 	Image() imageRepository.IImageRepository
@@ -48,7 +48,7 @@ type repository struct {
 	env             *environment.EnvironmentVariables
 	jobRepo         jobRepository.IJobRepository
 	libraryRepo     libraryRepository.LibraryRepository
-	libraryPathRepo libraryPathRepository.ILibraryPathRepository
+	libraryPathRepo libraryPathRepository.LibraryPathRepository
 	videoRepo       videoRepository.IVideoRepository
 	userRepo        userRepository.IUserRepository
 	imageRepo       imageRepository.IImageRepository
@@ -108,7 +108,7 @@ func (s *repository) Library() libraryRepository.LibraryRepository {
 	return s.libraryRepo
 }
 
-func (s *repository) LibraryPath() libraryPathRepository.ILibraryPathRepository {
+func (s *repository) LibraryPath() libraryPathRepository.LibraryPathRepository {
 	s.logger.Debug("Getting library path repo")
 	return s.libraryPathRepo
 }

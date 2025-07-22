@@ -21,19 +21,19 @@ type testService struct {
 	svc         *libraryPathService
 	repo        *mock_repository.MockIRepository
 	libRepo     *mock_libraryRepository.MockLibraryRepository
-	libPathRepo *mock_libraryPathRepository.MockILibraryPathRepository
+	libPathRepo *mock_libraryPathRepository.MockLibraryPathRepository
 }
 
 func setup(t *testing.T) *testService {
 	ctrl := gomock.NewController(t)
 
 	mockRepo := mock_repository.NewMockIRepository(ctrl)
-	mockLibraryPathRepo := mock_libraryPathRepository.NewMockILibraryPathRepository(ctrl)
+	mockLibraryPathRepo := mock_libraryPathRepository.NewMockLibraryPathRepository(ctrl)
 	mockLibraryRepo := mock_libraryRepository.NewMockLibraryRepository(ctrl)
 
 	mockRepo.EXPECT().
 		LibraryPath().
-		DoAndReturn(func() libraryPathRepository.ILibraryPathRepository {
+		DoAndReturn(func() libraryPathRepository.LibraryPathRepository {
 			return mockLibraryPathRepo
 		}).
 		AnyTimes()
@@ -84,6 +84,12 @@ func Test_Create_ErrorWhileGettingLibraryByIdFromRepo(t *testing.T) {
 		}).
 		Times(1)
 
+	s.libPathRepo.EXPECT().
+		GetContainingPath(libPathModel.Path).
+		DoAndReturn(func(path string) ([]model.LibraryPath, error) {
+			return nil, nil
+		})
+
 	lib, err := s.svc.Create(libPathModel)
 
 	if err == nil {
@@ -117,6 +123,12 @@ func Test_Create_LibraryNilFromRepo(t *testing.T) {
 		}).
 		Times(1)
 
+	s.libPathRepo.EXPECT().
+		GetContainingPath(libPathModel.Path).
+		DoAndReturn(func(path string) ([]model.LibraryPath, error) {
+			return nil, nil
+		})
+
 	lib, err := s.svc.Create(libPathModel)
 	if err == nil {
 		t.Error("expecting an error but was nil")
@@ -144,6 +156,12 @@ func Test_Create_LibraryExists_CreatingLibraryPathReturnsError(t *testing.T) {
 			return library, nil
 		}).
 		Times(1)
+
+	s.libPathRepo.EXPECT().
+		GetContainingPath(libPathModel.Path).
+		DoAndReturn(func(path string) ([]model.LibraryPath, error) {
+			return nil, nil
+		})
 
 	s.libPathRepo.EXPECT().
 		Create(libPathModel.Path, libPathModel.LibraryID).
@@ -183,6 +201,12 @@ func Test_Create_Success(t *testing.T) {
 			return library, nil
 		}).
 		Times(1)
+
+	s.libPathRepo.EXPECT().
+		GetContainingPath(libPathModel.Path).
+		DoAndReturn(func(path string) ([]model.LibraryPath, error) {
+			return nil, nil
+		})
 
 	s.libPathRepo.EXPECT().
 		Create(libPathModel.Path, libPathModel.LibraryID).
