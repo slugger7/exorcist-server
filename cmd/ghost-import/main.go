@@ -8,6 +8,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"slices"
 	"time"
 
@@ -20,6 +22,7 @@ import (
 	gmodel "github.com/slugger7/exorcist/internal/db/ghost/model"
 	gtable "github.com/slugger7/exorcist/internal/db/ghost/table"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/job"
 )
 
 type UserMap struct {
@@ -32,8 +35,9 @@ type LibraryConfig struct {
 }
 
 type Config struct {
-	UserMap []UserMap     `json:"userMap"`
-	Library LibraryConfig `json:"library"`
+	BatchSize int           `json:"batchSize"`
+	UserMap   []UserMap     `json:"userMap"`
+	Library   LibraryConfig `json:"library"`
 }
 
 type Context struct {
@@ -197,6 +201,10 @@ func (ctx *Context) transferLibraries() error {
 	rows, _ := res.RowsAffected()
 	log.Printf("Altered %v rows in exorcist libraries\n", rows)
 
+	if len(ghostLibraries) != int(rows) {
+		log.Println("ROWS FOUND VS ROWS ALTERED DID NOT MATCH FOR TRANSFERRING OF LIBRARIES")
+	}
+
 	return nil
 }
 
@@ -304,7 +312,7 @@ func (ctx *Context) transferVideos() error {
 		media := table.Media
 		mediaInsertStmnt := media.INSERT(media.LibraryPathID, media.Path, media.Title, media.MediaType, media.Size, media.Added, media.Created, media.GhostID).
 			MODELS(mediaEntitiesMap).
-			RETURNING(media.GhostID, media.ID).
+			RETURNING(media.GhostID, media.ID, media.Path).
 			ON_CONFLICT(media.GhostID).DO_NOTHING()
 
 		var mediaEntities []model.Media
@@ -326,24 +334,64 @@ func (ctx *Context) transferVideos() error {
 				GhostID: m.GhostID,
 				Height:  gVid.Height,
 				Width:   gVid.Width,
-				Runtime: float64(gVid.Runtime), // TODO: these might be in different formats
+				Runtime: float64(gVid.Runtime / 1000),
 			}
 
-			// TODO: create job to generate thumbnail for each media piece
 		}
 
 		insertVidStmnt := table.Video.INSERT(table.Video.MediaID, table.Video.GhostID, table.Video.Height, table.Video.Width, table.Video.Runtime).
 			MODELS(videoEntities).
+			RETURNING(table.Video.ID, table.Video.MediaID, table.Video.GhostID).
 			ON_CONFLICT(table.Video.GhostID).DO_NOTHING()
 
-		res, err := insertVidStmnt.Exec(ctx.ExorcistDb)
+		var insertedVids []model.Video
+		if err := insertVidStmnt.Query(ctx.ExorcistDb, &insertedVids); err != nil {
+			return err
+		}
+
+		if len(insertedVids) == 0 {
+			log.Println("No videos were inserted and returned")
+			return nil
+		}
+
+		rows := int64(len(insertedVids))
+
+		log.Printf("Altered %v rows in exorcist video\n", rows)
+
+		thumbnailJobs := []model.Job{}
+		for _, v := range insertedVids {
+			var mediaEntity *model.Media
+			for _, m := range mediaEntities {
+				if *m.GhostID == *v.GhostID {
+					mediaEntity = &m
+					break
+				}
+			}
+
+			if mediaEntity == nil {
+				continue
+			}
+
+			assetPath := filepath.Join(os.Getenv("ASSETS"), v.MediaID.String(), fmt.Sprintf("%v.webp", filepath.Base(mediaEntity.Path)))
+			job, err := job.CreateGenerateThumbnailJob(v, nil, assetPath, 0, int(v.Height), int(v.Width))
+			if err != nil {
+				continue
+			}
+
+			thumbnailJobs = append(thumbnailJobs, *job)
+		}
+
+		insertStment := table.Job.INSERT(table.Job.JobType, table.Job.Status, table.Job.Data, table.Job.Parent, table.Job.Priority).
+			MODELS(thumbnailJobs)
+
+		res, err := insertStment.Exec(ctx.ExorcistDb)
 		if err != nil {
 			return err
 		}
 
-		rows, _ := res.RowsAffected()
+		rows, _ = res.RowsAffected()
 
-		log.Printf("Altered %v rows in exorcist video\n", rows)
+		log.Printf("Created %v thumbnail creation jobs", rows)
 	}
 	return nil
 }
@@ -511,7 +559,9 @@ func (ctx Context) transferPlaylistVideos() error {
 		return nil
 	}
 
-	playlistStmnt := table.Playlist.SELECT(table.Playlist.AllColumns)
+	log.Printf("Found %v playlist videos in ghost", len(gPlaylistVideos))
+
+	playlistStmnt := table.Playlist.SELECT(table.Playlist.ID, table.Playlist.GhostID)
 
 	var playlists []model.Playlist
 	if err := playlistStmnt.Query(ctx.ExorcistDb, &playlists); err != nil {
@@ -523,7 +573,7 @@ func (ctx Context) transferPlaylistVideos() error {
 		return nil
 	}
 
-	videoStmnt := table.Media.SELECT(table.Media.AllColumns)
+	videoStmnt := table.Media.SELECT(table.Media.ID, table.Media.GhostID)
 
 	var videoMedia []model.Media
 	if err := videoStmnt.Query(ctx.ExorcistDb, &videoMedia); err != nil {
@@ -537,6 +587,8 @@ func (ctx Context) transferPlaylistVideos() error {
 		log.Printf("Found %v videos in exorcist to add to playlists", len(videoMedia))
 	}
 
+	noPlaylistCount := 0
+	noMediaCount := 0
 	playlistMedia := []model.PlaylistMedia{}
 	for _, pv := range gPlaylistVideos {
 		var playlist *model.Playlist
@@ -548,7 +600,7 @@ func (ctx Context) transferPlaylistVideos() error {
 		}
 
 		if playlist == nil {
-			log.Println("playlist was nil")
+			noPlaylistCount++
 			continue
 		}
 
@@ -561,6 +613,31 @@ func (ctx Context) transferPlaylistVideos() error {
 		}
 
 		if media == nil {
+			noMediaCount++
+
+			stmnt := gtable.Videos.SELECT(gtable.Videos.ID).
+				WHERE(gtable.Videos.ID.EQ(postgres.Int32(pv.VideoId)))
+
+			var vid []gmodel.Videos
+			if err := stmnt.Query(ctx.GhostDb, &vid); err != nil {
+				return err
+			}
+
+			if len(vid) > 0 {
+				log.Println("Video does exist in ghost", pv.VideoId)
+			}
+
+			pstmnt := table.Media.SELECT(table.Media.ID, table.Media.GhostID).
+				WHERE(table.Media.GhostID.EQ(postgres.Int32(pv.VideoId)))
+
+			var med []model.Media
+			if err := pstmnt.Query(ctx.ExorcistDb, &med); err != nil {
+				return err
+			}
+
+			if len(med) > 0 {
+				log.Println("Media was find by ghost id in exorcist")
+			}
 			continue
 		}
 
@@ -573,6 +650,8 @@ func (ctx Context) transferPlaylistVideos() error {
 			Created:    createdTime,
 		})
 	}
+
+	log.Printf("Created %v playlist media entities to insert, no playlist count %v, no media count %v", len(playlistMedia), noPlaylistCount, noMediaCount)
 
 	insertStmnt := table.PlaylistMedia.INSERT(table.PlaylistMedia.GhostID, table.PlaylistMedia.MediaID, table.PlaylistMedia.PlaylistID, table.PlaylistMedia.Created).
 		MODELS(playlistMedia).
@@ -851,7 +930,7 @@ func (ctx Context) transferProgress() error {
 			GhostID:   &gp.ID,
 			UserID:    user.ID,
 			MediaID:   media.ID,
-			Timestamp: float64(gp.Timestamp), // TODO: these might not be compatible with each other
+			Timestamp: float64(gp.Timestamp) / 1000,
 		})
 	}
 
@@ -893,6 +972,8 @@ func (ctx Context) transferRelatedVideos() error {
 		log.Println("No related videos found in ghost")
 		return nil
 	}
+
+	log.Printf("Found %v related videos in ghost", len(relatedVideos))
 
 	mediaStmnt := table.Media.SELECT(table.Media.GhostID, table.Media.ID)
 
@@ -980,6 +1061,8 @@ func (ctx Context) transferVideoActors() error {
 		log.Println("No video actors found in ghost")
 		return nil
 	}
+
+	log.Printf("Found %v video actors in ghost", len(videoActors))
 
 	mediaStmnt := table.Media.SELECT(table.Media.ID, table.Media.GhostID)
 
@@ -1071,14 +1154,37 @@ func (ctx Context) transferVideoGenres() error {
 
 	stmnt := gtable.VideoGenres.SELECT(gtable.VideoGenres.AllColumns)
 
-	var videoGenres []gmodel.VideoGenres
-	if err := stmnt.Query(ctx.GhostDb, &videoGenres); err != nil {
+	var vgs []gmodel.VideoGenres
+	if err := stmnt.Query(ctx.GhostDb, &vgs); err != nil {
 		return err
 	}
 
-	if len(videoGenres) == 0 {
+	if len(vgs) == 0 {
 		log.Println("No video genres found in ghost")
 		return nil
+	}
+
+	stmnt = gtable.Videos.SELECT(gtable.Videos.AllColumns)
+
+	var vs []gmodel.Videos
+	if err := stmnt.Query(ctx.GhostDb, &vs); err != nil {
+		return err
+	}
+
+	var VideoGenres []gmodel.VideoGenres
+
+	for _, vg := range vgs {
+		var v *gmodel.Videos
+		for _, vid := range vs {
+			if vid.ID == vg.VideoId {
+				v = &vid
+				break
+			}
+		}
+
+		if v != nil {
+			VideoGenres = append(VideoGenres, vg)
+		}
 	}
 
 	mediaStmnt := table.Media.SELECT(table.Media.ID, table.Media.GhostID)
@@ -1107,7 +1213,7 @@ func (ctx Context) transferVideoGenres() error {
 
 	var accErrs error
 	var mediaTags []model.MediaTag
-	for _, va := range videoGenres {
+	for i, va := range vgs {
 		var tag *model.Tag
 		for _, p := range tags {
 			if va.GenreId == *p.GhostID {
@@ -1139,6 +1245,22 @@ func (ctx Context) transferVideoGenres() error {
 			TagID:   tag.ID,
 			MediaID: media.ID,
 		})
+
+		if i%ctx.Config.BatchSize == 0 {
+			if err := ctx.insertMediaTags(mediaTags); err != nil {
+				return err
+			}
+
+			mediaTags = []model.MediaTag{}
+
+			runtime.GC()
+		}
+	}
+
+	if len(mediaTags) != 0 {
+		if err := ctx.insertMediaTags(mediaTags); err != nil {
+			return err
+		}
 	}
 
 	if accErrs != nil {
@@ -1150,6 +1272,10 @@ func (ctx Context) transferVideoGenres() error {
 		return nil
 	}
 
+	return nil
+}
+
+func (ctx *Context) insertMediaTags(mediaTags []model.MediaTag) error {
 	insertStmnt := table.MediaTag.INSERT(table.MediaTag.GhostID, table.MediaTag.TagID, table.MediaTag.MediaID).
 		MODELS(mediaTags).
 		ON_CONFLICT(table.MediaTag.GhostID).DO_NOTHING()
