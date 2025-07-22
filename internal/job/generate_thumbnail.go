@@ -14,7 +14,7 @@ import (
 	"github.com/slugger7/exorcist/internal/media"
 )
 
-func CreateGenerateThumbnailJob(video model.Video, jobId uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
+func CreateGenerateThumbnailJob(video model.Video, jobId *uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
 	d := dto.GenerateThumbnailData{
 		VideoId:   video.ID,
 		Path:      imagePath,
@@ -32,7 +32,7 @@ func CreateGenerateThumbnailJob(video model.Video, jobId uuid.UUID, imagePath st
 		JobType:  model.JobTypeEnum_GenerateThumbnail,
 		Status:   model.JobStatusEnum_NotStarted,
 		Data:     &data,
-		Parent:   &jobId,
+		Parent:   jobId,
 		Priority: dto.JobPriority_MediumHigh,
 	}
 
@@ -75,7 +75,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 	}
 
 	if err := ffmpeg.ImageAt(video.Path, jobData.Timestamp, jobData.Path, jobData.Width, jobData.Height); err != nil {
-		return errs.BuildError(err, "could not create image at timestamp")
+		return errs.BuildError(err, "could not create image at timestamp: %v, video: %v", jobData.Timestamp, video.Runtime)
 	}
 
 	fileSize, err := media.GetFileSize(jobData.Path)

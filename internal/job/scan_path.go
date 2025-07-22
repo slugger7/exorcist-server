@@ -180,7 +180,7 @@ func (jr *JobRunner) handleVideosOnDisk(job model.Job, libPath model.LibraryPath
 			}
 
 			assetPath := filepath.Join(jr.env.Assets, mediaId.String(), fmt.Sprintf(`%v.webp`, v.FileName))
-			thumbnailJob, err := CreateGenerateThumbnailJob(createdVideos[0], job.ID, assetPath, 0, height, width)
+			thumbnailJob, err := CreateGenerateThumbnailJob(createdVideos[0], &job.ID, assetPath, 0, height, width)
 			if err != nil {
 				return errs.BuildError(err, "could not create generate thumbnail job")
 			}
