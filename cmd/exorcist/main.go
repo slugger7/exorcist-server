@@ -12,7 +12,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/slugger7/exorcist/internal/environment"
-	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/server"
 )
 
@@ -40,7 +39,9 @@ func gracefulShutdown(apiServer *http.Server, done chan bool, wg *sync.WaitGroup
 
 func main() {
 	err := godotenv.Load()
-	errs.PanicError(err)
+	if err != nil {
+		log.Printf("warning: an error occured while loading environment variables from file %v", err.Error())
+	}
 	env := environment.GetEnvironmentVariables()
 
 	var wg sync.WaitGroup
