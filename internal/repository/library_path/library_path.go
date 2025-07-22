@@ -3,20 +3,16 @@ package libraryPathRepository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
-
-type ILibraryPathRepository interface {
-	Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error)
-	GetAll() ([]model.LibraryPath, error)
-	GetById(id uuid.UUID) (*model.LibraryPath, error)
-	GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error)
-}
 
 type libraryPathRepository struct {
 	db  *sql.DB
@@ -32,7 +28,32 @@ type LibraryPathStatement struct {
 	ctx context.Context
 }
 
-func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) ILibraryPathRepository {
+type LibraryPathRepository interface {
+	Create(path string, libraryId uuid.UUID) (*model.LibraryPath, error)
+	GetAll() ([]model.LibraryPath, error)
+	GetById(id uuid.UUID) (*model.LibraryPath, error)
+	GetByLibraryId(libraryId uuid.UUID) ([]model.LibraryPath, error)
+	GetContainingPath(path string) ([]model.LibraryPath, error)
+}
+
+func (i *libraryPathRepository) GetContainingPath(path string) ([]model.LibraryPath, error) {
+	libraryPath := table.LibraryPath
+	stmnt := libraryPath.SELECT(libraryPath.ID, libraryPath.Path).
+		WHERE(libraryPath.Path.LIKE(postgres.String(fmt.Sprintf("%v%%", path))).OR(
+			postgres.BoolExp(postgres.Raw("#1 LIKE library_path.\"path\" || '%'", postgres.RawArgs{"#1": path})),
+		))
+
+	util.DebugCheck(i.env, stmnt)
+
+	var libraryPaths []model.LibraryPath
+	if err := stmnt.QueryContext(i.ctx, i.db, &libraryPaths); err != nil {
+		return nil, errs.BuildError(err, "could not fetch library paths containing path: %v", path)
+	}
+
+	return libraryPaths, nil
+}
+
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) LibraryPathRepository {
 	if libraryPathRepoInstance != nil {
 		return libraryPathRepoInstance
 	}
