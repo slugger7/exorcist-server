@@ -85,16 +85,14 @@ func (s *server) createTags(c *gin.Context) {
 }
 
 func (s *server) getAllTags(c *gin.Context) {
-	var search struct {
-		Search string `json:"search" form:"search"`
-	}
+	var search dto.TagSearchDTO
 
 	if err := c.ShouldBindQuery(&search); err != nil {
-		s.logger.Warningf("could not bind search from query for tags: %v", err.Error())
-		search.Search = ""
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 
-	tags, err := s.repo.Tag().GetAll(search.Search)
+	tags, err := s.repo.Tag().GetAll(search)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
