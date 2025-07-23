@@ -95,7 +95,7 @@ func (p *personRepository) GetById(id uuid.UUID) (*model.Person, error) {
 
 // GetAll implements PersonRepository.
 func (p *personRepository) GetAll(search dto.PersonSearchDTO) ([]model.Person, error) {
-	statement := person.SELECT(person.AllColumns, postgres.COUNT(person.ID).AS("total")).
+	statement := person.SELECT(person.AllColumns).
 		FROM(
 			person.LEFT_JOIN(table.MediaPerson, person.ID.EQ(table.MediaPerson.PersonID)),
 		).
