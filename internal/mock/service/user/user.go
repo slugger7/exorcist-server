@@ -14,7 +14,7 @@ import (
 
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	models "github.com/slugger7/exorcist/internal/models"
+	dto "github.com/slugger7/exorcist/internal/dto"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -58,7 +58,7 @@ func (mr *MockIUserServiceMockRecorder) Create(username, password any) *gomock.C
 }
 
 // UpdatePassword mocks base method.
-func (m *MockIUserService) UpdatePassword(id uuid.UUID, model models.ResetPasswordModel) error {
+func (m *MockIUserService) UpdatePassword(id uuid.UUID, model dto.ResetPasswordDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePassword", id, model)
 	ret0, _ := ret[0].(error)
