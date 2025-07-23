@@ -95,7 +95,12 @@ func (p *personRepository) GetById(id uuid.UUID) (*model.Person, error) {
 
 // GetAll implements PersonRepository.
 func (p *personRepository) GetAll(search string) ([]model.Person, error) {
-	statement := person.SELECT(person.AllColumns)
+	statement := person.SELECT(person.AllColumns, postgres.COUNT(person.ID).AS("total")).
+		FROM(
+			person.LEFT_JOIN(table.MediaPerson, person.ID.EQ(table.MediaPerson.PersonID)),
+		).
+		GROUP_BY(person.ID).
+		ORDER_BY(postgres.COUNT(person.ID).DESC(), person.Name.ASC())
 
 	if search != "" {
 		caseInsensitive := strings.ToLower(search)
