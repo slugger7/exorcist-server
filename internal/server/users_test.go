@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/models"
 	"go.uber.org/mock/gomock"
 )
@@ -96,7 +97,7 @@ func Test_UpdatePassword_ServiceReturnsError(t *testing.T) {
 		withUserService().
 		withAuth()
 
-	rpm := models.ResetPasswordModel{
+	rpm := dto.ResetPasswordDTO{
 		OldPassword:    "good old boy",
 		NewPassword:    "sparkly new",
 		RepeatPassword: "sparkly new",
@@ -105,7 +106,7 @@ func Test_UpdatePassword_ServiceReturnsError(t *testing.T) {
 
 	s.mockUserService.EXPECT().
 		UpdatePassword(gomock.Eq(id), gomock.Eq(rpm)).
-		DoAndReturn(func(uuid.UUID, models.ResetPasswordModel) error {
+		DoAndReturn(func(uuid.UUID, dto.ResetPasswordDTO) error {
 			return fmt.Errorf("some error")
 		}).
 		Times(1)
@@ -124,7 +125,7 @@ func Test_UpdatePasswrod_ServiceSucceeds(t *testing.T) {
 		withUserService().
 		withAuth()
 
-	rpm := models.ResetPasswordModel{
+	rpm := dto.ResetPasswordDTO{
 		OldPassword:    "good old boy",
 		NewPassword:    "sparkly new",
 		RepeatPassword: "sparkly new",
@@ -134,7 +135,7 @@ func Test_UpdatePasswrod_ServiceSucceeds(t *testing.T) {
 
 	s.mockUserService.EXPECT().
 		UpdatePassword(gomock.Eq(id), gomock.Eq(rpm)).
-		DoAndReturn(func(uuid.UUID, models.ResetPasswordModel) error {
+		DoAndReturn(func(uuid.UUID, dto.ResetPasswordDTO) error {
 			return nil
 		}).
 		Times(1)

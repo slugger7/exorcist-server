@@ -9,10 +9,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/assert"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	mock_repository "github.com/slugger7/exorcist/internal/mock/repository"
 	mock_userRepository "github.com/slugger7/exorcist/internal/mock/repository/user"
-	"github.com/slugger7/exorcist/internal/models"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	"go.uber.org/mock/gomock"
 )
@@ -319,7 +319,7 @@ func Test_UpdatePassword_GetUserReturnsError(t *testing.T) {
 		}).
 		Times(1)
 
-	err := s.svc.UpdatePassword(id, models.ResetPasswordModel{})
+	err := s.svc.UpdatePassword(id, dto.ResetPasswordDTO{})
 
 	assert.ErrorNotNil(t, err)
 	assert.ErrorMessage(t, fmt.Sprintf(ErrGetById, id), err)
@@ -337,7 +337,7 @@ func Test_UpdatePassword_GetUserReturnsNilUser(t *testing.T) {
 		}).
 		Times(1)
 
-	err := s.svc.UpdatePassword(id, models.ResetPasswordModel{})
+	err := s.svc.UpdatePassword(id, dto.ResetPasswordDTO{})
 
 	assert.ErrorNotNil(t, err)
 	assert.Error(t, fmt.Errorf(ErrUserNil, id), err)
@@ -348,7 +348,7 @@ func Test_UpdatePassword_PasswordsDoNotMatch(t *testing.T) {
 
 	id, _ := uuid.NewRandom()
 
-	m := models.ResetPasswordModel{OldPassword: "someOldPassword"}
+	m := dto.ResetPasswordDTO{OldPassword: "someOldPassword"}
 	u := model.User{Password: "thisPasswordWillNotMatch"}
 
 	s.userRepo.EXPECT().
@@ -369,7 +369,7 @@ func Test_UpdatePassword_RepoUpdateReturnsErr(t *testing.T) {
 
 	id, _ := uuid.NewRandom()
 
-	m := models.ResetPasswordModel{OldPassword: "someOldPassword", NewPassword: "someNewPassword"}
+	m := dto.ResetPasswordDTO{OldPassword: "someOldPassword", NewPassword: "someNewPassword"}
 	u := model.User{Password: hashPassword(m.OldPassword)}
 
 	s.userRepo.EXPECT().
@@ -396,7 +396,7 @@ func Test_UpdatePassword_Success(t *testing.T) {
 
 	id, _ := uuid.NewRandom()
 
-	m := models.ResetPasswordModel{OldPassword: "someOldPassword", NewPassword: "someNewPassword"}
+	m := dto.ResetPasswordDTO{OldPassword: "someOldPassword", NewPassword: "someNewPassword"}
 	u := model.User{Password: hashPassword(m.OldPassword)}
 
 	s.userRepo.EXPECT().

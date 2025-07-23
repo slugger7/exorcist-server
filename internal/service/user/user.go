@@ -7,17 +7,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
-	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
 type IUserService interface {
 	Create(username, password string) (*model.User, error)
 	Validate(username, password string) (*model.User, error)
-	UpdatePassword(id uuid.UUID, model models.ResetPasswordModel) error
+	UpdatePassword(id uuid.UUID, model dto.ResetPasswordDTO) error
 }
 
 type userService struct {
@@ -110,7 +110,7 @@ const (
 	ErrUpdatingPassword     string = "could not update password for user %v"
 )
 
-func (us *userService) UpdatePassword(id uuid.UUID, m models.ResetPasswordModel) error {
+func (us *userService) UpdatePassword(id uuid.UUID, m dto.ResetPasswordDTO) error {
 	user, err := us.repo.User().GetById(id)
 	if err != nil {
 		return errs.BuildError(err, ErrGetById, id)

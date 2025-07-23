@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/models"
 )
 
@@ -44,7 +45,7 @@ const ErrUpdatePassword string = "could not update password"
 const OkPasswordUpdate string = "password updated"
 
 func (s *server) UpdatePassword(c *gin.Context) {
-	var model models.ResetPasswordModel
+	var model dto.ResetPasswordDTO
 	if err := c.ShouldBindBodyWithJSON(&model); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
