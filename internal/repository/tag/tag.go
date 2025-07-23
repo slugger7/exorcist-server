@@ -27,7 +27,7 @@ type TagRepository interface {
 	Create(names []string) ([]model.Tag, error)
 	AddToMedia(mediaTags []model.MediaTag) ([]model.MediaTag, error)
 	RemoveFromMedia(mediaTag model.MediaTag) error
-	GetAll(search string) ([]model.Tag, error)
+	GetAll(search dto.TagSearchDTO) ([]model.Tag, error)
 	GetById(id uuid.UUID) (*model.Tag, error)
 	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
@@ -94,11 +94,16 @@ func (p *tagRepository) GetById(id uuid.UUID) (*model.Tag, error) {
 }
 
 // GetAll implements TagRepository.
-func (p *tagRepository) GetAll(search string) ([]model.Tag, error) {
-	statement := tag.SELECT(tag.AllColumns)
+func (p *tagRepository) GetAll(search dto.TagSearchDTO) ([]model.Tag, error) {
+	statement := tag.SELECT(tag.AllColumns).
+		FROM(
+			tag.LEFT_JOIN(table.MediaTag, tag.ID.EQ(table.MediaTag.TagID)),
+		).
+		GROUP_BY(tag.ID).
+		ORDER_BY(search.ToOrderByClause()...)
 
-	if search != "" {
-		caseInsensitive := strings.ToLower(search)
+	if search.Search != "" {
+		caseInsensitive := strings.ToLower(search.Search)
 		statement = statement.WHERE(postgres.LOWER(tag.Name).LIKE(postgres.String(fmt.Sprintf("%%%v%%", caseInsensitive))))
 	}
 
