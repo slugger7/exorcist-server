@@ -58,6 +58,7 @@ type MediaSearchDTO struct {
 	PageRequestDTO
 	OrderBy MediaOrdinal `form:"orderBy" json:"orderBy"`
 	Search  string       `form:"search" json:"search"`
+	Tags    []string     `form:"tags" json:"tags"`
 }
 
 type MediaOverviewDTO struct {
