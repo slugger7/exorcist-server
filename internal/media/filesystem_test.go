@@ -36,6 +36,11 @@ func Test_GetFilesByExtensions(t *testing.T) {
 			FileName: "subfile.toml",
 			Name:     "",
 		},
+		{
+			Path:     "test_data/root_file.toml",
+			FileName: "root_file.toml",
+			Name:     "",
+		},
 	}
 
 	compareFileArrays(t, got, want)

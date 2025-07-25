@@ -41,17 +41,21 @@ type tagRepository struct {
 
 // GetMedia implements TagRepository.
 func (r *tagRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	search.Tags = []string{}
 	relationFn := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
 		media := table.Media
 		mediaTag := table.MediaTag
 		return relationTable.INNER_JOIN(
 			mediaTag,
-			media.ID.EQ(mediaTag.MediaID).
-				AND(mediaTag.TagID.EQ(postgres.UUID(id))),
+			media.ID.EQ(mediaTag.MediaID),
 		)
 	}
 
-	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFn)
+	whereFn := func(whr postgres.BoolExpression) postgres.BoolExpression {
+		return whr.AND(mediaTag.TagID.EQ(postgres.UUID(id)))
+	}
+
+	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFn, whereFn)
 
 	util.DebugCheck(r.env, countStatement)
 	util.DebugCheck(r.env, selectStatement)

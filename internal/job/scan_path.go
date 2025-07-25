@@ -196,6 +196,7 @@ func (jr *JobRunner) handleVideosOnDisk(job model.Job, libPath model.LibraryPath
 	}
 
 	if len(accErrs) > 0 {
+		jr.logger.Errorf("ERRORS IN CREATION: %v", errors.Join(accErrs...).Error())
 		return errors.Join(accErrs...)
 	}
 
