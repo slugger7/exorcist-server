@@ -10,7 +10,10 @@ import (
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
-func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn func(relationTable postgres.ReadableTable) postgres.ReadableTable) (postgres.Statement, postgres.Statement) {
+type RelationFn func(relationTable postgres.ReadableTable) postgres.ReadableTable
+type WhereFn func(currentWhere postgres.BoolExpression) postgres.BoolExpression
+
+func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn) (postgres.Statement, postgres.Statement) {
 	createSelect := func() postgres.SelectStatement {
 		tagFilter := len(search.Tags) > 0
 		personFilter := len(search.People) > 0
@@ -109,7 +112,7 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn func(relationT
 			)
 		}
 
-		selectStatement = selectStatement.WHERE(whr)
+		selectStatement = selectStatement.WHERE(whereFn(whr))
 
 		if tagFilter || personFilter {
 			selectStatement = selectStatement.GROUP_BY(media.ID, thumbnail.ID, table.Video.Runtime)

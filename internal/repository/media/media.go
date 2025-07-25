@@ -124,7 +124,11 @@ func (r *mediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models
 		return relationTable
 	}
 
-	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFn)
+	whereFn := func(whr postgres.BoolExpression) postgres.BoolExpression {
+		return whr
+	}
+
+	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFn, whereFn)
 
 	util.DebugCheck(r.env, countStatement)
 	util.DebugCheck(r.env, selectStatement)

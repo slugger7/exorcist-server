@@ -35,12 +35,16 @@ func (ls *libraryRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (
 	relationFn := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
 		return relationTable.INNER_JOIN(
 			table.LibraryPath,
-			table.Media.LibraryPathID.EQ(table.LibraryPath.ID).
-				AND(table.LibraryPath.LibraryID.EQ(postgres.UUID(id))),
+			table.Media.LibraryPathID.EQ(table.LibraryPath.ID),
 		)
 	}
 
-	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFn)
+	whereFn := func(whr postgres.BoolExpression) postgres.BoolExpression {
+		return whr.
+			AND(table.LibraryPath.LibraryID.EQ(postgres.UUID(id)))
+	}
+
+	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFn, whereFn)
 
 	util.DebugCheck(ls.env, selectStatement)
 	util.DebugCheck(ls.env, countStatement)

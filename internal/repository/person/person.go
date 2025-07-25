@@ -41,17 +41,21 @@ type personRepository struct {
 
 // GetMedia implements PersonRepository.
 func (r *personRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	search.People = []string{}
 	relationFunc := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
 		media := table.Media
 		mediaPerson := table.MediaPerson
 		return relationTable.INNER_JOIN(
 			mediaPerson,
-			media.ID.EQ(mediaPerson.MediaID).
-				AND(mediaPerson.PersonID.EQ(postgres.UUID(id))),
+			media.ID.EQ(mediaPerson.MediaID),
 		)
 	}
 
-	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFunc)
+	whereFn := func(whr postgres.BoolExpression) postgres.BoolExpression {
+		return whr.AND(mediaPerson.PersonID.EQ(postgres.UUID(id)))
+	}
+
+	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFunc, whereFn)
 
 	util.DebugCheck(r.env, countStatement)
 	util.DebugCheck(r.env, selectStatement)
