@@ -28,6 +28,8 @@ func main() {
 	var enums = []EnumSet{
 		{Name: "JobOrdinalAllValues", Enums: toStringSlice(dto.JobOrdinalAllValues)},
 		{Name: "MediaOrdinalAllValues", Enums: toStringSlice(dto.MediaOrdinalAllValues)},
+		{Name: "PersonOrdinalAllValues", Enums: toStringSlice(dto.PersonOrdinalAllValues)},
+		{Name: "TagOrdinalAllValues", Enums: toStringSlice(dto.TagOrdinalAllValues)},
 		{Name: "JobStatusAllValues", Enums: toStringSlice(model.JobStatusEnumAllValues)},
 		{Name: "JobTypeAllValues", Enums: toStringSlice(model.JobTypeEnumAllValues)},
 		{Name: "MediaTypeAllValues", Enums: toStringSlice(model.MediaTypeEnumAllValues)},
