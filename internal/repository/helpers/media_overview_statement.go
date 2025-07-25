@@ -26,6 +26,9 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn func(relationT
 			).LEFT_JOIN(
 				thumbnail,
 				thumbnail.ID.EQ(mediaRelation.RelatedTo),
+			).LEFT_JOIN(
+				table.Video,
+				table.Video.MediaID.EQ(media.ID),
 			))
 
 		countFromStmnt := relationFn(media)

@@ -19,6 +19,7 @@ const (
 	MediaOrdinal_Title    MediaOrdinal = "title"
 	MediaOrdinal_Size     MediaOrdinal = "size"
 	MediaOrdinal_Added    MediaOrdinal = "added"
+	MediaOrdinal_Runtime  MediaOrdinal = "runtime"
 )
 
 var MediaOrdinalAllValues = []MediaOrdinal{
@@ -43,8 +44,8 @@ func (o MediaOrdinal) ToColumn() postgres.Column {
 		return media.Title
 	case MediaOrdinal_Size:
 		return media.Size
-	case MediaOrdinal_Added:
-		return media.Added
+	case MediaOrdinal_Runtime:
+		return table.Video.Runtime
 	default:
 		return media.Added
 	}
