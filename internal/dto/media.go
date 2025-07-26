@@ -171,3 +171,7 @@ func (d *VideoDTO) FromModel(m *model.Video) *VideoDTO {
 
 	return d
 }
+
+type DeleteMediaDTO struct {
+	Physical *bool `json:"physical"`
+}
