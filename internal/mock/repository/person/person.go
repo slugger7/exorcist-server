@@ -74,7 +74,7 @@ func (mr *MockPersonRepositoryMockRecorder) Create(names any) *gomock.Call {
 }
 
 // GetAll mocks base method.
-func (m *MockPersonRepository) GetAll(search string) ([]model.Person, error) {
+func (m *MockPersonRepository) GetAll(search dto.PersonSearchDTO) ([]model.Person, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", search)
 	ret0, _ := ret[0].([]model.Person)

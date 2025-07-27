@@ -2,6 +2,8 @@ package mediaService
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/google/uuid"
@@ -30,7 +32,48 @@ type mediaService struct {
 
 // Delete implements MediaService.
 func (m *mediaService) Delete(id uuid.UUID, physical bool) error {
-	panic("unimplemented")
+	mediaEntity, err := m.repo.Media().GetById(id)
+	if err != nil {
+		return errs.BuildError(err, "could not find media by id: %v", id.String())
+	}
+
+	if mediaEntity == nil {
+		return fmt.Errorf("media entity with id (%v) does not exist", id.String())
+	}
+
+	assets, err := m.repo.Media().GetAssetsFor(id)
+	if err != nil {
+		return errs.BuildError(err, "could not find assets for: %v", id.String())
+	}
+
+	if physical {
+		// unsure if I want to move the removal logic to a method. Feels weird to just have it hanging about here.
+		assetsPath := path.Join(m.env.Assets, mediaEntity.Media.ID.String())
+		if err = os.RemoveAll(assetsPath); err != nil {
+			return errs.BuildError(err, "could not remove assets and assets folder: (%v)", assetsPath)
+		}
+
+		if err = os.Remove(mediaEntity.Media.Path); err != nil {
+			return errs.BuildError(err, "could not remove media: (%v)", mediaEntity.Path)
+		}
+
+		mediaEntity.Media.Exists = false
+	}
+
+	mediaEntity.Media.Deleted = true
+	for _, a := range assets {
+		a.Deleted = true
+		a.Exists = !physical
+		if err := m.repo.Media().Delete(a); err != nil {
+			return errs.BuildError(err, "something failed while deleting an asset (%v) in repo: %v", a.ID.String(), id.String())
+		}
+	}
+
+	if err := m.repo.Media().Delete(mediaEntity.Media); err != nil {
+		return errs.BuildError(err, "something failed while deleting media in repo: %v", id.String())
+	}
+
+	return nil
 }
 
 // AddPerson implements MediaService.

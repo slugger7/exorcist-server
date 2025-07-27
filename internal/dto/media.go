@@ -86,6 +86,8 @@ type MediaDTO struct {
 	Title         string      `json:"title"`
 	Size          int64       `json:"size"`
 	Checksum      *string     `json:"checksum"`
+	Exists        bool        `json:"exists"`
+	Deleted       bool        `json:"deleted"`
 	Added         time.Time   `json:"added"`
 	Created       time.Time   `json:"created"`
 	Modified      time.Time   `json:"modified"`
@@ -103,6 +105,8 @@ func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
 	d.Title = m.Title
 	d.Size = m.Size
 	d.Checksum = m.Checksum
+	d.Deleted = m.Deleted
+	d.Exists = m.Exists
 	d.Added = m.Added
 	d.Created = m.Created
 	d.Modified = m.Modified
@@ -173,5 +177,5 @@ func (d *VideoDTO) FromModel(m *model.Video) *VideoDTO {
 }
 
 type DeleteMediaDTO struct {
-	Physical *bool `json:"physical"`
+	Physical *bool `json:"physical" form:"physical"`
 }

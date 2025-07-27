@@ -20,7 +20,7 @@ import (
 
 var media = table.Media
 
-type IMediaRepository interface {
+type MediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
 	UpdateChecksum(m models.Media) error
@@ -28,6 +28,8 @@ type IMediaRepository interface {
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
 	GetById(id uuid.UUID) (*models.Media, error)
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
+	Delete(m model.Media) error
+	GetAssetsFor(id uuid.UUID) ([]model.Media, error)
 }
 
 type mediaRepository struct {
@@ -37,9 +39,36 @@ type mediaRepository struct {
 	ctx    context.Context
 }
 
+// GetAssetsFor implements MediaRepository.
+func (r *mediaRepository) GetAssetsFor(id uuid.UUID) ([]model.Media, error) {
+	statement := media.SELECT(media.AllColumns).
+		FROM(media.INNER_JOIN(table.MediaRelation, media.ID.EQ(table.MediaRelation.MediaID))).
+		WHERE(table.Media.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Asset.String())))
+
+	var entities []model.Media
+	if err := statement.QueryContext(r.ctx, r.db, &entities); err != nil {
+		return nil, errs.BuildError(err, "could not fetch related media for: %v", id.String())
+	}
+
+	return entities, nil
+}
+
+// Delete implements MediaRepository.
+func (r *mediaRepository) Delete(m model.Media) error {
+	m.Modified = time.Now()
+
+	updateStatement := media.UPDATE(media.Exists, media.Deleted, media.Modified).
+		MODEL(m).
+		WHERE(media.ID.EQ(postgres.UUID(m.ID)))
+
+	_, err := updateStatement.ExecContext(r.ctx, r.db)
+
+	return err
+}
+
 var mediaRepositoryInstance *mediaRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IMediaRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) MediaRepository {
 	if mediaRepositoryInstance != nil {
 		return mediaRepositoryInstance
 	}
