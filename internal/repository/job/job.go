@@ -93,7 +93,7 @@ func (r *jobRepository) GetAll(m dto.JobSearchDTO) (*dto.PageDTO[model.Job], err
 
 	statement := table.Job.SELECT(table.Job.AllColumns).
 		FROM(table.Job).
-		ORDER_BY(m.OrderBy.ToColumn()).
+		ORDER_BY(m.OrderBy.ToColumn().DESC()).
 		LIMIT(int64(m.Limit)).
 		OFFSET(int64(m.Skip))
 

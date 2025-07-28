@@ -44,28 +44,32 @@ func (ls *libraryRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (
 			AND(table.LibraryPath.LibraryID.EQ(postgres.UUID(id)))
 	}
 
-	selectStatement, countStatement := helpers.MediaOverviewStatement(search, relationFn, whereFn)
+	selectStatement := helpers.MediaOverviewStatement(search, relationFn, whereFn)
 
 	util.DebugCheck(ls.env, selectStatement)
-	util.DebugCheck(ls.env, countStatement)
 
-	var total struct {
+	var mediaResult []struct {
 		Total int
+		models.MediaOverviewModel
 	}
-	if err := countStatement.QueryContext(ls.ctx, ls.db, &total); err != nil {
-		return nil, errs.BuildError(err, "could not query media total by library id: %v", id.String())
-	}
-
-	var mediaResult []models.MediaOverviewModel
 	if err := selectStatement.QueryContext(ls.ctx, ls.db, &mediaResult); err != nil {
 		return nil, errs.BuildError(err, "could not query media by library id: %v", id.String())
 	}
 
+	data := make([]models.MediaOverviewModel, len(mediaResult))
+	total := 0
+	if mediaResult != nil && len(mediaResult) > 0 {
+		total = mediaResult[0].Total
+		for i, o := range mediaResult {
+			data[i] = o.MediaOverviewModel
+		}
+	}
+
 	return &dto.PageDTO[models.MediaOverviewModel]{
-		Data:  mediaResult,
+		Data:  data,
 		Limit: search.Limit,
 		Skip:  search.Skip,
-		Total: total.Total,
+		Total: total,
 	}, nil
 }
 

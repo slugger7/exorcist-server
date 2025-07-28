@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"io"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
 	"slices"
@@ -59,7 +60,7 @@ func GetFileSize(path string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return fileinfo.Size(), nil
+	return int64(math.Abs(float64(fileinfo.Size()))), nil
 }
 
 func GetFilesByExtensions(root string, extensions []string) (ret []File, reterr error) {
