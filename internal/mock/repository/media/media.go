@@ -19,32 +19,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockIMediaRepository is a mock of IMediaRepository interface.
-type MockIMediaRepository struct {
+// MockMediaRepository is a mock of MediaRepository interface.
+type MockMediaRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockIMediaRepositoryMockRecorder
+	recorder *MockMediaRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockIMediaRepositoryMockRecorder is the mock recorder for MockIMediaRepository.
-type MockIMediaRepositoryMockRecorder struct {
-	mock *MockIMediaRepository
+// MockMediaRepositoryMockRecorder is the mock recorder for MockMediaRepository.
+type MockMediaRepositoryMockRecorder struct {
+	mock *MockMediaRepository
 }
 
-// NewMockIMediaRepository creates a new mock instance.
-func NewMockIMediaRepository(ctrl *gomock.Controller) *MockIMediaRepository {
-	mock := &MockIMediaRepository{ctrl: ctrl}
-	mock.recorder = &MockIMediaRepositoryMockRecorder{mock}
+// NewMockMediaRepository creates a new mock instance.
+func NewMockMediaRepository(ctrl *gomock.Controller) *MockMediaRepository {
+	mock := &MockMediaRepository{ctrl: ctrl}
+	mock.recorder = &MockMediaRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIMediaRepository) EXPECT() *MockIMediaRepositoryMockRecorder {
+func (m *MockMediaRepository) EXPECT() *MockMediaRepositoryMockRecorder {
 	return m.recorder
 }
 
 // Create mocks base method.
-func (m *MockIMediaRepository) Create(arg0 []model.Media) ([]model.Media, error) {
+func (m *MockMediaRepository) Create(arg0 []model.Media) ([]model.Media, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0)
 	ret0, _ := ret[0].([]model.Media)
@@ -53,13 +53,27 @@ func (m *MockIMediaRepository) Create(arg0 []model.Media) ([]model.Media, error)
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockIMediaRepositoryMockRecorder) Create(arg0 any) *gomock.Call {
+func (mr *MockMediaRepositoryMockRecorder) Create(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIMediaRepository)(nil).Create), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockMediaRepository)(nil).Create), arg0)
+}
+
+// Delete mocks base method.
+func (m_2 *MockMediaRepository) Delete(m model.Media) error {
+	m_2.ctrl.T.Helper()
+	ret := m_2.ctrl.Call(m_2, "Delete", m)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockMediaRepositoryMockRecorder) Delete(m any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockMediaRepository)(nil).Delete), m)
 }
 
 // GetAll mocks base method.
-func (m *MockIMediaRepository) GetAll(arg0 dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (m *MockMediaRepository) GetAll(arg0 dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", arg0)
 	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
@@ -68,13 +82,28 @@ func (m *MockIMediaRepository) GetAll(arg0 dto.MediaSearchDTO) (*dto.PageDTO[mod
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockIMediaRepositoryMockRecorder) GetAll(arg0 any) *gomock.Call {
+func (mr *MockMediaRepositoryMockRecorder) GetAll(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockIMediaRepository)(nil).GetAll), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockMediaRepository)(nil).GetAll), arg0)
+}
+
+// GetAssetsFor mocks base method.
+func (m *MockMediaRepository) GetAssetsFor(id uuid.UUID) ([]model.Media, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAssetsFor", id)
+	ret0, _ := ret[0].([]model.Media)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAssetsFor indicates an expected call of GetAssetsFor.
+func (mr *MockMediaRepositoryMockRecorder) GetAssetsFor(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAssetsFor", reflect.TypeOf((*MockMediaRepository)(nil).GetAssetsFor), id)
 }
 
 // GetById mocks base method.
-func (m *MockIMediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
+func (m *MockMediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", id)
 	ret0, _ := ret[0].(*models.Media)
@@ -83,13 +112,13 @@ func (m *MockIMediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 }
 
 // GetById indicates an expected call of GetById.
-func (mr *MockIMediaRepositoryMockRecorder) GetById(id any) *gomock.Call {
+func (mr *MockMediaRepositoryMockRecorder) GetById(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockIMediaRepository)(nil).GetById), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockMediaRepository)(nil).GetById), id)
 }
 
 // GetByLibraryPathId mocks base method.
-func (m *MockIMediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
+func (m *MockMediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByLibraryPathId", id)
 	ret0, _ := ret[0].([]model.Media)
@@ -98,13 +127,13 @@ func (m *MockIMediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, 
 }
 
 // GetByLibraryPathId indicates an expected call of GetByLibraryPathId.
-func (mr *MockIMediaRepositoryMockRecorder) GetByLibraryPathId(id any) *gomock.Call {
+func (mr *MockMediaRepositoryMockRecorder) GetByLibraryPathId(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLibraryPathId", reflect.TypeOf((*MockIMediaRepository)(nil).GetByLibraryPathId), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLibraryPathId", reflect.TypeOf((*MockMediaRepository)(nil).GetByLibraryPathId), id)
 }
 
 // Relate mocks base method.
-func (m *MockIMediaRepository) Relate(arg0 model.MediaRelation) (*model.MediaRelation, error) {
+func (m *MockMediaRepository) Relate(arg0 model.MediaRelation) (*model.MediaRelation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Relate", arg0)
 	ret0, _ := ret[0].(*model.MediaRelation)
@@ -113,13 +142,13 @@ func (m *MockIMediaRepository) Relate(arg0 model.MediaRelation) (*model.MediaRel
 }
 
 // Relate indicates an expected call of Relate.
-func (mr *MockIMediaRepositoryMockRecorder) Relate(arg0 any) *gomock.Call {
+func (mr *MockMediaRepositoryMockRecorder) Relate(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Relate", reflect.TypeOf((*MockIMediaRepository)(nil).Relate), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Relate", reflect.TypeOf((*MockMediaRepository)(nil).Relate), arg0)
 }
 
 // UpdateChecksum mocks base method.
-func (m_2 *MockIMediaRepository) UpdateChecksum(m models.Media) error {
+func (m_2 *MockMediaRepository) UpdateChecksum(m models.Media) error {
 	m_2.ctrl.T.Helper()
 	ret := m_2.ctrl.Call(m_2, "UpdateChecksum", m)
 	ret0, _ := ret[0].(error)
@@ -127,13 +156,13 @@ func (m_2 *MockIMediaRepository) UpdateChecksum(m models.Media) error {
 }
 
 // UpdateChecksum indicates an expected call of UpdateChecksum.
-func (mr *MockIMediaRepositoryMockRecorder) UpdateChecksum(m any) *gomock.Call {
+func (mr *MockMediaRepositoryMockRecorder) UpdateChecksum(m any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChecksum", reflect.TypeOf((*MockIMediaRepository)(nil).UpdateChecksum), m)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChecksum", reflect.TypeOf((*MockMediaRepository)(nil).UpdateChecksum), m)
 }
 
 // UpdateExists mocks base method.
-func (m *MockIMediaRepository) UpdateExists(arg0 model.Media) error {
+func (m *MockMediaRepository) UpdateExists(arg0 model.Media) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateExists", arg0)
 	ret0, _ := ret[0].(error)
@@ -141,7 +170,7 @@ func (m *MockIMediaRepository) UpdateExists(arg0 model.Media) error {
 }
 
 // UpdateExists indicates an expected call of UpdateExists.
-func (mr *MockIMediaRepositoryMockRecorder) UpdateExists(arg0 any) *gomock.Call {
+func (mr *MockMediaRepositoryMockRecorder) UpdateExists(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExists", reflect.TypeOf((*MockIMediaRepository)(nil).UpdateExists), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExists", reflect.TypeOf((*MockMediaRepository)(nil).UpdateExists), arg0)
 }

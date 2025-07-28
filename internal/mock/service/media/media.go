@@ -14,7 +14,6 @@ import (
 
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -72,32 +71,16 @@ func (mr *MockMediaServiceMockRecorder) AddTag(id, tagId any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTag", reflect.TypeOf((*MockMediaService)(nil).AddTag), id, tagId)
 }
 
-// SetPeople mocks base method.
-func (m *MockMediaService) SetPeople(id uuid.UUID, people []string) (*models.Media, error) {
+// Delete mocks base method.
+func (m *MockMediaService) Delete(id uuid.UUID, physical bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetPeople", id, people)
-	ret0, _ := ret[0].(*models.Media)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Delete", id, physical)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// SetPeople indicates an expected call of SetPeople.
-func (mr *MockMediaServiceMockRecorder) SetPeople(id, people any) *gomock.Call {
+// Delete indicates an expected call of Delete.
+func (mr *MockMediaServiceMockRecorder) Delete(id, physical any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetPeople", reflect.TypeOf((*MockMediaService)(nil).SetPeople), id, people)
-}
-
-// SetTags mocks base method.
-func (m *MockMediaService) SetTags(id uuid.UUID, tags []string) (*models.Media, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetTags", id, tags)
-	ret0, _ := ret[0].(*models.Media)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SetTags indicates an expected call of SetTags.
-func (mr *MockMediaServiceMockRecorder) SetTags(id, tags any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTags", reflect.TypeOf((*MockMediaService)(nil).SetTags), id, tags)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockMediaService)(nil).Delete), id, physical)
 }

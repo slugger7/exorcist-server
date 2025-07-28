@@ -40,6 +40,39 @@ func (s *server) withMediaDeletePerson(r *gin.RouterGroup, route Route) *server 
 	return s
 }
 
+func (s *server) withMediaDelete(r *gin.RouterGroup, route Route) *server {
+	r.DELETE(fmt.Sprintf("%v/:%v", route, idKey), s.deleteMedia)
+	return s
+}
+
+func (s *server) deleteMedia(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	var query dto.DeleteMediaDTO
+	if err = c.ShouldBindQuery(&query); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	if query.Physical == nil {
+		b := false
+		query.Physical = &b
+	}
+
+	err = s.service.Media().Delete(id, *query.Physical)
+	if err != nil {
+		s.logger.Errorf("error deleting video (%v): %v", id, err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
 func (s *server) deleteMediaPerson(c *gin.Context) {
 	id, err := uuid.Parse(c.Param(idKey))
 	if err != nil {

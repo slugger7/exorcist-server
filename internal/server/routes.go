@@ -72,7 +72,8 @@ func (s *server) RegisterRoutes() http.Handler {
 		withMediaPutTag(authenticated, media).
 		withMediaDeleteTag(authenticated, media).
 		withMediaPutPerson(authenticated, media).
-		withMediaDeletePerson(authenticated, media)
+		withMediaDeletePerson(authenticated, media).
+		withMediaDelete(authenticated, media)
 
 	s.withImageGet(authenticated, images).
 		withVideoGet(authenticated, videos)

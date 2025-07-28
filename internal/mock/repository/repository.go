@@ -133,10 +133,10 @@ func (mr *MockIRepositoryMockRecorder) LibraryPath() *gomock.Call {
 }
 
 // Media mocks base method.
-func (m *MockIRepository) Media() mediaRepository.IMediaRepository {
+func (m *MockIRepository) Media() mediaRepository.MediaRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Media")
-	ret0, _ := ret[0].(mediaRepository.IMediaRepository)
+	ret0, _ := ret[0].(mediaRepository.MediaRepository)
 	return ret0
 }
 

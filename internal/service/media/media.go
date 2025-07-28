@@ -1,9 +1,9 @@
 package mediaService
 
 import (
-	"errors"
 	"fmt"
-	"slices"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/google/uuid"
@@ -11,19 +11,15 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
-	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 	personService "github.com/slugger7/exorcist/internal/service/person"
 	tagService "github.com/slugger7/exorcist/internal/service/tag"
 )
 
 type MediaService interface {
-	// Deprecated
-	SetPeople(id uuid.UUID, people []string) (*models.Media, error)
-	// Deprecated
-	SetTags(id uuid.UUID, tags []string) (*models.Media, error)
 	AddTag(id uuid.UUID, tagId uuid.UUID) (*model.MediaTag, error)
 	AddPerson(id uuid.UUID, personId uuid.UUID) (*model.MediaPerson, error)
+	Delete(id uuid.UUID, physical bool) error
 }
 
 type mediaService struct {
@@ -32,6 +28,52 @@ type mediaService struct {
 	logger        logger.ILogger
 	personService personService.IPersonService
 	tagService    tagService.TagService
+}
+
+// Delete implements MediaService.
+func (m *mediaService) Delete(id uuid.UUID, physical bool) error {
+	mediaEntity, err := m.repo.Media().GetById(id)
+	if err != nil {
+		return errs.BuildError(err, "could not find media by id: %v", id.String())
+	}
+
+	if mediaEntity == nil {
+		return fmt.Errorf("media entity with id (%v) does not exist", id.String())
+	}
+
+	assets, err := m.repo.Media().GetAssetsFor(id)
+	if err != nil {
+		return errs.BuildError(err, "could not find assets for: %v", id.String())
+	}
+
+	if physical {
+		// unsure if I want to move the removal logic to a method. Feels weird to just have it hanging about here.
+		assetsPath := path.Join(m.env.Assets, mediaEntity.Media.ID.String())
+		if err = os.RemoveAll(assetsPath); err != nil {
+			return errs.BuildError(err, "could not remove assets and assets folder: (%v)", assetsPath)
+		}
+
+		if err = os.Remove(mediaEntity.Media.Path); err != nil {
+			return errs.BuildError(err, "could not remove media: (%v)", mediaEntity.Path)
+		}
+
+		mediaEntity.Media.Exists = false
+	}
+
+	mediaEntity.Media.Deleted = true
+	for _, a := range assets {
+		a.Deleted = true
+		a.Exists = !physical
+		if err := m.repo.Media().Delete(a); err != nil {
+			return errs.BuildError(err, "something failed while deleting an asset (%v) in repo: %v", a.ID.String(), id.String())
+		}
+	}
+
+	if err := m.repo.Media().Delete(mediaEntity.Media); err != nil {
+		return errs.BuildError(err, "something failed while deleting media in repo: %v", id.String())
+	}
+
+	return nil
 }
 
 // AddPerson implements MediaService.
@@ -114,162 +156,10 @@ func (m *mediaService) AddTag(id uuid.UUID, tagId uuid.UUID) (*model.MediaTag, e
 	return &createdMediaModelTags[0], nil
 }
 
-// SetTags implements MediaService.
-func (m *mediaService) SetTags(id uuid.UUID, tags []string) (*models.Media, error) {
-	mediaModel, err := m.repo.Media().GetById(id)
-	if err != nil {
-		return nil, errs.BuildError(err, "could not get media by id: %v", id.String())
-	}
-
-	if mediaModel == nil {
-		return nil, fmt.Errorf("could not find media by id: %v", id)
-	}
-
-	if len(tags) == 0 {
-		return mediaModel, nil
-	}
-
-	uniqueTags := []string{tags[0]}
-	for _, p := range tags {
-		if !slices.ContainsFunc(uniqueTags, lowerStringComparator(p)) {
-			uniqueTags = append(uniqueTags, p)
-		}
-	}
-	tags = uniqueTags
-
-	leftovers := []model.Tag{}
-	for _, t := range mediaModel.Tags {
-		if !slices.ContainsFunc(tags, lowerStringComparator(t.Name)) {
-			m.repo.Tag().RemoveFromMedia(model.MediaTag{MediaID: id, TagID: t.ID})
-		} else {
-			leftovers = append(leftovers, t)
-		}
-	}
-	mediaModel.Tags = leftovers
-
-	tagModels := []model.Tag{}
-	errorList := []error{}
-	for _, p := range tags {
-		tagModel, err := m.tagService.Upsert(p)
-		if err != nil {
-			errorList = append(errorList, err)
-			continue
-		}
-		tagModels = append(tagModels, *tagModel)
-	}
-
-	if len(errorList) != 0 {
-		joinedErrors := errors.Join(errorList...)
-		m.logger.Errorf("error while upserting tags: %v", errs.BuildError(joinedErrors, "could not upsert some tags").Error())
-	}
-
-	mediaTagModels := []model.MediaTag{}
-	for _, t := range tagModels {
-		if slices.ContainsFunc(mediaModel.Tags, func(tag model.Tag) bool {
-			return tag.ID == t.ID
-		}) {
-			continue
-		}
-
-		mediaTagModels = append(mediaTagModels, model.MediaTag{
-			MediaID: id,
-			TagID:   t.ID,
-		})
-	}
-
-	mediaTagModels, err = m.repo.Tag().AddToMedia(mediaTagModels)
-	if err != nil {
-		return nil, errs.BuildError(err, "error linking media with tag")
-	}
-
-	mediaModel, err = m.repo.Media().GetById(id)
-	if err != nil {
-		return nil, errs.BuildError(err, "could not get media by id after adding tags: %v", id)
-	}
-
-	return mediaModel, nil
-}
-
 func lowerStringComparator(a string) func(string) bool {
 	return func(b string) bool {
 		return strings.ToLower(a) == strings.ToLower(b)
 	}
-}
-
-// SetPeople implements MediaService.
-func (m *mediaService) SetPeople(id uuid.UUID, people []string) (*models.Media, error) {
-	mediaModel, err := m.repo.Media().GetById(id)
-	if err != nil {
-		return nil, errs.BuildError(err, "could not get media by id: %v", id.String())
-	}
-
-	if mediaModel == nil {
-		return nil, fmt.Errorf("could not find media by id")
-	}
-
-	if len(people) == 0 {
-		return mediaModel, nil
-	}
-
-	uniquePeople := []string{people[0]}
-	for _, p := range people {
-		if !slices.ContainsFunc(uniquePeople, lowerStringComparator(p)) {
-			uniquePeople = append(uniquePeople, p)
-		}
-	}
-	people = uniquePeople
-
-	leftovers := []model.Person{}
-	for _, p := range mediaModel.People {
-		if !slices.ContainsFunc(people, lowerStringComparator(p.Name)) {
-			m.repo.Person().RemoveFromMedia(model.MediaPerson{MediaID: id, PersonID: p.ID})
-		} else {
-			leftovers = append(leftovers, p)
-		}
-	}
-	mediaModel.People = leftovers
-
-	peopleModels := []model.Person{}
-	errorList := []error{}
-	for _, p := range people {
-		personModel, err := m.personService.Upsert(p)
-		if err != nil {
-			errorList = append(errorList, err)
-			continue
-		}
-		peopleModels = append(peopleModels, *personModel)
-	}
-
-	if len(errorList) != 0 {
-		joinedErrors := errors.Join(errorList...)
-		m.logger.Errorf("error while upserting people: %v", errs.BuildError(joinedErrors, "could not upsert some people").Error())
-	}
-
-	mediaPersonModels := []model.MediaPerson{}
-	for _, p := range peopleModels {
-		if slices.ContainsFunc(mediaModel.People, func(person model.Person) bool {
-			return person.ID == p.ID
-		}) {
-			continue
-		}
-
-		mediaPersonModels = append(mediaPersonModels, model.MediaPerson{
-			MediaID:  id,
-			PersonID: p.ID,
-		})
-	}
-
-	mediaPersonModels, err = m.repo.Person().AddToMedia(mediaPersonModels)
-	if err != nil {
-		return nil, errs.BuildError(err, "error linking media with people")
-	}
-
-	mediaModel, err = m.repo.Media().GetById(id)
-	if err != nil {
-		return nil, errs.BuildError(err, "could not get media by id after adding people: %v", id)
-	}
-
-	return mediaModel, nil
 }
 
 var mediaServiceInstance *mediaService
