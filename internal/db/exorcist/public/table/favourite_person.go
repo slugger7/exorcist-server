@@ -26,7 +26,6 @@ type favouritePersonTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type FavouritePersonTable struct {
@@ -72,7 +71,6 @@ func newFavouritePersonTableImpl(schemaName, tableName, alias string) favouriteP
 		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
 		allColumns     = postgres.ColumnList{IDColumn, UserIDColumn, PersonIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 		mutableColumns = postgres.ColumnList{UserIDColumn, PersonIDColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
-		defaultColumns = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return favouritePersonTable{
@@ -88,6 +86,5 @@ func newFavouritePersonTableImpl(schemaName, tableName, alias string) favouriteP
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }

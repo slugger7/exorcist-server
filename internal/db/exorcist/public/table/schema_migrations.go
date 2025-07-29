@@ -22,7 +22,6 @@ type schemaMigrationsTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type SchemaMigrationsTable struct {
@@ -64,7 +63,6 @@ func newSchemaMigrationsTableImpl(schemaName, tableName, alias string) schemaMig
 		DirtyColumn    = postgres.BoolColumn("dirty")
 		allColumns     = postgres.ColumnList{VersionColumn, DirtyColumn}
 		mutableColumns = postgres.ColumnList{DirtyColumn}
-		defaultColumns = postgres.ColumnList{}
 	)
 
 	return schemaMigrationsTable{
@@ -76,6 +74,5 @@ func newSchemaMigrationsTableImpl(schemaName, tableName, alias string) schemaMig
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }

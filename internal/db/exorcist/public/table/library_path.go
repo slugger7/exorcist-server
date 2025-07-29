@@ -26,7 +26,6 @@ type libraryPathTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type LibraryPathTable struct {
@@ -72,7 +71,6 @@ func newLibraryPathTableImpl(schemaName, tableName, alias string) libraryPathTab
 		GhostIDColumn   = postgres.IntegerColumn("ghost_id")
 		allColumns      = postgres.ColumnList{IDColumn, LibraryIDColumn, PathColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 		mutableColumns  = postgres.ColumnList{LibraryIDColumn, PathColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
-		defaultColumns  = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return libraryPathTable{
@@ -88,6 +86,5 @@ func newLibraryPathTableImpl(schemaName, tableName, alias string) libraryPathTab
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }
