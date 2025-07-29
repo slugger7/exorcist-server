@@ -33,19 +33,10 @@ type mediaService struct {
 
 // LogProgress implements MediaService.
 func (m *mediaService) LogProgress(id, userId uuid.UUID, progress float64) (*model.MediaProgress, error) {
-	prog, err := m.repo.Media().GetProgressForUser(id, userId)
-	if err != nil {
-		return nil, errs.BuildError(err, "could not find progress for user from repo")
-	}
-
-	if prog == nil {
-		prog = &model.MediaProgress{
-			UserID:    userId,
-			MediaID:   id,
-			Timestamp: progress,
-		}
-	} else {
-		prog.Timestamp = progress
+	prog := &model.MediaProgress{
+		UserID:    userId,
+		MediaID:   id,
+		Timestamp: progress,
 	}
 
 	newProg, err := m.repo.Media().UpsertProgress(*prog)
