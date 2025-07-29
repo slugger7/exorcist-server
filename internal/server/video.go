@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -11,6 +12,44 @@ import (
 func (s *server) withVideoGet(r *gin.RouterGroup, route Route) *server {
 	r.GET(fmt.Sprintf("%v/:%v", route, idKey), s.getVideoStream)
 	return s
+}
+
+func (s *server) withVideoPut(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v", route, idKey), s.putVideoProgress)
+	return s
+}
+
+func (s *server) putVideoProgress(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnprocessableEntity)
+		return
+	}
+
+	var progress struct {
+		Progress float64 `json:"progress" form:"progress"`
+	}
+	if err := c.ShouldBindQuery(&progress); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	session := sessions.Default(c)
+	userString := session.Get(userKey).(string)
+	userId, err := uuid.Parse(userString)
+	if err != nil {
+		s.logger.Errorf("could not parse user from string: %v\n%v", userString, err.Error())
+	}
+
+	prog, err := s.service.Media().LogProgress(id, userId, progress.Progress)
+	if err != nil {
+		s.logger.Errorf("colud not log progress for %v: %v", id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// TODO: convert prog to dto
+	c.JSON(http.StatusOK, prog)
 }
 
 func (s *server) getVideoStream(c *gin.Context) {

@@ -20,6 +20,7 @@ type MediaService interface {
 	AddTag(id uuid.UUID, tagId uuid.UUID) (*model.MediaTag, error)
 	AddPerson(id uuid.UUID, personId uuid.UUID) (*model.MediaPerson, error)
 	Delete(id uuid.UUID, physical bool) error
+	LogProgress(id, userId uuid.UUID, progress float64) (*model.MediaProgress, error)
 }
 
 type mediaService struct {
@@ -28,6 +29,31 @@ type mediaService struct {
 	logger        logger.ILogger
 	personService personService.IPersonService
 	tagService    tagService.TagService
+}
+
+// LogProgress implements MediaService.
+func (m *mediaService) LogProgress(id, userId uuid.UUID, progress float64) (*model.MediaProgress, error) {
+	prog, err := m.repo.Media().GetProgressForUser(id, userId)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not find progress for user from repo")
+	}
+
+	if prog == nil {
+		prog = &model.MediaProgress{
+			UserID:    userId,
+			MediaID:   id,
+			Timestamp: progress,
+		}
+	} else {
+		prog.Timestamp = progress
+	}
+
+	newProg, err := m.repo.Media().UpsertProgress(*prog)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not upsert progress for in repo")
+	}
+
+	return newProg, nil
 }
 
 // Delete implements MediaService.

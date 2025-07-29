@@ -132,6 +132,21 @@ func (mr *MockMediaRepositoryMockRecorder) GetByLibraryPathId(id any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLibraryPathId", reflect.TypeOf((*MockMediaRepository)(nil).GetByLibraryPathId), id)
 }
 
+// GetProgressForUser mocks base method.
+func (m *MockMediaRepository) GetProgressForUser(id, userId uuid.UUID) (*model.MediaProgress, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProgressForUser", id, userId)
+	ret0, _ := ret[0].(*model.MediaProgress)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProgressForUser indicates an expected call of GetProgressForUser.
+func (mr *MockMediaRepositoryMockRecorder) GetProgressForUser(id, userId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressForUser", reflect.TypeOf((*MockMediaRepository)(nil).GetProgressForUser), id, userId)
+}
+
 // Relate mocks base method.
 func (m *MockMediaRepository) Relate(arg0 model.MediaRelation) (*model.MediaRelation, error) {
 	m.ctrl.T.Helper()
@@ -173,4 +188,19 @@ func (m *MockMediaRepository) UpdateExists(arg0 model.Media) error {
 func (mr *MockMediaRepositoryMockRecorder) UpdateExists(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExists", reflect.TypeOf((*MockMediaRepository)(nil).UpdateExists), arg0)
+}
+
+// UpsertProgress mocks base method.
+func (m *MockMediaRepository) UpsertProgress(prog model.MediaProgress) (*model.MediaProgress, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertProgress", prog)
+	ret0, _ := ret[0].(*model.MediaProgress)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpsertProgress indicates an expected call of UpsertProgress.
+func (mr *MockMediaRepositoryMockRecorder) UpsertProgress(prog any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertProgress", reflect.TypeOf((*MockMediaRepository)(nil).UpsertProgress), prog)
 }

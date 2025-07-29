@@ -30,6 +30,8 @@ type MediaRepository interface {
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
 	Delete(m model.Media) error
 	GetAssetsFor(id uuid.UUID) ([]model.Media, error)
+	GetProgressForUser(id, userId uuid.UUID) (*model.MediaProgress, error)
+	UpsertProgress(prog model.MediaProgress) (*model.MediaProgress, error)
 }
 
 type mediaRepository struct {
@@ -37,6 +39,54 @@ type mediaRepository struct {
 	env    *environment.EnvironmentVariables
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// UpsertProgress implements MediaRepository.
+func (r *mediaRepository) UpsertProgress(prog model.MediaProgress) (*model.MediaProgress, error) {
+	prog.Modified = time.Now()
+	mediaProgres := table.MediaProgress
+	insertStatement := mediaProgres.INSERT(mediaProgres.MediaID, mediaProgres.UserID, mediaProgres.Timestamp, mediaProgres.Modified).
+		MODEL(prog).
+		ON_CONFLICT(mediaProgres.MediaID, mediaProgres.UserID).
+		DO_UPDATE(postgres.SET(
+			mediaProgres.Timestamp.SET(postgres.Float(prog.Timestamp)),
+			mediaProgres.Modified.SET(postgres.LOCALTIMESTAMP()),
+		)).
+		RETURNING(mediaProgres.AllColumns)
+
+	var updatedProg struct {
+		model.MediaProgress
+	}
+	if err := insertStatement.QueryContext(r.ctx, r.db, &updatedProg); err != nil {
+		return nil, errs.BuildError(err, "could not insert/update progress for user %v for media %v", prog.UserID.String(), prog.MediaID.String())
+	}
+
+	return &updatedProg.MediaProgress, nil
+}
+
+// GetProgressForUser implements MediaRepository.
+func (r *mediaRepository) GetProgressForUser(id uuid.UUID, userId uuid.UUID) (*model.MediaProgress, error) {
+	mediaProgress := table.MediaProgress
+	selectStatement := mediaProgress.SELECT(
+		mediaProgress.ID,
+		mediaProgress.MediaID,
+		mediaProgress.UserID,
+		mediaProgress.Timestamp).
+		WHERE(mediaProgress.MediaID.EQ(postgres.UUID(id)).
+			AND(mediaProgress.UserID.EQ(postgres.UUID(userId))))
+
+	var prog []struct {
+		model.MediaProgress
+	}
+	if err := selectStatement.QueryContext(r.ctx, r.db, &prog); err != nil {
+		return nil, errs.BuildError(err, "could not fetch pogress for user %v and media %v", userId.String(), id.String())
+	}
+
+	if len(prog) == 0 {
+		return nil, nil
+	}
+
+	return &prog[0].MediaProgress, nil
 }
 
 // GetAssetsFor implements MediaRepository.

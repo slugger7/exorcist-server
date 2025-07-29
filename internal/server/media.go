@@ -70,6 +70,8 @@ func (s *server) deleteMedia(c *gin.Context) {
 		return
 	}
 
+	// TODO: notify websockets of media deletion
+
 	c.Status(http.StatusOK)
 }
 
