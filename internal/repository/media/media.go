@@ -207,33 +207,12 @@ func (r *mediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models
 		return whr
 	}
 
-	selectStatement := helpers.MediaOverviewStatement(search, relationFn, whereFn)
-
-	util.DebugCheck(r.env, selectStatement)
-
-	var mediaResult []struct {
-		Total int
-		models.MediaOverviewModel
-	}
-	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
-		return nil, errs.BuildError(err, "could not query media")
+	mediaPage, err := helpers.QueryMediaOverview(search, relationFn, whereFn, r.ctx, r.db, r.env)
+	if err != nil {
+		return nil, errs.BuildError(err, "colud not query media overview from media repo")
 	}
 
-	data := make([]models.MediaOverviewModel, len(mediaResult))
-	total := 0
-	if mediaResult != nil && len(mediaResult) > 0 {
-		total = mediaResult[0].Total
-		for i, o := range mediaResult {
-			data[i] = o.MediaOverviewModel
-		}
-	}
-
-	return &dto.PageDTO[models.MediaOverviewModel]{
-		Data:  data,
-		Limit: search.Limit,
-		Skip:  search.Skip,
-		Total: total,
-	}, nil
+	return mediaPage, nil
 }
 
 func (r *mediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {

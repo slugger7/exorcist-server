@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -8,13 +10,16 @@ import (
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/dto"
+	"github.com/slugger7/exorcist/internal/environment"
+	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
 type RelationFn func(relationTable postgres.ReadableTable) postgres.ReadableTable
 type WhereFn func(currentWhere postgres.BoolExpression) postgres.BoolExpression
 
 func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn) postgres.Statement {
-
 	tagFilter := len(search.Tags) > 0
 	personFilter := len(search.People) > 0
 	media := table.Media
@@ -127,4 +132,34 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, wh
 		OFFSET(int64(search.Skip))
 
 	return selectStatement
+}
+
+func QueryMediaOverview(search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn, ctx context.Context, db *sql.DB, env *environment.EnvironmentVariables) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	selectStatement := MediaOverviewStatement(search, relationFn, whereFn)
+
+	util.DebugCheck(env, selectStatement)
+
+	var mediaResult []struct {
+		Total int
+		models.MediaOverviewModel
+	}
+	if err := selectStatement.QueryContext(ctx, db, &mediaResult); err != nil {
+		return nil, errs.BuildError(err, "could not query media for overview")
+	}
+
+	data := make([]models.MediaOverviewModel, len(mediaResult))
+	total := 0
+	if mediaResult != nil && len(mediaResult) > 0 {
+		total = mediaResult[0].Total
+		for i, o := range mediaResult {
+			data[i] = o.MediaOverviewModel
+		}
+	}
+
+	return &dto.PageDTO[models.MediaOverviewModel]{
+		Data:  data,
+		Limit: search.Limit,
+		Skip:  search.Skip,
+		Total: total,
+	}, nil
 }
