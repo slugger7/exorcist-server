@@ -97,7 +97,8 @@ func (s *server) RegisterRoutes() http.Handler {
 
 	// Register playlist controller routes
 	s.withPlaylistsGetAll(authenticated, playlists).
-		withPlaylistsCreate(authenticated, playlists)
+		withPlaylistsCreate(authenticated, playlists).
+		withPlaylistsMedia(authenticated, playlists)
 
 	s.withWS(authenticated, root)
 

@@ -10,3 +10,6 @@ Content-Type: application/json
     "name": "new playlist name"
   }
 ]
+
+### Get Playlist Media
+GET {{host}}:{{port}}/api/playlists/66824bba-5efc-49cb-9818-7d4792de9404/media

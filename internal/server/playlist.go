@@ -1,9 +1,11 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
@@ -15,6 +17,45 @@ func (s *server) withPlaylistsGetAll(r *gin.RouterGroup, route Route) *server {
 func (s *server) withPlaylistsCreate(r *gin.RouterGroup, route Route) *server {
 	r.POST(route, s.createPlaylists)
 	return s
+}
+
+func (s *server) withPlaylistsMedia(r *gin.RouterGroup, route Route) *server {
+	r.GET(fmt.Sprintf("%v/:%v/media", route, idKey), s.getMediaByPlaylist)
+	return s
+}
+
+func (s *server) getMediaByPlaylist(c *gin.Context) {
+	playlistId, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse playlist id"})
+		return
+	}
+
+	var search dto.MediaSearchDTO
+	if err := c.ShouldBindQuery(&search); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	mediaOverviewModels, err := s.service.Playlist().GetMedia(playlistId, *userId, search)
+	if err != nil {
+		s.logger.Errorf("error fetching media for playlist %v: %v", playlistId.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	dtos := make([]dto.MediaOverviewDTO, len(mediaOverviewModels.Data))
+	for i, m := range mediaOverviewModels.Data {
+		dtos[i] = *(&dto.MediaOverviewDTO{}).FromModel(m)
+	}
+
+	c.JSON(http.StatusOK, dto.DataToPage(dtos, *mediaOverviewModels))
 }
 
 func (s *server) createPlaylists(c *gin.Context) {

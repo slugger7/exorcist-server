@@ -33,7 +33,7 @@ func (i *libraryService) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDT
 	}
 
 	if library == nil {
-		return nil, fmt.Errorf("no library found with id: %v", id)
+		return nil, fmt.Errorf("no library found with id: %v", id.String())
 	}
 
 	media, err := i.repo.Library().GetMedia(id, userId, search)
