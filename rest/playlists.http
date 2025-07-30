@@ -13,3 +13,9 @@ Content-Type: application/json
 
 ### Get Playlist Media
 GET {{host}}:{{port}}/api/playlists/66824bba-5efc-49cb-9818-7d4792de9404/media
+
+### Add media to playlist
+PUT {{host}}:{{port}}/api/playlists/66824bba-5efc-49cb-9818-7d4792de9404/media
+Content-Type: application/json
+
+[{"mediaId": "ea635b3d-1610-4553-bada-da2faacef673"}]

@@ -24,6 +24,34 @@ func (s *server) withPlaylistsMedia(r *gin.RouterGroup, route Route) *server {
 	return s
 }
 
+func (s *server) withPlaylistMediaAdd(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v/media", route, idKey), s.putPlaylistMedia)
+	return s
+}
+
+func (s *server) putPlaylistMedia(c *gin.Context) {
+	playlistId, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse playlist id"})
+		return
+	}
+
+	var playlistMediaDtos []dto.CreatePlaylistMediaDTO
+	if err := c.ShouldBindBodyWithJSON(&playlistMediaDtos); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	playlistMedia, err := s.service.Playlist().AddMedia(playlistId, playlistMediaDtos)
+	if err != nil {
+		s.logger.Errorf("error adding media to playlist %v: %v", playlistId.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, playlistMedia)
+}
+
 func (s *server) getMediaByPlaylist(c *gin.Context) {
 	playlistId, err := uuid.Parse(c.Param(idKey))
 	if err != nil {
@@ -35,6 +63,10 @@ func (s *server) getMediaByPlaylist(c *gin.Context) {
 	if err := c.ShouldBindQuery(&search); err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
+	}
+
+	if search.Limit == 0 {
+		search.Limit = 50
 	}
 
 	userId, err := s.getUserId(c)

@@ -16,12 +16,35 @@ import (
 type PlaylistService interface {
 	CreateAll(userId uuid.UUID, playlists []dto.CreatePlaylistDTO) ([]model.Playlist, error)
 	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	AddMedia(id uuid.UUID, playlistMedia []dto.CreatePlaylistMediaDTO) ([]model.PlaylistMedia, error)
 }
 
 type playlistService struct {
 	env    *environment.EnvironmentVariables
 	repo   repository.IRepository
 	logger logger.ILogger
+}
+
+// AddMedia implements PlaylistService.
+func (p *playlistService) AddMedia(id uuid.UUID, playlistMedia []dto.CreatePlaylistMediaDTO) ([]model.PlaylistMedia, error) {
+	playlist, err := p.repo.Playlist().GetById(id)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not get playlist by id: %v", id.String())
+	}
+
+	if playlist == nil {
+		return nil, fmt.Errorf("playlist was not found by id %v", id.String())
+	}
+
+	playlistMediaEntities := make([]model.PlaylistMedia, len(playlistMedia))
+	for i, d := range playlistMedia {
+		playlistMediaEntities[i] = model.PlaylistMedia{
+			PlaylistID: id,
+			MediaID:    d.MediaID,
+		}
+	}
+
+	return p.repo.Playlist().AddMedia(playlistMediaEntities)
 }
 
 // GetMedia implements PlaylistService.
