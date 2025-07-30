@@ -115,7 +115,7 @@ type MediaDTO struct {
 	Image         *ImageDTO   `json:"image,omitempty"`
 	Video         *VideoDTO   `json:"video,omitempty"`
 	ThumbnailID   uuid.UUID   `json:"thumbnailId,omitempty"`
-	Progress      float64     `json:"progress,omitempty"`
+	Progress      float64     `json:"progress"`
 	People        []PersonDTO `json:"people"`
 	Tags          []TagDTO    `json:"tags"`
 }
