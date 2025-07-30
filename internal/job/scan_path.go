@@ -53,14 +53,6 @@ func (jr *JobRunner) ScanPath(job *model.Job) error {
 		return fmt.Errorf("library path not found: %v", data.LibraryPathId)
 	}
 
-	lib, err := jr.repo.Library().GetById(libPath.LibraryID)
-	if err != nil {
-		return errs.BuildError(err, "could not get library by id: %v", libPath.LibraryID)
-	}
-	if lib == nil {
-		return fmt.Errorf("library not found: %v", libPath.LibraryID)
-	}
-
 	videoChan := make(chan []media.File)
 	jr.wg.Add(1)
 	go jr.getFilesByExtension(libPath.Path, videoExtensions[:], videoChan)
