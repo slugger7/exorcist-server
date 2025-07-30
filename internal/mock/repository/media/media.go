@@ -117,6 +117,21 @@ func (mr *MockMediaRepositoryMockRecorder) GetById(id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockMediaRepository)(nil).GetById), id)
 }
 
+// GetByIdAndUserId mocks base method.
+func (m *MockMediaRepository) GetByIdAndUserId(id, userId uuid.UUID) (*models.Media, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByIdAndUserId", id, userId)
+	ret0, _ := ret[0].(*models.Media)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByIdAndUserId indicates an expected call of GetByIdAndUserId.
+func (mr *MockMediaRepositoryMockRecorder) GetByIdAndUserId(id, userId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdAndUserId", reflect.TypeOf((*MockMediaRepository)(nil).GetByIdAndUserId), id, userId)
+}
+
 // GetByLibraryPathId mocks base method.
 func (m *MockMediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
 	m.ctrl.T.Helper()
