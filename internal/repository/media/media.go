@@ -24,7 +24,7 @@ type MediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
 	UpdateChecksum(m models.Media) error
-	GetAll(dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	GetAll(userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
 	GetById(id uuid.UUID) (*models.Media, error)
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
@@ -198,7 +198,7 @@ func (r *mediaRepository) UpdateChecksum(m models.Media) error {
 	return nil
 }
 
-func (r *mediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (r *mediaRepository) GetAll(userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	relationFn := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
 		return relationTable
 	}
@@ -207,7 +207,7 @@ func (r *mediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models
 		return whr
 	}
 
-	mediaPage, err := helpers.QueryMediaOverview(search, relationFn, whereFn, r.ctx, r.db, r.env)
+	mediaPage, err := helpers.QueryMediaOverview(userId, search, relationFn, whereFn, r.ctx, r.db, r.env)
 	if err != nil {
 		return nil, errs.BuildError(err, "colud not query media overview from media repo")
 	}

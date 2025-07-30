@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/dto"
@@ -19,7 +20,7 @@ import (
 type RelationFn func(relationTable postgres.ReadableTable) postgres.ReadableTable
 type WhereFn func(currentWhere postgres.BoolExpression) postgres.BoolExpression
 
-func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn) postgres.Statement {
+func mediaOverviewStatement(userId uuid.UUID, search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn) postgres.Statement {
 	tagFilter := len(search.Tags) > 0
 	personFilter := len(search.People) > 0
 	media := table.Media
@@ -37,6 +38,10 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, wh
 		).LEFT_JOIN(
 			table.Video,
 			table.Video.MediaID.EQ(media.ID),
+		).LEFT_JOIN(
+			table.MediaProgress,
+			table.MediaProgress.MediaID.EQ(media.ID).
+				AND(table.MediaProgress.UserID.EQ(postgres.UUID(userId))),
 		))
 
 	if tagFilter {
@@ -71,6 +76,7 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, wh
 		media.ID,
 		media.Title,
 		thumbnail.ID,
+		table.MediaProgress.Timestamp,
 		postgres.COUNT(postgres.STAR).OVER().AS("total"),
 	).
 		FROM(fromStmnt)
@@ -134,8 +140,8 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, wh
 	return selectStatement
 }
 
-func QueryMediaOverview(search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn, ctx context.Context, db *sql.DB, env *environment.EnvironmentVariables) (*dto.PageDTO[models.MediaOverviewModel], error) {
-	selectStatement := MediaOverviewStatement(search, relationFn, whereFn)
+func QueryMediaOverview(userId uuid.UUID, search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn, ctx context.Context, db *sql.DB, env *environment.EnvironmentVariables) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	selectStatement := mediaOverviewStatement(userId, search, relationFn, whereFn)
 
 	util.DebugCheck(env, selectStatement)
 

@@ -29,7 +29,7 @@ type PersonRepository interface {
 	AddToMedia(mediaPeople []model.MediaPerson) ([]model.MediaPerson, error)
 	RemoveFromMedia(mediaPerson model.MediaPerson) error
 	GetAll(search dto.PersonSearchDTO) ([]model.Person, error)
-	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type personRepository struct {
@@ -40,7 +40,7 @@ type personRepository struct {
 }
 
 // GetMedia implements PersonRepository.
-func (r *personRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (r *personRepository) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	search.People = []string{}
 	relationFunc := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
 		media := table.Media
@@ -55,33 +55,12 @@ func (r *personRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*d
 		return whr.AND(mediaPerson.PersonID.EQ(postgres.UUID(id)))
 	}
 
-	selectStatement := helpers.MediaOverviewStatement(search, relationFunc, whereFn)
-
-	util.DebugCheck(r.env, selectStatement)
-
-	var mediaResult []struct {
-		Total int
-		models.MediaOverviewModel
-	}
-	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
-		return nil, errs.BuildError(err, "could not query media")
+	mediaPage, err := helpers.QueryMediaOverview(userId, search, relationFunc, whereFn, r.ctx, r.db, r.env)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not query media from person repo")
 	}
 
-	data := make([]models.MediaOverviewModel, len(mediaResult))
-	total := 0
-	if mediaResult != nil && len(mediaResult) > 0 {
-		total = mediaResult[0].Total
-		for i, o := range mediaResult {
-			data[i] = o.MediaOverviewModel
-		}
-	}
-
-	return &dto.PageDTO[models.MediaOverviewModel]{
-		Data:  data,
-		Limit: search.Limit,
-		Skip:  search.Skip,
-		Total: total,
-	}, nil
+	return mediaPage, nil
 }
 
 // GetById implements PersonRepository.

@@ -12,6 +12,7 @@ type MediaVideo struct {
 
 type MediaOverviewModel struct {
 	model.Media
+	model.MediaProgress
 	Thumbnail
 }
 
