@@ -27,6 +27,7 @@ type MediaRepository interface {
 	GetAll(userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
 	GetById(id uuid.UUID) (*models.Media, error)
+	GetByIdAndUserId(id, userId uuid.UUID) (*models.Media, error)
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
 	Delete(m model.Media) error
 	GetAssetsFor(id uuid.UUID) ([]model.Media, error)
@@ -180,11 +181,11 @@ func (r *mediaRepository) UpdateExists(m model.Media) error {
 }
 
 func (r *mediaRepository) UpdateChecksum(m models.Media) error {
-	m.Modified = time.Now()
+	m.Media.Modified = time.Now()
 	statement := media.UPDATE().
 		SET(
 			media.Checksum.SET(postgres.String(*m.Checksum)),
-			media.Modified.SET(postgres.TimestampT(m.Modified)),
+			media.Modified.SET(postgres.TimestampT(m.Media.Modified)),
 		).
 		MODEL(m).
 		WHERE(media.ID.EQ(postgres.UUID(m.Media.ID)))
@@ -232,6 +233,10 @@ func (r *mediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error
 }
 
 func (r *mediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
+	return r.GetByIdAndUserId(id, uuid.New())
+}
+
+func (r *mediaRepository) GetByIdAndUserId(id, userId uuid.UUID) (*models.Media, error) {
 	image := table.Image
 	video := table.Video
 	thumbnail := table.Media.AS("thumbnail")
@@ -240,7 +245,15 @@ func (r *mediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 	person := table.Person
 	mediaTag := table.MediaTag
 	tag := table.Tag
-	statement := media.SELECT(media.AllColumns, image.AllColumns, video.AllColumns, thumbnail.ID, person.AllColumns, tag.AllColumns).
+
+	statement := media.SELECT(
+		media.AllColumns,
+		image.AllColumns,
+		video.AllColumns,
+		thumbnail.ID,
+		person.AllColumns,
+		tag.AllColumns,
+		table.MediaProgress.Timestamp).
 		FROM(media.
 			LEFT_JOIN(image, image.MediaID.EQ(media.ID)).
 			LEFT_JOIN(video, video.MediaID.EQ(media.ID)).
@@ -253,7 +266,8 @@ func (r *mediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 			LEFT_JOIN(mediaPerson, mediaPerson.MediaID.EQ(media.ID)).
 			LEFT_JOIN(person, person.ID.EQ(mediaPerson.PersonID)).
 			LEFT_JOIN(mediaTag, mediaTag.MediaID.EQ(media.ID)).
-			LEFT_JOIN(tag, tag.ID.EQ(mediaTag.TagID)),
+			LEFT_JOIN(tag, tag.ID.EQ(mediaTag.TagID)).
+			LEFT_JOIN(table.MediaProgress, table.MediaProgress.MediaID.EQ(media.ID).AND(table.MediaProgress.UserID.EQ(postgres.UUID(userId)))),
 		).
 		WHERE(media.ID.EQ(postgres.UUID(id)))
 
