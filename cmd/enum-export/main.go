@@ -35,6 +35,7 @@ func main() {
 		{Name: "MediaTypeAllValues", Enums: toStringSlice(model.MediaTypeEnumAllValues)},
 		{Name: "MediaRelationTypeAllValues", Enums: toStringSlice(model.MediaRelationTypeEnumAllValues)},
 		{Name: "WSTopicAllValues", Enums: toStringSlice(dto.WSTopicAllValues)},
+		{Name: "WatchStatusAllValues", Enums: toStringSlice(dto.WatchStatusAllValues)},
 	}
 
 	lines := []string{}
