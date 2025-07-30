@@ -96,6 +96,7 @@ type MediaDTO struct {
 	Image         *ImageDTO   `json:"image,omitempty"`
 	Video         *VideoDTO   `json:"video,omitempty"`
 	ThumbnailID   uuid.UUID   `json:"thumbnailId,omitempty"`
+	Progress      float64     `json:"progress,omitempty"`
 	People        []PersonDTO `json:"people"`
 	Tags          []TagDTO    `json:"tags"`
 }
@@ -110,8 +111,13 @@ func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
 	d.Deleted = m.Deleted
 	d.Exists = m.Exists
 	d.Added = m.Added
-	d.Created = m.Created
-	d.Modified = m.Modified
+	d.Created = m.Media.Created
+	d.Modified = m.Media.Modified
+
+	if m.MediaProgress != nil {
+		d.Progress = m.MediaProgress.Timestamp
+	}
+
 	if m.Thumbnail != nil {
 		d.ThumbnailID = m.Thumbnail.ID
 	}

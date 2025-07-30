@@ -175,7 +175,13 @@ func (s *server) getMediaById(c *gin.Context) {
 		return
 	}
 
-	m, err := s.repo.Media().GetById(id)
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	m, err := s.repo.Media().GetByIdAndUserId(id, *userId)
 	if err != nil {
 		s.logger.Errorf("could not get media by id: %v", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not get media by id"})

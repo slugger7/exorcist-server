@@ -25,6 +25,7 @@ type Media struct {
 	*model.Image
 	*model.Video
 	*Thumbnail
+	*model.MediaProgress
 	People []model.Person
 	Tags   []model.Tag
 }
