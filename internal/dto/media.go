@@ -55,12 +55,31 @@ func (o MediaOrdinal) String() string {
 	return string(o)
 }
 
+type WatchStatus string
+
+const (
+	WatchStatus_Watched    WatchStatus = "watched"
+	WatchStatus_Unwatched  WatchStatus = "unwatched"
+	WatchStatus_InProgress WatchStatus = "in_progress"
+)
+
+var WatchStatusAllValues = []WatchStatus{
+	WatchStatus_Watched,
+	WatchStatus_Unwatched,
+	WatchStatus_InProgress,
+}
+
+func (w WatchStatus) String() string {
+	return string(w)
+}
+
 type MediaSearchDTO struct {
 	PageRequestDTO
-	OrderBy MediaOrdinal `form:"orderBy" json:"orderBy"`
-	Search  string       `form:"search" json:"search"`
-	Tags    []string     `form:"tags" json:"tags"`
-	People  []string     `form:"people" json:"people"`
+	OrderBy       MediaOrdinal  `form:"orderBy" json:"orderBy"`
+	Search        string        `form:"search" json:"search"`
+	Tags          []string      `form:"tags" json:"tags"`
+	People        []string      `form:"people" json:"people"`
+	WatchStatuses []WatchStatus `form:"watchStatuses" json:"watchStatus"`
 }
 
 type MediaOverviewDTO struct {
