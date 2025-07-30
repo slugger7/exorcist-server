@@ -17,6 +17,7 @@ import (
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
 	mediaService "github.com/slugger7/exorcist/internal/service/media"
 	personService "github.com/slugger7/exorcist/internal/service/person"
+	playlistService "github.com/slugger7/exorcist/internal/service/playlist"
 	tagService "github.com/slugger7/exorcist/internal/service/tag"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 	gomock "go.uber.org/mock/gomock"
@@ -114,6 +115,20 @@ func (m *MockIService) Person() personService.IPersonService {
 func (mr *MockIServiceMockRecorder) Person() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Person", reflect.TypeOf((*MockIService)(nil).Person))
+}
+
+// Playlist mocks base method.
+func (m *MockIService) Playlist() playlistService.PlaylistService {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Playlist")
+	ret0, _ := ret[0].(playlistService.PlaylistService)
+	return ret0
+}
+
+// Playlist indicates an expected call of Playlist.
+func (mr *MockIServiceMockRecorder) Playlist() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Playlist", reflect.TypeOf((*MockIService)(nil).Playlist))
 }
 
 // Tag mocks base method.
