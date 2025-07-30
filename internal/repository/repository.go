@@ -210,8 +210,8 @@ func (s *repository) runMigrations() error {
 		return err
 	}
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
-		"postgres", driver)
+		fmt.Sprintf("file://%v", s.env.MigrationPath),
+		"exorcist", driver)
 	if err != nil {
 		return err
 	}
