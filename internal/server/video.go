@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/dto"
 )
 
 func (s *server) withVideoGet(r *gin.RouterGroup, route Route) *server {
@@ -25,9 +26,7 @@ func (s *server) putVideoProgress(c *gin.Context) {
 		return
 	}
 
-	var progress struct {
-		Progress float64 `json:"progress" form:"progress"`
-	}
+	var progress dto.ProgressUpdateDTO
 	if err := c.ShouldBindQuery(&progress); err != nil {
 		c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
@@ -39,15 +38,15 @@ func (s *server) putVideoProgress(c *gin.Context) {
 		return
 	}
 
-	prog, err := s.service.Media().LogProgress(id, *userId, progress.Progress)
+	prog, err := s.service.Media().LogProgress(id, *userId, progress)
 	if err != nil {
 		s.logger.Errorf("colud not log progress for %v: %v", id.String(), err.Error())
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	// TODO: convert prog to dto
-	c.JSON(http.StatusOK, prog)
+	progDto := (&dto.ProgressDTO{}).FromModel(*prog)
+	c.JSON(http.StatusOK, progDto)
 }
 
 func (s *server) getVideoStream(c *gin.Context) {

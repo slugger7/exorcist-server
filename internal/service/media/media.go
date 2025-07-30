@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
@@ -20,7 +21,7 @@ type MediaService interface {
 	AddTag(id uuid.UUID, tagId uuid.UUID) (*model.MediaTag, error)
 	AddPerson(id uuid.UUID, personId uuid.UUID) (*model.MediaPerson, error)
 	Delete(id uuid.UUID, physical bool) error
-	LogProgress(id, userId uuid.UUID, progress float64) (*model.MediaProgress, error)
+	LogProgress(id, userId uuid.UUID, progress dto.ProgressUpdateDTO) (*model.MediaProgress, error)
 }
 
 type mediaService struct {
@@ -32,11 +33,24 @@ type mediaService struct {
 }
 
 // LogProgress implements MediaService.
-func (m *mediaService) LogProgress(id, userId uuid.UUID, progress float64) (*model.MediaProgress, error) {
+func (m *mediaService) LogProgress(id, userId uuid.UUID, progress dto.ProgressUpdateDTO) (*model.MediaProgress, error) {
+	current, err := m.repo.Media().GetProgressForUser(id, userId)
+	if err != nil {
+		if !progress.Overwrite {
+			return nil, errs.BuildError(err, "could not fetch progress for user %v and video %v", userId.String(), id.String())
+		}
+	}
+
+	if current != nil && !progress.Overwrite {
+		if current.Timestamp > progress.Progress {
+			return current, nil
+		}
+	}
+
 	prog := &model.MediaProgress{
 		UserID:    userId,
 		MediaID:   id,
-		Timestamp: progress,
+		Timestamp: progress.Progress,
 	}
 
 	newProg, err := m.repo.Media().UpsertProgress(*prog)
