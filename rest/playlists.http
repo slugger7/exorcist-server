@@ -1,1 +1,12 @@
+### Get all playlists
 GET {{host}}:{{port}}/api/playlists
+
+### Create playlists
+POST {{host}}:{{port}}/api/playlists
+Content-Type: application/json
+
+[
+  {
+    "name": "new playlist name"
+  }
+]
