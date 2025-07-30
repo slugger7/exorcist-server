@@ -26,7 +26,6 @@ type mediaPersonTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type MediaPersonTable struct {
@@ -72,7 +71,6 @@ func newMediaPersonTableImpl(schemaName, tableName, alias string) mediaPersonTab
 		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
 		allColumns     = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn, MediaIDColumn, PersonIDColumn, GhostIDColumn}
 		mutableColumns = postgres.ColumnList{CreatedColumn, ModifiedColumn, MediaIDColumn, PersonIDColumn, GhostIDColumn}
-		defaultColumns = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return mediaPersonTable{
@@ -88,6 +86,5 @@ func newMediaPersonTableImpl(schemaName, tableName, alias string) mediaPersonTab
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }

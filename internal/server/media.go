@@ -70,6 +70,8 @@ func (s *server) deleteMedia(c *gin.Context) {
 		return
 	}
 
+	// TODO: notify websockets of media deletion
+
 	c.Status(http.StatusOK)
 }
 
@@ -173,7 +175,13 @@ func (s *server) getMediaById(c *gin.Context) {
 		return
 	}
 
-	m, err := s.repo.Media().GetById(id)
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	m, err := s.repo.Media().GetByIdAndUserId(id, *userId)
 	if err != nil {
 		s.logger.Errorf("could not get media by id: %v", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not get media by id"})
@@ -200,7 +208,13 @@ func (s *server) getMedia(c *gin.Context) {
 		search.Limit = 100
 	}
 
-	result, err := s.repo.Media().GetAll(search)
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	result, err := s.repo.Media().GetAll(*userId, search)
 	if err != nil {
 		s.logger.Errorf("could not get media from repo: %v", err.Error())
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("could not get media"))

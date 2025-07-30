@@ -16,7 +16,7 @@ import (
 type LibraryService interface {
 	Create(newLibrary *model.Library) (*model.Library, error)
 	GetAll() ([]model.Library, error)
-	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type libraryService struct {
@@ -26,7 +26,7 @@ type libraryService struct {
 }
 
 // GetMedia implements LibraryService.
-func (i *libraryService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (i *libraryService) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	library, err := i.repo.Library().GetById(id)
 	if err != nil {
 		return nil, errs.BuildError(err, "could not get library by id from repo: %v", id)
@@ -36,7 +36,7 @@ func (i *libraryService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto
 		return nil, fmt.Errorf("no library found with id: %v", id)
 	}
 
-	media, err := i.repo.Library().GetMedia(id, search)
+	media, err := i.repo.Library().GetMedia(id, userId, search)
 	if err != nil {
 		return nil, errs.BuildError(err, "could not get media for library (%v) from repo", id.String())
 	}

@@ -44,18 +44,18 @@ func (m *MockTagService) EXPECT() *MockTagServiceMockRecorder {
 }
 
 // GetMedia mocks base method.
-func (m *MockTagService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (m *MockTagService) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMedia", id, search)
+	ret := m.ctrl.Call(m, "GetMedia", id, userId, search)
 	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMedia indicates an expected call of GetMedia.
-func (mr *MockTagServiceMockRecorder) GetMedia(id, search any) *gomock.Call {
+func (mr *MockTagServiceMockRecorder) GetMedia(id, userId, search any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockTagService)(nil).GetMedia), id, search)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockTagService)(nil).GetMedia), id, userId, search)
 }
 
 // Upsert mocks base method.

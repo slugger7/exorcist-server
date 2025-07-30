@@ -27,7 +27,6 @@ type mediaProgressTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type MediaProgressTable struct {
@@ -74,7 +73,6 @@ func newMediaProgressTableImpl(schemaName, tableName, alias string) mediaProgres
 		GhostIDColumn   = postgres.IntegerColumn("ghost_id")
 		allColumns      = postgres.ColumnList{IDColumn, UserIDColumn, MediaIDColumn, TimestampColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 		mutableColumns  = postgres.ColumnList{UserIDColumn, MediaIDColumn, TimestampColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
-		defaultColumns  = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return mediaProgressTable{
@@ -91,6 +89,5 @@ func newMediaProgressTableImpl(schemaName, tableName, alias string) mediaProgres
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }

@@ -73,18 +73,18 @@ func (mr *MockMediaRepositoryMockRecorder) Delete(m any) *gomock.Call {
 }
 
 // GetAll mocks base method.
-func (m *MockMediaRepository) GetAll(arg0 dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (m *MockMediaRepository) GetAll(userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", arg0)
+	ret := m.ctrl.Call(m, "GetAll", userId, search)
 	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockMediaRepositoryMockRecorder) GetAll(arg0 any) *gomock.Call {
+func (mr *MockMediaRepositoryMockRecorder) GetAll(userId, search any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockMediaRepository)(nil).GetAll), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockMediaRepository)(nil).GetAll), userId, search)
 }
 
 // GetAssetsFor mocks base method.
@@ -117,6 +117,21 @@ func (mr *MockMediaRepositoryMockRecorder) GetById(id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockMediaRepository)(nil).GetById), id)
 }
 
+// GetByIdAndUserId mocks base method.
+func (m *MockMediaRepository) GetByIdAndUserId(id, userId uuid.UUID) (*models.Media, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByIdAndUserId", id, userId)
+	ret0, _ := ret[0].(*models.Media)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByIdAndUserId indicates an expected call of GetByIdAndUserId.
+func (mr *MockMediaRepositoryMockRecorder) GetByIdAndUserId(id, userId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdAndUserId", reflect.TypeOf((*MockMediaRepository)(nil).GetByIdAndUserId), id, userId)
+}
+
 // GetByLibraryPathId mocks base method.
 func (m *MockMediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
 	m.ctrl.T.Helper()
@@ -130,6 +145,21 @@ func (m *MockMediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, e
 func (mr *MockMediaRepositoryMockRecorder) GetByLibraryPathId(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLibraryPathId", reflect.TypeOf((*MockMediaRepository)(nil).GetByLibraryPathId), id)
+}
+
+// GetProgressForUser mocks base method.
+func (m *MockMediaRepository) GetProgressForUser(id, userId uuid.UUID) (*model.MediaProgress, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProgressForUser", id, userId)
+	ret0, _ := ret[0].(*model.MediaProgress)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProgressForUser indicates an expected call of GetProgressForUser.
+func (mr *MockMediaRepositoryMockRecorder) GetProgressForUser(id, userId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressForUser", reflect.TypeOf((*MockMediaRepository)(nil).GetProgressForUser), id, userId)
 }
 
 // Relate mocks base method.
@@ -173,4 +203,19 @@ func (m *MockMediaRepository) UpdateExists(arg0 model.Media) error {
 func (mr *MockMediaRepositoryMockRecorder) UpdateExists(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExists", reflect.TypeOf((*MockMediaRepository)(nil).UpdateExists), arg0)
+}
+
+// UpsertProgress mocks base method.
+func (m *MockMediaRepository) UpsertProgress(prog model.MediaProgress) (*model.MediaProgress, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertProgress", prog)
+	ret0, _ := ret[0].(*model.MediaProgress)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpsertProgress indicates an expected call of UpsertProgress.
+func (mr *MockMediaRepositoryMockRecorder) UpsertProgress(prog any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertProgress", reflect.TypeOf((*MockMediaRepository)(nil).UpsertProgress), prog)
 }

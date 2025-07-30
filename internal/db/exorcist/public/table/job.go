@@ -29,7 +29,6 @@ type jobTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type JobTable struct {
@@ -78,7 +77,6 @@ func newJobTableImpl(schemaName, tableName, alias string) jobTable {
 		ModifiedColumn = postgres.TimestampColumn("modified")
 		allColumns     = postgres.ColumnList{IDColumn, ParentColumn, PriorityColumn, JobTypeColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn}
 		mutableColumns = postgres.ColumnList{ParentColumn, PriorityColumn, JobTypeColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn}
-		defaultColumns = postgres.ColumnList{IDColumn, PriorityColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return jobTable{
@@ -97,6 +95,5 @@ func newJobTableImpl(schemaName, tableName, alias string) jobTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }

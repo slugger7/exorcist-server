@@ -26,7 +26,6 @@ type videoTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type VideoTable struct {
@@ -72,7 +71,6 @@ func newVideoTableImpl(schemaName, tableName, alias string) videoTable {
 		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
 		allColumns     = postgres.ColumnList{IDColumn, MediaIDColumn, HeightColumn, WidthColumn, RuntimeColumn, GhostIDColumn}
 		mutableColumns = postgres.ColumnList{MediaIDColumn, HeightColumn, WidthColumn, RuntimeColumn, GhostIDColumn}
-		defaultColumns = postgres.ColumnList{IDColumn}
 	)
 
 	return videoTable{
@@ -88,6 +86,5 @@ func newVideoTableImpl(schemaName, tableName, alias string) videoTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }

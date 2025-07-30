@@ -24,12 +24,15 @@ type MediaRepository interface {
 	Create([]model.Media) ([]model.Media, error)
 	UpdateExists(model.Media) error
 	UpdateChecksum(m models.Media) error
-	GetAll(dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	GetAll(userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
 	GetById(id uuid.UUID) (*models.Media, error)
+	GetByIdAndUserId(id, userId uuid.UUID) (*models.Media, error)
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
 	Delete(m model.Media) error
 	GetAssetsFor(id uuid.UUID) ([]model.Media, error)
+	GetProgressForUser(id, userId uuid.UUID) (*model.MediaProgress, error)
+	UpsertProgress(prog model.MediaProgress) (*model.MediaProgress, error)
 }
 
 type mediaRepository struct {
@@ -37,6 +40,54 @@ type mediaRepository struct {
 	env    *environment.EnvironmentVariables
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// UpsertProgress implements MediaRepository.
+func (r *mediaRepository) UpsertProgress(prog model.MediaProgress) (*model.MediaProgress, error) {
+	prog.Modified = time.Now()
+	mediaProgres := table.MediaProgress
+	insertStatement := mediaProgres.INSERT(mediaProgres.MediaID, mediaProgres.UserID, mediaProgres.Timestamp, mediaProgres.Modified).
+		MODEL(prog).
+		ON_CONFLICT(mediaProgres.MediaID, mediaProgres.UserID).
+		DO_UPDATE(postgres.SET(
+			mediaProgres.Timestamp.SET(postgres.Float(prog.Timestamp)),
+			mediaProgres.Modified.SET(postgres.LOCALTIMESTAMP()),
+		)).
+		RETURNING(mediaProgres.AllColumns)
+
+	var updatedProg struct {
+		model.MediaProgress
+	}
+	if err := insertStatement.QueryContext(r.ctx, r.db, &updatedProg); err != nil {
+		return nil, errs.BuildError(err, "could not insert/update progress for user %v for media %v", prog.UserID.String(), prog.MediaID.String())
+	}
+
+	return &updatedProg.MediaProgress, nil
+}
+
+// GetProgressForUser implements MediaRepository.
+func (r *mediaRepository) GetProgressForUser(id uuid.UUID, userId uuid.UUID) (*model.MediaProgress, error) {
+	mediaProgress := table.MediaProgress
+	selectStatement := mediaProgress.SELECT(
+		mediaProgress.ID,
+		mediaProgress.MediaID,
+		mediaProgress.UserID,
+		mediaProgress.Timestamp).
+		WHERE(mediaProgress.MediaID.EQ(postgres.UUID(id)).
+			AND(mediaProgress.UserID.EQ(postgres.UUID(userId))))
+
+	var prog []struct {
+		model.MediaProgress
+	}
+	if err := selectStatement.QueryContext(r.ctx, r.db, &prog); err != nil {
+		return nil, errs.BuildError(err, "could not fetch pogress for user %v and media %v", userId.String(), id.String())
+	}
+
+	if len(prog) == 0 {
+		return nil, nil
+	}
+
+	return &prog[0].MediaProgress, nil
 }
 
 // GetAssetsFor implements MediaRepository.
@@ -130,11 +181,11 @@ func (r *mediaRepository) UpdateExists(m model.Media) error {
 }
 
 func (r *mediaRepository) UpdateChecksum(m models.Media) error {
-	m.Modified = time.Now()
+	m.Media.Modified = time.Now()
 	statement := media.UPDATE().
 		SET(
 			media.Checksum.SET(postgres.String(*m.Checksum)),
-			media.Modified.SET(postgres.TimestampT(m.Modified)),
+			media.Modified.SET(postgres.TimestampT(m.Media.Modified)),
 		).
 		MODEL(m).
 		WHERE(media.ID.EQ(postgres.UUID(m.Media.ID)))
@@ -148,7 +199,7 @@ func (r *mediaRepository) UpdateChecksum(m models.Media) error {
 	return nil
 }
 
-func (r *mediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (r *mediaRepository) GetAll(userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	relationFn := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
 		return relationTable
 	}
@@ -157,33 +208,12 @@ func (r *mediaRepository) GetAll(search dto.MediaSearchDTO) (*dto.PageDTO[models
 		return whr
 	}
 
-	selectStatement := helpers.MediaOverviewStatement(search, relationFn, whereFn)
-
-	util.DebugCheck(r.env, selectStatement)
-
-	var mediaResult []struct {
-		Total int
-		models.MediaOverviewModel
-	}
-	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
-		return nil, errs.BuildError(err, "could not query media")
+	mediaPage, err := helpers.QueryMediaOverview(userId, search, relationFn, whereFn, r.ctx, r.db, r.env)
+	if err != nil {
+		return nil, errs.BuildError(err, "colud not query media overview from media repo")
 	}
 
-	data := make([]models.MediaOverviewModel, len(mediaResult))
-	total := 0
-	if mediaResult != nil && len(mediaResult) > 0 {
-		total = mediaResult[0].Total
-		for i, o := range mediaResult {
-			data[i] = o.MediaOverviewModel
-		}
-	}
-
-	return &dto.PageDTO[models.MediaOverviewModel]{
-		Data:  data,
-		Limit: search.Limit,
-		Skip:  search.Skip,
-		Total: total,
-	}, nil
+	return mediaPage, nil
 }
 
 func (r *mediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
@@ -203,6 +233,10 @@ func (r *mediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error
 }
 
 func (r *mediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
+	return r.GetByIdAndUserId(id, uuid.New())
+}
+
+func (r *mediaRepository) GetByIdAndUserId(id, userId uuid.UUID) (*models.Media, error) {
 	image := table.Image
 	video := table.Video
 	thumbnail := table.Media.AS("thumbnail")
@@ -211,7 +245,15 @@ func (r *mediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 	person := table.Person
 	mediaTag := table.MediaTag
 	tag := table.Tag
-	statement := media.SELECT(media.AllColumns, image.AllColumns, video.AllColumns, thumbnail.ID, person.AllColumns, tag.AllColumns).
+
+	statement := media.SELECT(
+		media.AllColumns,
+		image.AllColumns,
+		video.AllColumns,
+		thumbnail.ID,
+		person.AllColumns,
+		tag.AllColumns,
+		table.MediaProgress.Timestamp).
 		FROM(media.
 			LEFT_JOIN(image, image.MediaID.EQ(media.ID)).
 			LEFT_JOIN(video, video.MediaID.EQ(media.ID)).
@@ -224,7 +266,8 @@ func (r *mediaRepository) GetById(id uuid.UUID) (*models.Media, error) {
 			LEFT_JOIN(mediaPerson, mediaPerson.MediaID.EQ(media.ID)).
 			LEFT_JOIN(person, person.ID.EQ(mediaPerson.PersonID)).
 			LEFT_JOIN(mediaTag, mediaTag.MediaID.EQ(media.ID)).
-			LEFT_JOIN(tag, tag.ID.EQ(mediaTag.TagID)),
+			LEFT_JOIN(tag, tag.ID.EQ(mediaTag.TagID)).
+			LEFT_JOIN(table.MediaProgress, table.MediaProgress.MediaID.EQ(media.ID).AND(table.MediaProgress.UserID.EQ(postgres.UUID(userId)))),
 		).
 		WHERE(media.ID.EQ(postgres.UUID(id)))
 

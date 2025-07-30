@@ -1,0 +1,1 @@
+alter table media_progress drop constraint uq_media_progress_media_id_user_id

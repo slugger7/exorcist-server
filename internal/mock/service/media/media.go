@@ -84,3 +84,18 @@ func (mr *MockMediaServiceMockRecorder) Delete(id, physical any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockMediaService)(nil).Delete), id, physical)
 }
+
+// LogProgress mocks base method.
+func (m *MockMediaService) LogProgress(id, userId uuid.UUID, progress float64) (*model.MediaProgress, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LogProgress", id, userId, progress)
+	ret0, _ := ret[0].(*model.MediaProgress)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LogProgress indicates an expected call of LogProgress.
+func (mr *MockMediaServiceMockRecorder) LogProgress(id, userId, progress any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogProgress", reflect.TypeOf((*MockMediaService)(nil).LogProgress), id, userId, progress)
+}

@@ -55,18 +55,38 @@ func (o MediaOrdinal) String() string {
 	return string(o)
 }
 
+type WatchStatus string
+
+const (
+	WatchStatus_Watched    WatchStatus = "watched"
+	WatchStatus_Unwatched  WatchStatus = "unwatched"
+	WatchStatus_InProgress WatchStatus = "in_progress"
+)
+
+var WatchStatusAllValues = []WatchStatus{
+	WatchStatus_Watched,
+	WatchStatus_Unwatched,
+	WatchStatus_InProgress,
+}
+
+func (w WatchStatus) String() string {
+	return string(w)
+}
+
 type MediaSearchDTO struct {
 	PageRequestDTO
-	OrderBy MediaOrdinal `form:"orderBy" json:"orderBy"`
-	Search  string       `form:"search" json:"search"`
-	Tags    []string     `form:"tags" json:"tags"`
-	People  []string     `form:"people" json:"people"`
+	OrderBy       MediaOrdinal  `form:"orderBy" json:"orderBy"`
+	Search        string        `form:"search" json:"search"`
+	Tags          []string      `form:"tags" json:"tags"`
+	People        []string      `form:"people" json:"people"`
+	WatchStatuses []WatchStatus `form:"watchStatuses" json:"watchStatus"`
 }
 
 type MediaOverviewDTO struct {
 	Id          uuid.UUID `json:"id"`
 	Title       string    `json:"title,omitempty"`
 	ThumbnailId uuid.UUID `json:"thumbnailId,omitempty"`
+	Progress    float64   `json:"progress,omitempty"`
 	Deleted     bool      `json:"deleted"`
 }
 
@@ -74,6 +94,7 @@ func (v *MediaOverviewDTO) FromModel(m models.MediaOverviewModel) *MediaOverview
 	v.Id = m.Media.ID
 	v.Title = m.Title
 	v.Deleted = m.Deleted
+	v.Progress = m.MediaProgress.Timestamp
 	v.ThumbnailId = m.Thumbnail.ID
 
 	return v
@@ -94,6 +115,7 @@ type MediaDTO struct {
 	Image         *ImageDTO   `json:"image,omitempty"`
 	Video         *VideoDTO   `json:"video,omitempty"`
 	ThumbnailID   uuid.UUID   `json:"thumbnailId,omitempty"`
+	Progress      float64     `json:"progress,omitempty"`
 	People        []PersonDTO `json:"people"`
 	Tags          []TagDTO    `json:"tags"`
 }
@@ -108,8 +130,13 @@ func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
 	d.Deleted = m.Deleted
 	d.Exists = m.Exists
 	d.Added = m.Added
-	d.Created = m.Created
-	d.Modified = m.Modified
+	d.Created = m.Media.Created
+	d.Modified = m.Media.Modified
+
+	if m.MediaProgress != nil {
+		d.Progress = m.MediaProgress.Timestamp
+	}
+
 	if m.Thumbnail != nil {
 		d.ThumbnailID = m.Thumbnail.ID
 	}

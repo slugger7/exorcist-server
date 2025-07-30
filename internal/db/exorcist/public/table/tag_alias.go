@@ -25,7 +25,6 @@ type tagAliasTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type TagAliasTable struct {
@@ -70,7 +69,6 @@ func newTagAliasTableImpl(schemaName, tableName, alias string) tagAliasTable {
 		TagIDColumn    = postgres.StringColumn("tag_id")
 		allColumns     = postgres.ColumnList{IDColumn, Alias_Column, CreatedColumn, ModifiedColumn, TagIDColumn}
 		mutableColumns = postgres.ColumnList{Alias_Column, CreatedColumn, ModifiedColumn, TagIDColumn}
-		defaultColumns = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return tagAliasTable{
@@ -85,6 +83,5 @@ func newTagAliasTableImpl(schemaName, tableName, alias string) tagAliasTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }

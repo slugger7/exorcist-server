@@ -29,7 +29,7 @@ type TagRepository interface {
 	RemoveFromMedia(mediaTag model.MediaTag) error
 	GetAll(search dto.TagSearchDTO) ([]model.Tag, error)
 	GetById(id uuid.UUID) (*model.Tag, error)
-	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type tagRepository struct {
@@ -40,7 +40,7 @@ type tagRepository struct {
 }
 
 // GetMedia implements TagRepository.
-func (r *tagRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (r *tagRepository) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	search.Tags = []string{}
 	relationFn := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
 		media := table.Media
@@ -55,33 +55,12 @@ func (r *tagRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.
 		return whr.AND(mediaTag.TagID.EQ(postgres.UUID(id)))
 	}
 
-	selectStatement := helpers.MediaOverviewStatement(search, relationFn, whereFn)
-
-	util.DebugCheck(r.env, selectStatement)
-
-	var mediaResult []struct {
-		Total int
-		models.MediaOverviewModel
-	}
-	if err := selectStatement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
-		return nil, errs.BuildError(err, "could not query media by tag id: %v", id.String())
+	mediaPage, err := helpers.QueryMediaOverview(userId, search, relationFn, whereFn, r.ctx, r.db, r.env)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not query media overview from tag repo")
 	}
 
-	data := make([]models.MediaOverviewModel, len(mediaResult))
-	total := 0
-	if mediaResult != nil && len(mediaResult) > 0 {
-		total = mediaResult[0].Total
-		for i, o := range mediaResult {
-			data[i] = o.MediaOverviewModel
-		}
-	}
-
-	return &dto.PageDTO[models.MediaOverviewModel]{
-		Data:  data,
-		Limit: search.Limit,
-		Skip:  search.Skip,
-		Total: total,
-	}, nil
+	return mediaPage, nil
 }
 
 // GetById implements TagRepository.

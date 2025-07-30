@@ -38,6 +38,7 @@ type EnvironmentVariables struct {
 	DisableJobs                []model.JobTypeEnum
 	CorsOrigins                []string
 	WebsocketHeartbeatInterval int
+	MigrationPath              string
 }
 
 type OsEnv = string
@@ -60,6 +61,7 @@ const (
 	DISABLE_JOBS                 OsEnv = "DISABLE_JOBS"
 	CORS_ORIGINS                 OsEnv = "CORS_ORIGINS"
 	WEBSOCKET_HEARTBEAT_INTERVAL OsEnv = "WEBSOCKET_HEARTBEAT_INTERVAL"
+	MIGRATIONS_PATH              OsEnv = "MIGRATIONS_PATH"
 )
 
 var env *EnvironmentVariables
@@ -92,6 +94,7 @@ func RefreshEnvironmentVariables() {
 		DisableJobs:                toJobTypes(strings.Split(os.Getenv(DISABLE_JOBS), ";")),
 		CorsOrigins:                strings.Split(os.Getenv(CORS_ORIGINS), ";"),
 		WebsocketHeartbeatInterval: getIntValue(WEBSOCKET_HEARTBEAT_INTERVAL),
+		MigrationPath:              getValueOrDefault(MIGRATIONS_PATH, "./migrations"),
 	}
 }
 

@@ -44,7 +44,13 @@ func (s *server) getMediaByPerson(c *gin.Context) {
 		search.Limit = 100
 	}
 
-	media, err := s.service.Person().GetMedia(id, search)
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	media, err := s.service.Person().GetMedia(id, *userId, search)
 	if err != nil {
 		s.logger.Errorf("could not get media from person service for %v: %v", id, err.Error())
 		c.AbortWithError(http.StatusUnprocessableEntity, fmt.Errorf("could not get media for person"))

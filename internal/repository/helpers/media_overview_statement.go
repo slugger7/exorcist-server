@@ -1,20 +1,26 @@
 package helpers
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
 	"github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/dto"
+	"github.com/slugger7/exorcist/internal/environment"
+	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
 type RelationFn func(relationTable postgres.ReadableTable) postgres.ReadableTable
 type WhereFn func(currentWhere postgres.BoolExpression) postgres.BoolExpression
 
-func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn) postgres.Statement {
-
+func mediaOverviewStatement(userId uuid.UUID, search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn) postgres.Statement {
 	tagFilter := len(search.Tags) > 0
 	personFilter := len(search.People) > 0
 	media := table.Media
@@ -32,6 +38,10 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, wh
 		).LEFT_JOIN(
 			table.Video,
 			table.Video.MediaID.EQ(media.ID),
+		).LEFT_JOIN(
+			table.MediaProgress,
+			table.MediaProgress.MediaID.EQ(media.ID).
+				AND(table.MediaProgress.UserID.EQ(postgres.UUID(userId))),
 		))
 
 	if tagFilter {
@@ -66,6 +76,7 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, wh
 		media.ID,
 		media.Title,
 		thumbnail.ID,
+		table.MediaProgress.Timestamp,
 		postgres.COUNT(postgres.STAR).OVER().AS("total"),
 	).
 		FROM(fromStmnt)
@@ -108,6 +119,32 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, wh
 		)
 	}
 
+	if len(search.WatchStatuses) > 0 {
+		var watchWhere postgres.BoolExpression
+		for _, w := range search.WatchStatuses {
+			var t postgres.BoolExpression
+			switch w {
+			case dto.WatchStatus_Watched:
+				t = table.MediaProgress.Timestamp.GT(table.Video.Runtime.MUL(postgres.Float(0.9)))
+			case dto.WatchStatus_Unwatched:
+				t = table.MediaProgress.Timestamp.LT(table.Video.Runtime.MUL(postgres.Float(0.1))).OR(table.MediaProgress.Timestamp.IS_NULL())
+			case dto.WatchStatus_InProgress:
+				t = table.MediaProgress.Timestamp.GT(table.Video.Runtime.MUL(postgres.Float(0.1))).
+					AND(table.MediaProgress.Timestamp.LT(table.Video.Runtime.MUL(postgres.Float(0.9))))
+			default:
+				continue
+			}
+
+			if watchWhere == nil {
+				watchWhere = t
+			} else {
+				watchWhere = watchWhere.OR(t)
+			}
+		}
+
+		whr = whr.AND(watchWhere)
+	}
+
 	selectStatement = selectStatement.WHERE(whereFn(whr))
 
 	if tagFilter || personFilter {
@@ -127,4 +164,34 @@ func MediaOverviewStatement(search dto.MediaSearchDTO, relationFn RelationFn, wh
 		OFFSET(int64(search.Skip))
 
 	return selectStatement
+}
+
+func QueryMediaOverview(userId uuid.UUID, search dto.MediaSearchDTO, relationFn RelationFn, whereFn WhereFn, ctx context.Context, db *sql.DB, env *environment.EnvironmentVariables) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	selectStatement := mediaOverviewStatement(userId, search, relationFn, whereFn)
+
+	util.DebugCheck(env, selectStatement)
+
+	var mediaResult []struct {
+		Total int
+		models.MediaOverviewModel
+	}
+	if err := selectStatement.QueryContext(ctx, db, &mediaResult); err != nil {
+		return nil, errs.BuildError(err, "could not query media for overview")
+	}
+
+	data := make([]models.MediaOverviewModel, len(mediaResult))
+	total := 0
+	if mediaResult != nil && len(mediaResult) > 0 {
+		total = mediaResult[0].Total
+		for i, o := range mediaResult {
+			data[i] = o.MediaOverviewModel
+		}
+	}
+
+	return &dto.PageDTO[models.MediaOverviewModel]{
+		Data:  data,
+		Limit: search.Limit,
+		Skip:  search.Skip,
+		Total: total,
+	}, nil
 }

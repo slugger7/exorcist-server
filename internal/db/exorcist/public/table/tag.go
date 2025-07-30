@@ -25,7 +25,6 @@ type tagTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type TagTable struct {
@@ -70,7 +69,6 @@ func newTagTableImpl(schemaName, tableName, alias string) tagTable {
 		GhostIDColumn  = postgres.IntegerColumn("ghost_id")
 		allColumns     = postgres.ColumnList{IDColumn, NameColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
 		mutableColumns = postgres.ColumnList{NameColumn, CreatedColumn, ModifiedColumn, GhostIDColumn}
-		defaultColumns = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return tagTable{
@@ -85,6 +83,5 @@ func newTagTableImpl(schemaName, tableName, alias string) tagTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }

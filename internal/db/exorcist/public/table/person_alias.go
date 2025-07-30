@@ -25,7 +25,6 @@ type personAliasTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
-	DefaultColumns postgres.ColumnList
 }
 
 type PersonAliasTable struct {
@@ -70,7 +69,6 @@ func newPersonAliasTableImpl(schemaName, tableName, alias string) personAliasTab
 		PersonIDColumn = postgres.StringColumn("person_id")
 		allColumns     = postgres.ColumnList{IDColumn, Alias_Column, CreatedColumn, ModifiedColumn, PersonIDColumn}
 		mutableColumns = postgres.ColumnList{Alias_Column, CreatedColumn, ModifiedColumn, PersonIDColumn}
-		defaultColumns = postgres.ColumnList{IDColumn, CreatedColumn, ModifiedColumn}
 	)
 
 	return personAliasTable{
@@ -85,6 +83,5 @@ func newPersonAliasTableImpl(schemaName, tableName, alias string) personAliasTab
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
-		DefaultColumns: defaultColumns,
 	}
 }
