@@ -21,6 +21,7 @@ const (
 	libraryPath Route = "/libraryPaths"
 	people      Route = "/people"
 	tags        Route = "/tags"
+	playlists   Route = "/playlists"
 )
 
 type key = string
@@ -93,6 +94,12 @@ func (s *server) RegisterRoutes() http.Handler {
 	s.withTagGetAll(authenticated, tags).
 		withTagCreate(authenticated, tags).
 		withTagGetMedia(authenticated, tags)
+
+	// Register playlist controller routes
+	s.withPlaylistsGetAll(authenticated, playlists).
+		withPlaylistsCreate(authenticated, playlists).
+		withPlaylistsMedia(authenticated, playlists).
+		withPlaylistMediaAdd(authenticated, playlists)
 
 	s.withWS(authenticated, root)
 

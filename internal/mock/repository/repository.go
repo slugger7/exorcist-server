@@ -18,6 +18,7 @@ import (
 	libraryPathRepository "github.com/slugger7/exorcist/internal/repository/library_path"
 	mediaRepository "github.com/slugger7/exorcist/internal/repository/media"
 	personRepository "github.com/slugger7/exorcist/internal/repository/person"
+	playlistRepository "github.com/slugger7/exorcist/internal/repository/playlist"
 	tagRepository "github.com/slugger7/exorcist/internal/repository/tag"
 	userRepository "github.com/slugger7/exorcist/internal/repository/user"
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
@@ -158,6 +159,20 @@ func (m *MockIRepository) Person() personRepository.PersonRepository {
 func (mr *MockIRepositoryMockRecorder) Person() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Person", reflect.TypeOf((*MockIRepository)(nil).Person))
+}
+
+// Playlist mocks base method.
+func (m *MockIRepository) Playlist() playlistRepository.PlaylistRepository {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Playlist")
+	ret0, _ := ret[0].(playlistRepository.PlaylistRepository)
+	return ret0
+}
+
+// Playlist indicates an expected call of Playlist.
+func (mr *MockIRepositoryMockRecorder) Playlist() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Playlist", reflect.TypeOf((*MockIRepository)(nil).Playlist))
 }
 
 // Tag mocks base method.

@@ -11,6 +11,7 @@ import (
 	libraryPathService "github.com/slugger7/exorcist/internal/service/library_path"
 	mediaService "github.com/slugger7/exorcist/internal/service/media"
 	personService "github.com/slugger7/exorcist/internal/service/person"
+	playlistService "github.com/slugger7/exorcist/internal/service/playlist"
 	tagService "github.com/slugger7/exorcist/internal/service/tag"
 	userService "github.com/slugger7/exorcist/internal/service/user"
 )
@@ -23,6 +24,7 @@ type IService interface {
 	Person() personService.IPersonService
 	Tag() tagService.TagService
 	Media() mediaService.MediaService
+	Playlist() playlistService.PlaylistService
 }
 
 type service struct {
@@ -35,6 +37,7 @@ type service struct {
 	person      personService.IPersonService
 	tag         tagService.TagService
 	media       mediaService.MediaService
+	playlist    playlistService.PlaylistService
 	ctx         context.Context
 }
 
@@ -54,6 +57,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 			person:      personService,
 			tag:         tagService,
 			media:       mediaService.New(env, repo, personService, tagService),
+			playlist:    playlistService.New(env, repo),
 			ctx:         ctx,
 		}
 
@@ -95,4 +99,9 @@ func (s *service) Media() mediaService.MediaService {
 func (s *service) Tag() tagService.TagService {
 	s.logger.Debug("Getting tagService")
 	return s.tag
+}
+
+func (s *service) Playlist() playlistService.PlaylistService {
+	s.logger.Debug("Getting playlistService")
+	return s.playlist
 }
