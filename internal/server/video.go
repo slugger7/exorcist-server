@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -34,14 +33,13 @@ func (s *server) putVideoProgress(c *gin.Context) {
 		return
 	}
 
-	session := sessions.Default(c)
-	userString := session.Get(userKey).(string)
-	userId, err := uuid.Parse(userString)
+	userId, err := s.getUserId(c)
 	if err != nil {
-		s.logger.Errorf("could not parse user from string: %v\n%v", userString, err.Error())
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
 
-	prog, err := s.service.Media().LogProgress(id, userId, progress.Progress)
+	prog, err := s.service.Media().LogProgress(id, *userId, progress.Progress)
 	if err != nil {
 		s.logger.Errorf("colud not log progress for %v: %v", id.String(), err.Error())
 		c.AbortWithStatus(http.StatusInternalServerError)

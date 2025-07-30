@@ -53,7 +53,13 @@ func (s *server) getMediaByLibrary(c *gin.Context) {
 		search.Limit = 100
 	}
 
-	media, err := s.service.Library().GetMedia(id, search)
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	media, err := s.service.Library().GetMedia(id, *userId, search)
 	if err != nil {
 		s.logger.Errorf("colud not fetch media for library (%v): %v", id.String(), err.Error())
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("something went wrong while fetching media for library"))

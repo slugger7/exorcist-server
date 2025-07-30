@@ -15,7 +15,7 @@ import (
 
 type TagService interface {
 	Upsert(name string) (*model.Tag, error)
-	GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type tagService struct {
@@ -25,7 +25,7 @@ type tagService struct {
 }
 
 // GetMedia implements TagService.
-func (p *tagService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (p *tagService) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	tag, err := p.repo.Tag().GetById(id)
 	if err != nil {
 		return nil, errs.BuildError(err, "could net get tag by id from repo: %v", id)
@@ -35,7 +35,7 @@ func (p *tagService) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.Pag
 		return nil, fmt.Errorf("no tag found with id: %v", id)
 	}
 
-	media, err := p.repo.Tag().GetMedia(id, search)
+	media, err := p.repo.Tag().GetMedia(id, userId, search)
 	if err != nil {
 		return nil, errs.BuildError(err, "could not get media by tag id from repo: %v", id)
 	}

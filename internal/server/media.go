@@ -202,7 +202,13 @@ func (s *server) getMedia(c *gin.Context) {
 		search.Limit = 100
 	}
 
-	result, err := s.repo.Media().GetAll(search)
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	result, err := s.repo.Media().GetAll(*userId, search)
 	if err != nil {
 		s.logger.Errorf("could not get media from repo: %v", err.Error())
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("could not get media"))
