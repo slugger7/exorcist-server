@@ -119,18 +119,18 @@ func (mr *MockPersonRepositoryMockRecorder) GetByName(name any) *gomock.Call {
 }
 
 // GetMedia mocks base method.
-func (m *MockPersonRepository) GetMedia(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (m *MockPersonRepository) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMedia", id, search)
+	ret := m.ctrl.Call(m, "GetMedia", id, userId, search)
 	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMedia indicates an expected call of GetMedia.
-func (mr *MockPersonRepositoryMockRecorder) GetMedia(id, search any) *gomock.Call {
+func (mr *MockPersonRepositoryMockRecorder) GetMedia(id, userId, search any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockPersonRepository)(nil).GetMedia), id, search)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockPersonRepository)(nil).GetMedia), id, userId, search)
 }
 
 // RemoveFromMedia mocks base method.

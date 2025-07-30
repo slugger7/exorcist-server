@@ -73,18 +73,18 @@ func (mr *MockMediaRepositoryMockRecorder) Delete(m any) *gomock.Call {
 }
 
 // GetAll mocks base method.
-func (m *MockMediaRepository) GetAll(arg0 dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (m *MockMediaRepository) GetAll(userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", arg0)
+	ret := m.ctrl.Call(m, "GetAll", userId, search)
 	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockMediaRepositoryMockRecorder) GetAll(arg0 any) *gomock.Call {
+func (mr *MockMediaRepositoryMockRecorder) GetAll(userId, search any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockMediaRepository)(nil).GetAll), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockMediaRepository)(nil).GetAll), userId, search)
 }
 
 // GetAssetsFor mocks base method.
