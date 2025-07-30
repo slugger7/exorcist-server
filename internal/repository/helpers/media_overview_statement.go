@@ -119,6 +119,32 @@ func mediaOverviewStatement(userId uuid.UUID, search dto.MediaSearchDTO, relatio
 		)
 	}
 
+	if len(search.WatchStatuses) > 0 {
+		var watchWhere postgres.BoolExpression
+		for _, w := range search.WatchStatuses {
+			var t postgres.BoolExpression
+			switch w {
+			case dto.WatchStatus_Watched:
+				t = table.MediaProgress.Timestamp.GT(table.Video.Runtime.MUL(postgres.Float(0.9)))
+			case dto.WatchStatus_Unwatched:
+				t = table.MediaProgress.Timestamp.LT(table.Video.Runtime.MUL(postgres.Float(0.1))).OR(table.MediaProgress.Timestamp.IS_NULL())
+			case dto.WatchStatus_InProgress:
+				t = table.MediaProgress.Timestamp.GT(table.Video.Runtime.MUL(postgres.Float(0.1))).
+					AND(table.MediaProgress.Timestamp.LT(table.Video.Runtime.MUL(postgres.Float(0.9))))
+			default:
+				continue
+			}
+
+			if watchWhere == nil {
+				watchWhere = t
+			} else {
+				watchWhere = watchWhere.OR(t)
+			}
+		}
+
+		whr = whr.AND(watchWhere)
+	}
+
 	selectStatement = selectStatement.WHERE(whereFn(whr))
 
 	if tagFilter || personFilter {
