@@ -8,7 +8,7 @@ import (
 )
 
 type CreatePlaylistDTO struct {
-	Name string `json:"string"`
+	Name string `json:"name"`
 }
 
 type PlaylistDTO struct {
