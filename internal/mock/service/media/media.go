@@ -14,6 +14,7 @@ import (
 
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	dto "github.com/slugger7/exorcist/internal/dto"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -86,7 +87,7 @@ func (mr *MockMediaServiceMockRecorder) Delete(id, physical any) *gomock.Call {
 }
 
 // LogProgress mocks base method.
-func (m *MockMediaService) LogProgress(id, userId uuid.UUID, progress float64) (*model.MediaProgress, error) {
+func (m *MockMediaService) LogProgress(id, userId uuid.UUID, progress dto.ProgressUpdateDTO) (*model.MediaProgress, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LogProgress", id, userId, progress)
 	ret0, _ := ret[0].(*model.MediaProgress)
