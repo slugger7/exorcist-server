@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
@@ -30,6 +31,7 @@ type TagRepository interface {
 	GetAll(search dto.TagSearchDTO) ([]model.Tag, error)
 	GetById(id uuid.UUID) (*model.Tag, error)
 	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	Update(m model.Tag) (*model.Tag, error)
 }
 
 type tagRepository struct {
@@ -37,6 +39,25 @@ type tagRepository struct {
 	db     *sql.DB
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// Update implements TagRepository.
+func (r *tagRepository) Update(m model.Tag) (*model.Tag, error) {
+	m.Modified = time.Now()
+
+	statement := tag.UPDATE(tag.Modified, tag.Name).
+		MODEL(m).
+		WHERE(tag.ID.EQ(postgres.UUID(m.ID))).
+		RETURNING(tag.AllColumns)
+
+	util.DebugCheck(r.env, statement)
+
+	var updatedModel model.Tag
+	if err := statement.QueryContext(r.ctx, r.db, &updatedModel); err != nil {
+		return nil, errs.BuildError(err, "could not update tag")
+	}
+
+	return &updatedModel, nil
 }
 
 // GetMedia implements TagRepository.

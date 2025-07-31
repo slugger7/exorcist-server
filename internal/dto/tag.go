@@ -75,3 +75,7 @@ type TagSearchDTO struct {
 	OrderBy TagOrdinal `form:"orderBy" json:"orderBy"`
 	Asc     bool       `form:"asc" json:"asc"`
 }
+
+type TagUpdateDTO struct {
+	Name string `json:"name"`
+}

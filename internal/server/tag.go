@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
@@ -24,6 +25,41 @@ func (s *server) withTagCreate(r *gin.RouterGroup, route Route) *server {
 func (s *server) withTagGetMedia(r *gin.RouterGroup, route Route) *server {
 	r.GET(fmt.Sprintf("%v/:%v/media", route, idKey), s.getMediaByTag)
 	return s
+}
+
+func (s *server) withTagPut(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v", route, idKey), s.putTag)
+	return s
+}
+
+func (s *server) putTag(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse tag id"})
+		return
+	}
+
+	var updateDto dto.TagUpdateDTO
+	if err := c.ShouldBindBodyWithJSON(&updateDto); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	updateModel := model.Tag{
+		ID:   id,
+		Name: updateDto.Name,
+	}
+
+	updatedModel, err := s.repo.Tag().Update(updateModel)
+	if err != nil {
+		s.logger.Errorf("error updating tag %v: %v", id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	updatedDto := (&dto.TagDTO{}).FromModel(updatedModel)
+
+	c.JSON(http.StatusOK, updatedDto)
 }
 
 func (s *server) getMediaByTag(c *gin.Context) {

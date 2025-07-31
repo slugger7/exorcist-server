@@ -96,7 +96,8 @@ func (s *server) RegisterRoutes() http.Handler {
 	// Regsiter tags controller routes
 	s.withTagGetAll(authenticated, tags).
 		withTagCreate(authenticated, tags).
-		withTagGetMedia(authenticated, tags)
+		withTagGetMedia(authenticated, tags).
+		withTagPut(authenticated, tags)
 
 	// Register playlist controller routes
 	s.withPlaylistsGetAll(authenticated, playlists).
