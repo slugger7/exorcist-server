@@ -88,6 +88,7 @@ type MediaOverviewDTO struct {
 	ThumbnailId uuid.UUID `json:"thumbnailId,omitempty"`
 	Progress    float64   `json:"progress,omitempty"`
 	Deleted     bool      `json:"deleted"`
+	Runtime     float64   `json:"runtime"`
 }
 
 func (v *MediaOverviewDTO) FromModel(m models.MediaOverviewModel) *MediaOverviewDTO {
@@ -97,6 +98,9 @@ func (v *MediaOverviewDTO) FromModel(m models.MediaOverviewModel) *MediaOverview
 	v.Progress = m.MediaProgress.Timestamp
 	v.ThumbnailId = m.Thumbnail.ID
 
+	if m.Video != nil {
+		v.Runtime = m.Video.Runtime
+	}
 	return v
 }
 

@@ -41,6 +41,15 @@ func (m *mediaService) LogProgress(id, userId uuid.UUID, progress dto.ProgressUp
 		}
 	}
 
+	if progress.Progress < 0 {
+		m, err := m.repo.Media().GetById(id)
+		if err != nil {
+			return nil, errs.BuildError(err, "could not get media by id")
+		}
+
+		progress.Progress = m.Runtime + progress.Progress
+	}
+
 	if current != nil && !progress.Overwrite {
 		if current.Timestamp > progress.Progress {
 			return current, nil
