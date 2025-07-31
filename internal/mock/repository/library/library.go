@@ -117,3 +117,18 @@ func (mr *MockLibraryRepositoryMockRecorder) GetMedia(id, userId, search any) *g
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockLibraryRepository)(nil).GetMedia), id, userId, search)
 }
+
+// Update mocks base method.
+func (m_2 *MockLibraryRepository) Update(m model.Library) (*model.Library, error) {
+	m_2.ctrl.T.Helper()
+	ret := m_2.ctrl.Call(m_2, "Update", m)
+	ret0, _ := ret[0].(*model.Library)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockLibraryRepositoryMockRecorder) Update(m any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockLibraryRepository)(nil).Update), m)
+}

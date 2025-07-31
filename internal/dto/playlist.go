@@ -30,3 +30,7 @@ func (d *PlaylistDTO) FromModel(m model.Playlist) *PlaylistDTO {
 type CreatePlaylistMediaDTO struct {
 	MediaID uuid.UUID `json:"mediaId"`
 }
+
+type PlaylistUpdateDTO struct {
+	Name string `json:"name"`
+}

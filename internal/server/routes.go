@@ -65,7 +65,8 @@ func (s *server) RegisterRoutes() http.Handler {
 	// Register library path controller routes
 	s.withLibraryPathCreate(authenticated, libraryPath).
 		withLibraryPathGetAll(authenticated, libraryPath).
-		withLibraryPathGet(authenticated, libraryPath)
+		withLibraryPathGet(authenticated, libraryPath).
+		withLibraryPut(authenticated, libraries)
 
 	// Register media controller routes
 	s.withMediaSearch(authenticated, media).
@@ -89,18 +90,21 @@ func (s *server) RegisterRoutes() http.Handler {
 	// Register person controller routes
 	s.withPersonGetAll(authenticated, people).
 		withPersonCreate(authenticated, people).
-		withPersonGetMedia(authenticated, people)
+		withPersonGetMedia(authenticated, people).
+		withPersonPut(authenticated, people)
 
 	// Regsiter tags controller routes
 	s.withTagGetAll(authenticated, tags).
 		withTagCreate(authenticated, tags).
-		withTagGetMedia(authenticated, tags)
+		withTagGetMedia(authenticated, tags).
+		withTagPut(authenticated, tags)
 
 	// Register playlist controller routes
 	s.withPlaylistsGetAll(authenticated, playlists).
 		withPlaylistsCreate(authenticated, playlists).
 		withPlaylistsMedia(authenticated, playlists).
-		withPlaylistMediaAdd(authenticated, playlists)
+		withPlaylistMediaAdd(authenticated, playlists).
+		withPlaylistPut(authenticated, playlists)
 
 	s.withWS(authenticated, root)
 

@@ -3,6 +3,7 @@ package playlistRepository
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
@@ -22,12 +23,32 @@ type PlaylistRepository interface {
 	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 	CreateAll(playlists []model.Playlist) ([]model.Playlist, error)
 	AddMedia(playlistMedia []model.PlaylistMedia) ([]model.PlaylistMedia, error)
+	Update(m model.Playlist) (*model.Playlist, error)
 }
 
 type playlistRepository struct {
 	env *environment.EnvironmentVariables
 	db  *sql.DB
 	ctx context.Context
+}
+
+// Update implements PlaylistRepository.
+func (p *playlistRepository) Update(m model.Playlist) (*model.Playlist, error) {
+	m.Modified = time.Now()
+
+	statement := table.Playlist.UPDATE(table.Playlist.Modified, table.Playlist.Name).
+		MODEL(m).
+		WHERE(table.Playlist.ID.EQ(postgres.UUID(m.ID))).
+		RETURNING(table.Playlist.AllColumns)
+
+	util.DebugCheck(p.env, statement)
+
+	var updatedModel model.Playlist
+	if err := statement.QueryContext(p.ctx, p.db, &updatedModel); err != nil {
+		return nil, errs.BuildError(err, "could not update playlist")
+	}
+
+	return &updatedModel, nil
 }
 
 // AddMedia implements PlaylistRepository.

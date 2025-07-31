@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
@@ -27,6 +28,41 @@ func (s *server) withPlaylistsMedia(r *gin.RouterGroup, route Route) *server {
 func (s *server) withPlaylistMediaAdd(r *gin.RouterGroup, route Route) *server {
 	r.PUT(fmt.Sprintf("%v/:%v/media", route, idKey), s.putPlaylistMedia)
 	return s
+}
+
+func (s *server) withPlaylistPut(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v", route, idKey), s.putPlaylist)
+	return s
+}
+
+func (s *server) putPlaylist(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse playlist id"})
+		return
+	}
+
+	var updateDto dto.PlaylistUpdateDTO
+	if err := c.ShouldBindBodyWithJSON(&updateDto); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	updateModel := model.Playlist{
+		ID:   id,
+		Name: updateDto.Name,
+	}
+
+	updatedModel, err := s.repo.Playlist().Update(updateModel)
+	if err != nil {
+		s.logger.Errorf("error updating playlist %v: %v", id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	updatedDto := (&dto.PlaylistDTO{}).FromModel(*updatedModel)
+
+	c.JSON(http.StatusOK, updatedDto)
 }
 
 func (s *server) putPlaylistMedia(c *gin.Context) {

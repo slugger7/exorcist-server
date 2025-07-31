@@ -30,10 +30,45 @@ func (s *server) withLibraryGetMedia(r *gin.RouterGroup, route Route) *server {
 	return s
 }
 
+func (s *server) withLibraryPut(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v", route, idKey), s.putLibrary)
+	return s
+}
+
 const (
 	ErrLibraryPathsForLibrary ApiError = "could not get library paths for library %v"
 	ErrIdParse                ApiError = "could not parse id: %v"
 )
+
+func (s *server) putLibrary(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse library id"})
+		return
+	}
+
+	var updateDto dto.LibraryUpdateDTO
+	if err := c.ShouldBindBodyWithJSON(&updateDto); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	updateModel := model.Library{
+		ID:   id,
+		Name: updateDto.Name,
+	}
+
+	updatedModel, err := s.repo.Library().Update(updateModel)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		s.logger.Errorf("could not update library %v: %v", id.String(), err.Error())
+		return
+	}
+
+	updatedDto := (&dto.LibraryDTO{}).FromModel(*updatedModel)
+
+	c.JSON(http.StatusOK, updatedDto)
+}
 
 func (s *server) getMediaByLibrary(c *gin.Context) {
 	id, err := uuid.Parse(c.Param(idKey))

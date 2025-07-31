@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
@@ -24,6 +25,41 @@ func (s *server) withPersonCreate(r *gin.RouterGroup, route Route) *server {
 func (s *server) withPersonGetMedia(r *gin.RouterGroup, route Route) *server {
 	r.GET(fmt.Sprintf(`%v/:%v/media`, route, personIdKey), s.getMediaByPerson)
 	return s
+}
+
+func (s *server) withPersonPut(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v", route, idKey), s.putPerson)
+	return s
+}
+
+func (s *server) putPerson(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse person id"})
+		return
+	}
+
+	var updateDto dto.PersonUpdateDTO
+	if err := c.ShouldBindBodyWithJSON(&updateDto); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	updateModel := model.Person{
+		ID:   id,
+		Name: updateDto.Name,
+	}
+
+	updatedModel, err := s.repo.Person().Update(updateModel)
+	if err != nil {
+		s.logger.Errorf("error while updating person by id %v: %v", id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	updatedDto := (&dto.PersonDTO{}).FromModel(updatedModel)
+
+	c.JSON(http.StatusOK, updatedDto)
 }
 
 func (s *server) getMediaByPerson(c *gin.Context) {
