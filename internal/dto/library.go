@@ -26,3 +26,7 @@ func (l *LibraryDTO) FromModel(m model.Library) *LibraryDTO {
 
 	return l
 }
+
+type LibraryUpdateDTO struct {
+	Name string `json:"name"`
+}

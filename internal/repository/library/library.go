@@ -3,6 +3,7 @@ package libraryRepository
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
@@ -13,6 +14,7 @@ import (
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository/helpers"
+	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
 type LibraryRepository interface {
@@ -21,12 +23,31 @@ type LibraryRepository interface {
 	GetAll() ([]model.Library, error)
 	GetById(uuid.UUID) (*model.Library, error)
 	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	Update(m model.Library) (*model.Library, error)
 }
 
 type libraryRepository struct {
 	db  *sql.DB
 	env *environment.EnvironmentVariables
 	ctx context.Context
+}
+
+// Update implements LibraryRepository.
+func (ls *libraryRepository) Update(m model.Library) (*model.Library, error) {
+	m.Modified = time.Now()
+	statement := table.Library.UPDATE(table.Library.Modified, table.Library.Name).
+		MODEL(m).
+		WHERE(table.Library.ID.EQ(postgres.UUID(m.ID))).
+		RETURNING(table.Library.AllColumns)
+
+	util.DebugCheck(ls.env, statement)
+
+	var updatedModel model.Library
+	if err := statement.QueryContext(ls.ctx, ls.db, &updatedModel); err != nil {
+		return nil, errs.BuildError(err, "could not update library name")
+	}
+
+	return &updatedModel, nil
 }
 
 // GetMedia implements LibraryRepository.
