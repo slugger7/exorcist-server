@@ -46,3 +46,11 @@ DELETE {{host}}:{{port}}/api/media/0fa21151-458f-4a33-aa89-3e374952ddd8?physical
 
 ### Upsert Progress
 PUT {{host}}:{{port}}/api/videos/2b65b266-3a76-471e-838a-e5edfc51255e?progress=6
+
+### Update Media
+PUT {{host}}:{{port}}/api/media/0fa21151-458f-4a33-aa89-3e374952ddd8
+Content-Type: application/json
+
+{
+  "title": "Updated title"
+}
