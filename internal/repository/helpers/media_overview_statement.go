@@ -77,6 +77,7 @@ func mediaOverviewStatement(userId uuid.UUID, search dto.MediaSearchDTO, relatio
 		media.Title,
 		thumbnail.ID,
 		table.MediaProgress.Timestamp,
+		table.Video.Runtime,
 		postgres.COUNT(postgres.STAR).OVER().AS("total"),
 	).
 		FROM(fromStmnt)
