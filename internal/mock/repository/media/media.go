@@ -12,6 +12,7 @@ package mock_mediaRepository
 import (
 	reflect "reflect"
 
+	postgres "github.com/go-jet/jet/v2/postgres"
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	dto "github.com/slugger7/exorcist/internal/dto"
@@ -175,6 +176,21 @@ func (m *MockMediaRepository) Relate(arg0 model.MediaRelation) (*model.MediaRela
 func (mr *MockMediaRepositoryMockRecorder) Relate(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Relate", reflect.TypeOf((*MockMediaRepository)(nil).Relate), arg0)
+}
+
+// Update mocks base method.
+func (m_2 *MockMediaRepository) Update(m model.Media, columns postgres.ColumnList) (*model.Media, error) {
+	m_2.ctrl.T.Helper()
+	ret := m_2.ctrl.Call(m_2, "Update", m, columns)
+	ret0, _ := ret[0].(*model.Media)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockMediaRepositoryMockRecorder) Update(m, columns any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockMediaRepository)(nil).Update), m, columns)
 }
 
 // UpdateChecksum mocks base method.

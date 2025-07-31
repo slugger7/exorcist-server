@@ -33,6 +33,7 @@ type MediaRepository interface {
 	GetAssetsFor(id uuid.UUID) ([]model.Media, error)
 	GetProgressForUser(id, userId uuid.UUID) (*model.MediaProgress, error)
 	UpsertProgress(prog model.MediaProgress) (*model.MediaProgress, error)
+	Update(m model.Media, columns postgres.ColumnList) (*model.Media, error)
 }
 
 type mediaRepository struct {
@@ -40,6 +41,27 @@ type mediaRepository struct {
 	env    *environment.EnvironmentVariables
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// Update implements MediaRepository
+func (r *mediaRepository) Update(m model.Media, columns postgres.ColumnList) (*model.Media, error) {
+	if len(columns) == 0 {
+		return nil, nil
+	}
+	columns = append(columns, media.Modified)
+
+	m.Modified = time.Now()
+	statement := media.UPDATE(columns).
+		MODEL(m).
+		WHERE(media.ID.EQ(postgres.UUID(m.ID))).
+		RETURNING(media.ID, columns)
+
+	var updatedModel model.Media
+	if err := statement.QueryContext(r.ctx, r.db, &updatedModel); err != nil {
+		return nil, errs.BuildError(err, "could not update media: %v", m.ID)
+	}
+
+	return &updatedModel, nil
 }
 
 // UpsertProgress implements MediaRepository.
