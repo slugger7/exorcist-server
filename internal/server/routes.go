@@ -75,10 +75,11 @@ func (s *server) RegisterRoutes() http.Handler {
 		withMediaPutPerson(authenticated, media).
 		withMediaDeletePerson(authenticated, media).
 		withMediaDelete(authenticated, media).
-		withVideoPut(authenticated, videos)
+		withMediaPut(authenticated, media)
 
 	s.withImageGet(authenticated, images).
-		withVideoGet(authenticated, videos)
+		withVideoGet(authenticated, videos).
+		withVideoPut(authenticated, videos)
 
 	// Register job controller routes
 	s.withJobRoutes(authenticated, jobs).

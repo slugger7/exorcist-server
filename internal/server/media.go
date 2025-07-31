@@ -5,8 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
 	"github.com/slugger7/exorcist/internal/dto"
 )
 
@@ -43,6 +45,43 @@ func (s *server) withMediaDeletePerson(r *gin.RouterGroup, route Route) *server 
 func (s *server) withMediaDelete(r *gin.RouterGroup, route Route) *server {
 	r.DELETE(fmt.Sprintf("%v/:%v", route, idKey), s.deleteMedia)
 	return s
+}
+
+func (s *server) withMediaPut(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/:%v", route, idKey), s.putMedia)
+	return s
+}
+
+func (s *server) putMedia(c *gin.Context) {
+	id, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	var updateDto dto.MediaUpdateDTO
+	if err := c.ShouldBindBodyWithJSON(&updateDto); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	updateModel := model.Media{
+		ID: id,
+	}
+	if updateDto.Title != nil {
+		updateModel.Title = *updateDto.Title
+	}
+
+	updatedModel, err := s.repo.Media().Update(updateModel, postgres.ColumnList{table.Media.Title})
+	if err != nil {
+		s.logger.Errorf("error updating media %v: %v", id.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	updatedDto := (&dto.MediaUpdatedDTO{}).FromModel(*updatedModel)
+
+	c.JSON(http.StatusOK, updatedDto)
 }
 
 func (s *server) deleteMedia(c *gin.Context) {

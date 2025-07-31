@@ -206,3 +206,21 @@ func (d *VideoDTO) FromModel(m *model.Video) *VideoDTO {
 type DeleteMediaDTO struct {
 	Physical *bool `json:"physical" form:"physical"`
 }
+
+type MediaUpdateDTO struct {
+	Title *string `json:"title" form:"title"`
+}
+
+type MediaUpdatedDTO struct {
+	ID       uuid.UUID `json:"id" form:"id"`
+	Title    *string   `json:"title,omitempty" form:"title"`
+	Modified time.Time `json:"modified" form:"modified"`
+}
+
+func (d *MediaUpdatedDTO) FromModel(m model.Media) *MediaUpdatedDTO {
+	d.ID = m.ID
+	d.Title = &m.Title
+	d.Modified = m.Modified
+
+	return d
+}
