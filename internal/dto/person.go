@@ -75,3 +75,7 @@ type PersonSearchDTO struct {
 	OrderBy PersonOrdinal `form:"orderBy" json:"orderBy"`
 	Asc     bool          `form:"asc" json:"asc"`
 }
+
+type PersonUpdateDTO struct {
+	Name string `json:"name"`
+}

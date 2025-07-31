@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
@@ -30,6 +31,7 @@ type PersonRepository interface {
 	RemoveFromMedia(mediaPerson model.MediaPerson) error
 	GetAll(search dto.PersonSearchDTO) ([]model.Person, error)
 	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
+	Update(m model.Person) (*model.Person, error)
 }
 
 type personRepository struct {
@@ -37,6 +39,25 @@ type personRepository struct {
 	db     *sql.DB
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// Update implements PersonRepository.
+func (r *personRepository) Update(m model.Person) (*model.Person, error) {
+	m.Modified = time.Now()
+
+	statement := person.UPDATE(person.Modified, person.Name).
+		MODEL(m).
+		WHERE(person.ID.EQ(postgres.UUID(m.ID))).
+		RETURNING(person.AllColumns)
+
+	util.DebugCheck(r.env, statement)
+
+	var updatedModel model.Person
+	if err := statement.QueryContext(r.ctx, r.db, &updatedModel); err != nil {
+		return nil, errs.BuildError(err, "could not update person")
+	}
+
+	return &updatedModel, nil
 }
 
 // GetMedia implements PersonRepository.
