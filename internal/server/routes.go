@@ -102,7 +102,8 @@ func (s *server) RegisterRoutes() http.Handler {
 	s.withPlaylistsGetAll(authenticated, playlists).
 		withPlaylistsCreate(authenticated, playlists).
 		withPlaylistsMedia(authenticated, playlists).
-		withPlaylistMediaAdd(authenticated, playlists)
+		withPlaylistMediaAdd(authenticated, playlists).
+		withPlaylistPut(authenticated, playlists)
 
 	s.withWS(authenticated, root)
 
