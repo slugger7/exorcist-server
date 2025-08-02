@@ -20,3 +20,8 @@ type GenerateThumbnailData struct {
 type RefreshMetadata struct {
 	MediaId uuid.UUID `json:"mediaId"`
 }
+
+type RefreshLibraryMetadata struct {
+	LibraryId uuid.UUID `json:"libraryId"`
+	BatchSize int       `json:"batchSize"`
+}
