@@ -16,3 +16,7 @@ type GenerateThumbnailData struct {
 	// Optional: If set to 0, video widtch will be used
 	Width int `json:"width"`
 }
+
+type RefreshMetadata struct {
+	MediaId uuid.UUID `json:"mediaId"`
+}

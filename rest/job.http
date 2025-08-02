@@ -26,5 +26,16 @@ Content-Type: application/json
   }
 }
 
+### Create refresh metadata job
+POST {{host}}:{{port}}/api/jobs
+Content-Type: application/json
+
+{
+  "type":"refresh_metadata",
+  "data": {
+    "mediaId": "d973659b-21a0-4e4f-9eb0-29975291e608"
+  }
+}
+
 ### Get Jobs
 GET {{host}}:{{port}}/api/jobs?parent=c42a3089-1026-42c6-ace6-64c6636afbf5&statuses[]=not_started

@@ -57,9 +57,47 @@ func (s *jobService) Create(m dto.CreateJobDTO) (*model.Job, error) {
 		return s.scanPath(strData, *m.Priority)
 	case model.JobTypeEnum_GenerateThumbnail:
 		return s.generateThumbnail(strData, *m.Priority)
+	case model.JobTypeEnum_RefreshMetadata:
+		return s.refreshMetadata(strData, *m.Priority)
 	default:
 		return nil, fmt.Errorf("job type not implemented: %v", m.Type)
 	}
+}
+
+func (i *jobService) refreshMetadata(data string, priority int16) (*model.Job, error) {
+	var jobData dto.RefreshMetadata
+	if err := json.Unmarshal([]byte(data), &jobData); err != nil {
+		return nil, errs.BuildError(err, "unmarshalling data for refresh meta data: %v", data)
+	}
+
+	mediaEntity, err := i.repo.Media().GetById(jobData.MediaId)
+	if err != nil {
+		return nil, errs.BuildError(err, "fetching media entity by id: %v", jobData.MediaId.String())
+	}
+
+	if mediaEntity == nil {
+		return nil, fmt.Errorf("no media entity found to refresh the metada of: %v", jobData.MediaId.String())
+	}
+
+	job := model.Job{
+		JobType:  model.JobTypeEnum_RefreshMetadata,
+		Status:   model.JobStatusEnum_NotStarted,
+		Data:     &data,
+		Priority: priority,
+	}
+
+	jobs, err := i.repo.Job().CreateAll([]model.Job{job})
+	if err != nil {
+		return nil, errs.BuildError(err, "creating refresh metadata job")
+	}
+
+	if len(jobs) == 0 {
+		return nil, fmt.Errorf("no jobs were returned after creating a job")
+	}
+
+	go i.startJobRunner()
+
+	return &jobs[0], nil
 }
 
 const ErrActionGenerateThumbnailVideoNotFound = "could not find video for generate thumbnail job: %v"
