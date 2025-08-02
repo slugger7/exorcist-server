@@ -52,16 +52,64 @@ func (s *jobService) Create(m dto.CreateJobDTO) (*model.Job, error) {
 	if err != nil {
 		return nil, errs.BuildError(err, "could not marhsal data field")
 	}
+	var j *model.Job
+	var e error
 	switch m.Type {
 	case model.JobTypeEnum_ScanPath:
-		return s.scanPath(strData, *m.Priority)
+		j, e = s.scanPath(strData, *m.Priority)
 	case model.JobTypeEnum_GenerateThumbnail:
-		return s.generateThumbnail(strData, *m.Priority)
+		j, e = s.generateThumbnail(strData, *m.Priority)
 	case model.JobTypeEnum_RefreshMetadata:
-		return s.refreshMetadata(strData, *m.Priority)
+		j, e = s.refreshMetadata(strData, *m.Priority)
+	case model.JobTypeEnum_RefreshLibraryMetadata:
+		j, e = s.refreshLibraryMetadata(strData, *m.Priority)
 	default:
 		return nil, fmt.Errorf("job type not implemented: %v", m.Type)
 	}
+	if e != nil {
+		return nil, errs.BuildError(err, "error encountered while creating job")
+	}
+
+	job := model.Job{
+		JobType:  m.Type,
+		Status:   model.JobStatusEnum_NotStarted,
+		Data:     j.Data,
+		Priority: j.Priority,
+	}
+
+	jobs, err := s.repo.Job().CreateAll([]model.Job{job})
+	if err != nil {
+		return nil, errs.BuildError(err, "creating job")
+	}
+
+	if len(jobs) == 0 {
+		return nil, fmt.Errorf("no jobs were returned after creating a job")
+	}
+
+	go s.startJobRunner()
+
+	return &jobs[0], nil
+}
+
+func (i *jobService) refreshLibraryMetadata(data string, priority int16) (*model.Job, error) {
+	var jobData dto.RefreshLibraryMetadata
+	if err := json.Unmarshal([]byte(data), &jobData); err != nil {
+		return nil, errs.BuildError(err, "unmarshalling data for refresh library metadata: %v", data)
+	}
+
+	library, err := i.repo.Library().GetById(jobData.LibraryId)
+	if err != nil {
+		return nil, errs.BuildError(err, "getting library by id: %v", jobData.LibraryId.String())
+	}
+
+	if library == nil {
+		return nil, fmt.Errorf("no library found with id: %v", jobData.LibraryId.String())
+	}
+
+	return &model.Job{
+		Data:     &data,
+		Priority: priority,
+	}, nil
 }
 
 func (i *jobService) refreshMetadata(data string, priority int16) (*model.Job, error) {
@@ -79,25 +127,11 @@ func (i *jobService) refreshMetadata(data string, priority int16) (*model.Job, e
 		return nil, fmt.Errorf("no media entity found to refresh the metada of: %v", jobData.MediaId.String())
 	}
 
-	job := model.Job{
-		JobType:  model.JobTypeEnum_RefreshMetadata,
-		Status:   model.JobStatusEnum_NotStarted,
+	return &model.Job{
 		Data:     &data,
 		Priority: priority,
-	}
+	}, nil
 
-	jobs, err := i.repo.Job().CreateAll([]model.Job{job})
-	if err != nil {
-		return nil, errs.BuildError(err, "creating refresh metadata job")
-	}
-
-	if len(jobs) == 0 {
-		return nil, fmt.Errorf("no jobs were returned after creating a job")
-	}
-
-	go i.startJobRunner()
-
-	return &jobs[0], nil
 }
 
 const ErrActionGenerateThumbnailVideoNotFound = "could not find video for generate thumbnail job: %v"
@@ -116,21 +150,10 @@ func (i *jobService) generateThumbnail(data string, priority int16) (*model.Job,
 			generateThumbnailData.VideoId)
 	}
 
-	job := model.Job{
-		JobType:  model.JobTypeEnum_GenerateThumbnail,
-		Status:   model.JobStatusEnum_NotStarted,
+	return &model.Job{
 		Data:     &data,
 		Priority: priority,
-	}
-
-	jobs, err := i.repo.Job().CreateAll([]model.Job{job})
-	if err != nil {
-		return nil, errs.BuildError(err, ErrCreatingJobs)
-	}
-
-	go i.startJobRunner()
-
-	return &jobs[0], nil
+	}, nil
 }
 
 const ErrActionScanGetLibraryPaths = "could not get library paths in scan action"
@@ -149,21 +172,10 @@ func (i *jobService) scanPath(data string, priority int16) (*model.Job, error) {
 		return nil, errs.BuildError(err, ErrActionScanGetLibraryPaths)
 	}
 
-	job := model.Job{
-		JobType:  model.JobTypeEnum_ScanPath,
-		Status:   model.JobStatusEnum_NotStarted,
+	return &model.Job{
 		Data:     &data,
 		Priority: priority,
-	}
-
-	jobs, err := i.repo.Job().CreateAll([]model.Job{job})
-	if err != nil {
-		return nil, errs.BuildError(err, ErrCreatingJobs)
-	}
-
-	go i.startJobRunner()
-
-	return &jobs[0], nil
+	}, nil
 }
 
 // We do this at the moment to stack a signal to the job runner if it is already running
@@ -180,5 +192,4 @@ func (i *jobService) startJobRunner() {
 			i.logger.Debug("Job runner signal sent")
 		}
 	}
-
 }
