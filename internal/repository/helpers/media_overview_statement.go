@@ -149,7 +149,7 @@ func mediaOverviewStatement(userId uuid.UUID, search dto.MediaSearchDTO, relatio
 	selectStatement = selectStatement.WHERE(whereFn(whr))
 
 	if tagFilter || personFilter {
-		selectStatement = selectStatement.GROUP_BY(media.ID, thumbnail.ID, table.Video.Runtime)
+		selectStatement = selectStatement.GROUP_BY(media.ID, thumbnail.ID, table.Video.Runtime, table.MediaProgress.Timestamp)
 	}
 
 	if tagFilter {
