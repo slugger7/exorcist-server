@@ -26,6 +26,7 @@ type MediaRepository interface {
 	UpdateChecksum(m models.Media) error
 	GetAll(userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 	GetByLibraryPathId(id uuid.UUID) ([]model.Media, error)
+	GetByLibraryId(libraryId uuid.UUID, pageRequest *dto.PageRequestDTO, columns postgres.ColumnList) (*dto.PageDTO[model.Media], error)
 	GetById(id uuid.UUID) (*models.Media, error)
 	GetByIdAndUserId(id, userId uuid.UUID) (*models.Media, error)
 	Relate(model.MediaRelation) (*model.MediaRelation, error)
@@ -41,6 +42,62 @@ type mediaRepository struct {
 	env    *environment.EnvironmentVariables
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// GetByLibraryId implements MediaRepository.
+func (r *mediaRepository) GetByLibraryId(libraryId uuid.UUID, pageRequest *dto.PageRequestDTO, columns postgres.ColumnList) (*dto.PageDTO[model.Media], error) {
+	if len(columns) == 0 {
+		columns = media.AllColumns
+	}
+	statement := media.SELECT(
+		columns,
+		postgres.COUNT(postgres.STAR).OVER().AS("total"),
+	).
+		FROM(media.
+			INNER_JOIN(
+				table.LibraryPath,
+				media.LibraryPathID.EQ(table.LibraryPath.ID),
+			),
+		).
+		WHERE(table.LibraryPath.LibraryID.EQ(postgres.UUID(libraryId)).
+			AND(media.Deleted.IS_FALSE()).
+			AND(media.Exists.IS_TRUE()))
+
+	limit := -1
+	skip := -1
+	if pageRequest != nil {
+		limit = pageRequest.Limit
+		skip = pageRequest.Skip
+		statement = statement.LIMIT(int64(pageRequest.Limit)).
+			OFFSET(int64(pageRequest.Skip))
+	}
+
+	util.DebugCheck(r.env, statement)
+
+	var mediaResult []struct {
+		Total int
+		model.Media
+	}
+	if err := statement.QueryContext(r.ctx, r.db, &mediaResult); err != nil {
+		return nil, errs.BuildError(err, "querying media entities for library: %v", libraryId.String())
+	}
+
+	var data []model.Media
+	total := 0
+	if mediaResult != nil && len(mediaResult) > 0 {
+		data = make([]model.Media, len(mediaResult))
+		total = mediaResult[0].Total
+		for i, o := range mediaResult {
+			data[i] = o.Media
+		}
+	}
+
+	return &dto.PageDTO[model.Media]{
+		Data:  data,
+		Limit: limit,
+		Skip:  skip,
+		Total: total,
+	}, nil
 }
 
 // Update implements MediaRepository
