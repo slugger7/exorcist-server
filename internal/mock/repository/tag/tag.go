@@ -146,3 +146,18 @@ func (mr *MockTagRepositoryMockRecorder) RemoveFromMedia(mediaTag any) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveFromMedia", reflect.TypeOf((*MockTagRepository)(nil).RemoveFromMedia), mediaTag)
 }
+
+// Update mocks base method.
+func (m_2 *MockTagRepository) Update(m model.Tag) (*model.Tag, error) {
+	m_2.ctrl.T.Helper()
+	ret := m_2.ctrl.Call(m_2, "Update", m)
+	ret0, _ := ret[0].(*model.Tag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockTagRepositoryMockRecorder) Update(m any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTagRepository)(nil).Update), m)
+}
