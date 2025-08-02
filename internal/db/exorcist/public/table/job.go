@@ -20,12 +20,12 @@ type jobTable struct {
 	ID       postgres.ColumnString
 	Parent   postgres.ColumnString
 	Priority postgres.ColumnInteger
-	JobType  postgres.ColumnString
 	Status   postgres.ColumnString
 	Data     postgres.ColumnString
 	Outcome  postgres.ColumnString
 	Created  postgres.ColumnTimestamp
 	Modified postgres.ColumnTimestamp
+	JobType  postgres.ColumnString
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -69,14 +69,14 @@ func newJobTableImpl(schemaName, tableName, alias string) jobTable {
 		IDColumn       = postgres.StringColumn("id")
 		ParentColumn   = postgres.StringColumn("parent")
 		PriorityColumn = postgres.IntegerColumn("priority")
-		JobTypeColumn  = postgres.StringColumn("job_type")
 		StatusColumn   = postgres.StringColumn("status")
 		DataColumn     = postgres.StringColumn("data")
 		OutcomeColumn  = postgres.StringColumn("outcome")
 		CreatedColumn  = postgres.TimestampColumn("created")
 		ModifiedColumn = postgres.TimestampColumn("modified")
-		allColumns     = postgres.ColumnList{IDColumn, ParentColumn, PriorityColumn, JobTypeColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn}
-		mutableColumns = postgres.ColumnList{ParentColumn, PriorityColumn, JobTypeColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn}
+		JobTypeColumn  = postgres.StringColumn("job_type")
+		allColumns     = postgres.ColumnList{IDColumn, ParentColumn, PriorityColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn, JobTypeColumn}
+		mutableColumns = postgres.ColumnList{ParentColumn, PriorityColumn, StatusColumn, DataColumn, OutcomeColumn, CreatedColumn, ModifiedColumn, JobTypeColumn}
 	)
 
 	return jobTable{
@@ -86,12 +86,12 @@ func newJobTableImpl(schemaName, tableName, alias string) jobTable {
 		ID:       IDColumn,
 		Parent:   ParentColumn,
 		Priority: PriorityColumn,
-		JobType:  JobTypeColumn,
 		Status:   StatusColumn,
 		Data:     DataColumn,
 		Outcome:  OutcomeColumn,
 		Created:  CreatedColumn,
 		Modified: ModifiedColumn,
+		JobType:  JobTypeColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
