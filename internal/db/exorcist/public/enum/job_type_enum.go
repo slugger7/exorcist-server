@@ -10,13 +10,23 @@ package enum
 import "github.com/go-jet/jet/v2/postgres"
 
 var JobTypeEnum = &struct {
-	UpdateExistingVideos postgres.StringExpression
-	ScanPath             postgres.StringExpression
-	GenerateChecksum     postgres.StringExpression
-	GenerateThumbnail    postgres.StringExpression
+	UpdateExistingVideos    postgres.StringExpression
+	ScanPath                postgres.StringExpression
+	GenerateChecksum        postgres.StringExpression
+	GenerateThumbnail       postgres.StringExpression
+	ScanLibrary             postgres.StringExpression
+	RefreshMetadata         postgres.StringExpression
+	RefreshLibraryMetadata  postgres.StringExpression
+	GenerateChapters        postgres.StringExpression
+	GenerateLibraryChapters postgres.StringExpression
 }{
-	UpdateExistingVideos: postgres.NewEnumValue("update_existing_videos"),
-	ScanPath:             postgres.NewEnumValue("scan_path"),
-	GenerateChecksum:     postgres.NewEnumValue("generate_checksum"),
-	GenerateThumbnail:    postgres.NewEnumValue("generate_thumbnail"),
+	UpdateExistingVideos:    postgres.NewEnumValue("update_existing_videos"),
+	ScanPath:                postgres.NewEnumValue("scan_path"),
+	GenerateChecksum:        postgres.NewEnumValue("generate_checksum"),
+	GenerateThumbnail:       postgres.NewEnumValue("generate_thumbnail"),
+	ScanLibrary:             postgres.NewEnumValue("scan_library"),
+	RefreshMetadata:         postgres.NewEnumValue("refresh_metadata"),
+	RefreshLibraryMetadata:  postgres.NewEnumValue("refresh_library_metadata"),
+	GenerateChapters:        postgres.NewEnumValue("generate_chapters"),
+	GenerateLibraryChapters: postgres.NewEnumValue("generate_library_chapters"),
 }

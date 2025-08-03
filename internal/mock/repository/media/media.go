@@ -133,6 +133,21 @@ func (mr *MockMediaRepositoryMockRecorder) GetByIdAndUserId(id, userId any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdAndUserId", reflect.TypeOf((*MockMediaRepository)(nil).GetByIdAndUserId), id, userId)
 }
 
+// GetByLibraryId mocks base method.
+func (m *MockMediaRepository) GetByLibraryId(libraryId uuid.UUID, pageRequest *dto.PageRequestDTO, columns postgres.ColumnList) (*dto.PageDTO[model.Media], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByLibraryId", libraryId, pageRequest, columns)
+	ret0, _ := ret[0].(*dto.PageDTO[model.Media])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByLibraryId indicates an expected call of GetByLibraryId.
+func (mr *MockMediaRepositoryMockRecorder) GetByLibraryId(libraryId, pageRequest, columns any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLibraryId", reflect.TypeOf((*MockMediaRepository)(nil).GetByLibraryId), libraryId, pageRequest, columns)
+}
+
 // GetByLibraryPathId mocks base method.
 func (m *MockMediaRepository) GetByLibraryPathId(id uuid.UUID) ([]model.Media, error) {
 	m.ctrl.T.Helper()

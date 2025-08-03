@@ -12,10 +12,15 @@ import "errors"
 type JobTypeEnum string
 
 const (
-	JobTypeEnum_UpdateExistingVideos JobTypeEnum = "update_existing_videos"
-	JobTypeEnum_ScanPath             JobTypeEnum = "scan_path"
-	JobTypeEnum_GenerateChecksum     JobTypeEnum = "generate_checksum"
-	JobTypeEnum_GenerateThumbnail    JobTypeEnum = "generate_thumbnail"
+	JobTypeEnum_UpdateExistingVideos    JobTypeEnum = "update_existing_videos"
+	JobTypeEnum_ScanPath                JobTypeEnum = "scan_path"
+	JobTypeEnum_GenerateChecksum        JobTypeEnum = "generate_checksum"
+	JobTypeEnum_GenerateThumbnail       JobTypeEnum = "generate_thumbnail"
+	JobTypeEnum_ScanLibrary             JobTypeEnum = "scan_library"
+	JobTypeEnum_RefreshMetadata         JobTypeEnum = "refresh_metadata"
+	JobTypeEnum_RefreshLibraryMetadata  JobTypeEnum = "refresh_library_metadata"
+	JobTypeEnum_GenerateChapters        JobTypeEnum = "generate_chapters"
+	JobTypeEnum_GenerateLibraryChapters JobTypeEnum = "generate_library_chapters"
 )
 
 var JobTypeEnumAllValues = []JobTypeEnum{
@@ -23,6 +28,11 @@ var JobTypeEnumAllValues = []JobTypeEnum{
 	JobTypeEnum_ScanPath,
 	JobTypeEnum_GenerateChecksum,
 	JobTypeEnum_GenerateThumbnail,
+	JobTypeEnum_ScanLibrary,
+	JobTypeEnum_RefreshMetadata,
+	JobTypeEnum_RefreshLibraryMetadata,
+	JobTypeEnum_GenerateChapters,
+	JobTypeEnum_GenerateLibraryChapters,
 }
 
 func (e *JobTypeEnum) Scan(value interface{}) error {
@@ -45,6 +55,16 @@ func (e *JobTypeEnum) Scan(value interface{}) error {
 		*e = JobTypeEnum_GenerateChecksum
 	case "generate_thumbnail":
 		*e = JobTypeEnum_GenerateThumbnail
+	case "scan_library":
+		*e = JobTypeEnum_ScanLibrary
+	case "refresh_metadata":
+		*e = JobTypeEnum_RefreshMetadata
+	case "refresh_library_metadata":
+		*e = JobTypeEnum_RefreshLibraryMetadata
+	case "generate_chapters":
+		*e = JobTypeEnum_GenerateChapters
+	case "generate_library_chapters":
+		*e = JobTypeEnum_GenerateLibraryChapters
 	default:
 		return errors.New("jet: Invalid scan value '" + enumValue + "' for JobTypeEnum enum")
 	}

@@ -216,6 +216,14 @@ func (jr *JobRunner) jobFuncResolver(jobType model.JobTypeEnum) (JobFunc, error)
 		f = func(j *model.Job) error {
 			return jr.GenerateThumbnail(j)
 		}
+	case model.JobTypeEnum_RefreshMetadata:
+		f = func(j *model.Job) error {
+			return jr.RefreshMetadata(j)
+		}
+	case model.JobTypeEnum_RefreshLibraryMetadata:
+		f = func(j *model.Job) error {
+			return jr.refreshLibraryMetadata(j)
+		}
 	default:
 		return nil, fmt.Errorf("no implementation to run job type %v", jobType)
 	}

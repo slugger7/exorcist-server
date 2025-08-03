@@ -16,10 +16,10 @@ type Job struct {
 	ID       uuid.UUID `sql:"primary_key"`
 	Parent   *uuid.UUID
 	Priority int16
-	JobType  JobTypeEnum
 	Status   JobStatusEnum
 	Data     *string
 	Outcome  *string
 	Created  time.Time
 	Modified time.Time
+	JobType  JobTypeEnum
 }

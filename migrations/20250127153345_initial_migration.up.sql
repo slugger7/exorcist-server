@@ -109,7 +109,12 @@ begin;
   -- password = admin
 
   create type job_type_enum as enum
-  ('update_existing_videos', 'scan_path','generate_checksum', 'generate_thumbnail');
+  (
+    'update_existing_videos', -- no idea what this does (could be removed)
+    'scan_path', -- scans the library path for new/removed media
+    'generate_checksum',  -- generates a checksum for a media entity
+    'generate_thumbnail' -- generates a thumbnail at a timestamp for a media entity
+  );
   create type job_status_enum as enum
   ('not_started', 'in_progress', 'failed', 'completed', 'cancelled');
 
