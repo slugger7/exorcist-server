@@ -13,9 +13,18 @@ import (
 	"github.com/slugger7/exorcist/internal/media"
 )
 
-func CreateRefreshMetadataJob(media model.Media, jobId *uuid.UUID) (*model.Job, error) {
+func CreateRefreshMetadataJob(media model.Media, jobId *uuid.UUID, refreshFields *dto.RefreshFields) (*model.Job, error) {
+	localRefreshFields := *refreshFields
+	if refreshFields == nil {
+		localRefreshFields = dto.RefreshFields{
+			Size:     true,
+			Checksum: false,
+		}
+	}
+
 	d := dto.RefreshMetadata{
-		MediaId: media.ID,
+		MediaId:       media.ID,
+		RefreshFields: &localRefreshFields,
 	}
 
 	js, err := json.Marshal(d)

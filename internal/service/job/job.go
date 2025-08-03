@@ -97,6 +97,13 @@ func (i *jobService) refreshLibraryMetadata(data string, priority int16) (*model
 		return nil, errs.BuildError(err, "unmarshalling data for refresh library metadata: %v", data)
 	}
 
+	if jobData.RefreshFields == nil {
+		jobData.RefreshFields = &dto.RefreshFields{
+			Size:     true,
+			Checksum: false,
+		}
+	}
+
 	library, err := i.repo.Library().GetById(jobData.LibraryId)
 	if err != nil {
 		return nil, errs.BuildError(err, "getting library by id: %v", jobData.LibraryId.String())

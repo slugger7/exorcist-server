@@ -42,7 +42,7 @@ func (jr *JobRunner) refreshLibraryMetadata(job *model.Job) error {
 		var accErr error
 		refreshJobs := []model.Job{}
 		for _, o := range mediaPage.Data {
-			j, err := CreateRefreshMetadataJob(o, &job.ID)
+			j, err := CreateRefreshMetadataJob(o, &job.ID, jobData.RefreshFields)
 			if err != nil {
 				accErr = errors.Join(accErr, err)
 				continue

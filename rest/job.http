@@ -44,7 +44,8 @@ Content-Type: application/json
 {
   "type": "refresh_library_metadata",
   "data": {
-    "libraryId": "e0774fae-d53b-472b-a6a2-052266c23cd8"
+    "libraryId": "1c72663a-ff6a-44e1-b0af-ffe55066a68b",
+    "batchSize": 50
   }
 }
 

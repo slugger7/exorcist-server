@@ -17,11 +17,18 @@ type GenerateThumbnailData struct {
 	Width int `json:"width"`
 }
 
+type RefreshFields struct {
+	Size     bool `json:"size"`
+	Checksum bool `json:"checksum"`
+}
+
 type RefreshMetadata struct {
-	MediaId uuid.UUID `json:"mediaId"`
+	MediaId       uuid.UUID      `json:"mediaId"`
+	RefreshFields *RefreshFields `json:"refreshFields"`
 }
 
 type RefreshLibraryMetadata struct {
-	LibraryId uuid.UUID `json:"libraryId"`
-	BatchSize int       `json:"batchSize"`
+	LibraryId     uuid.UUID      `json:"libraryId"`
+	BatchSize     int            `json:"batchSize"`
+	RefreshFields *RefreshFields `json:"refreshFields"`
 }
