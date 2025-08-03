@@ -61,24 +61,28 @@ func (jr *JobRunner) RefreshMetadata(job *model.Job) error {
 
 	updateColumns := postgres.ColumnList{}
 
-	fileSize, err := media.GetFileSize(mediaEntity.Path)
-	if err != nil {
-		return errs.BuildError(err, "calculating file size for %v", mediaEntity.Path)
-	}
-	if fileSize != mediaEntity.Size {
-		mediaEntity.Size = fileSize
+	if jobData.RefreshFields.Size {
+		fileSize, err := media.GetFileSize(mediaEntity.Path)
+		if err != nil {
+			return errs.BuildError(err, "calculating file size for %v", mediaEntity.Path)
+		}
+		if fileSize != mediaEntity.Size {
+			mediaEntity.Size = fileSize
 
-		updateColumns = append(updateColumns, table.Media.Size)
+			updateColumns = append(updateColumns, table.Media.Size)
+		}
 	}
 
-	checksum, err := media.CalculateMD5(mediaEntity.Path)
-	if err != nil {
-		return errs.BuildError(err, "calculating md5sum for %v", mediaEntity.Path)
-	}
-	if mediaEntity.Media.Checksum == nil || checksum != *mediaEntity.Media.Checksum {
-		mediaEntity.Media.Checksum = &checksum
+	if jobData.RefreshFields.Checksum {
+		checksum, err := media.CalculateMD5(mediaEntity.Path)
+		if err != nil {
+			return errs.BuildError(err, "calculating md5sum for %v", mediaEntity.Path)
+		}
+		if mediaEntity.Media.Checksum == nil || checksum != *mediaEntity.Media.Checksum {
+			mediaEntity.Media.Checksum = &checksum
 
-		updateColumns = append(updateColumns, table.Media.Checksum)
+			updateColumns = append(updateColumns, table.Media.Checksum)
+		}
 	}
 
 	if len(updateColumns) == 0 {
