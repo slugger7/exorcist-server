@@ -146,10 +146,10 @@ func (mr *MockIServiceMockRecorder) Tag() *gomock.Call {
 }
 
 // User mocks base method.
-func (m *MockIService) User() userService.IUserService {
+func (m *MockIService) User() userService.UserService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "User")
-	ret0, _ := ret[0].(userService.IUserService)
+	ret0, _ := ret[0].(userService.UserService)
 	return ret0
 }
 

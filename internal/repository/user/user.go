@@ -9,8 +9,12 @@ import (
 	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
+	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
+	"github.com/slugger7/exorcist/internal/models"
+	"github.com/slugger7/exorcist/internal/repository/helpers"
 )
 
 type UserStatement struct {
@@ -19,12 +23,13 @@ type UserStatement struct {
 	ctx context.Context
 }
 
-type IUserRepository interface {
+type UserRepository interface {
 	GetUserByUsernameAndPassword(username, password string) (*model.User, error)
 	GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error)
 	CreateUser(user model.User) (*model.User, error)
 	GetById(id uuid.UUID) (*model.User, error)
 	UpdatePassword(user *model.User) error
+	GetFavourites(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type userRepository struct {
@@ -33,9 +38,30 @@ type userRepository struct {
 	ctx context.Context
 }
 
+// GetFavourites implements UserRepository.
+func (ur *userRepository) GetFavourites(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	relationFn := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
+		return relationTable.INNER_JOIN(
+			table.FavouriteMedia,
+			table.FavouriteMedia.MediaID.EQ(table.Media.ID),
+		)
+	}
+
+	whereFn := func(whr postgres.BoolExpression) postgres.BoolExpression {
+		return whr.AND(table.FavouriteMedia.UserID.EQ(postgres.UUID(id)))
+	}
+
+	mediaPage, err := helpers.QueryMediaOverview(id, search, relationFn, whereFn, ur.ctx, ur.db, ur.env)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not query media overview for favourites")
+	}
+
+	return mediaPage, nil
+}
+
 var userRepositoryInstance *userRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IUserRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) UserRepository {
 	if userRepositoryInstance == nil {
 		userRepositoryInstance = &userRepository{
 			db:  db,

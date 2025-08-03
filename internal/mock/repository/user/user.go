@@ -15,35 +15,37 @@ import (
 	postgres "github.com/go-jet/jet/v2/postgres"
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
+	dto "github.com/slugger7/exorcist/internal/dto"
+	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockIUserRepository is a mock of IUserRepository interface.
-type MockIUserRepository struct {
+// MockUserRepository is a mock of UserRepository interface.
+type MockUserRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockIUserRepositoryMockRecorder
+	recorder *MockUserRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockIUserRepositoryMockRecorder is the mock recorder for MockIUserRepository.
-type MockIUserRepositoryMockRecorder struct {
-	mock *MockIUserRepository
+// MockUserRepositoryMockRecorder is the mock recorder for MockUserRepository.
+type MockUserRepositoryMockRecorder struct {
+	mock *MockUserRepository
 }
 
-// NewMockIUserRepository creates a new mock instance.
-func NewMockIUserRepository(ctrl *gomock.Controller) *MockIUserRepository {
-	mock := &MockIUserRepository{ctrl: ctrl}
-	mock.recorder = &MockIUserRepositoryMockRecorder{mock}
+// NewMockUserRepository creates a new mock instance.
+func NewMockUserRepository(ctrl *gomock.Controller) *MockUserRepository {
+	mock := &MockUserRepository{ctrl: ctrl}
+	mock.recorder = &MockUserRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIUserRepository) EXPECT() *MockIUserRepositoryMockRecorder {
+func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
 // CreateUser mocks base method.
-func (m *MockIUserRepository) CreateUser(user model.User) (*model.User, error) {
+func (m *MockUserRepository) CreateUser(user model.User) (*model.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUser", user)
 	ret0, _ := ret[0].(*model.User)
@@ -52,13 +54,13 @@ func (m *MockIUserRepository) CreateUser(user model.User) (*model.User, error) {
 }
 
 // CreateUser indicates an expected call of CreateUser.
-func (mr *MockIUserRepositoryMockRecorder) CreateUser(user any) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) CreateUser(user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockIUserRepository)(nil).CreateUser), user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepository)(nil).CreateUser), user)
 }
 
 // GetById mocks base method.
-func (m *MockIUserRepository) GetById(id uuid.UUID) (*model.User, error) {
+func (m *MockUserRepository) GetById(id uuid.UUID) (*model.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", id)
 	ret0, _ := ret[0].(*model.User)
@@ -67,13 +69,28 @@ func (m *MockIUserRepository) GetById(id uuid.UUID) (*model.User, error) {
 }
 
 // GetById indicates an expected call of GetById.
-func (mr *MockIUserRepositoryMockRecorder) GetById(id any) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) GetById(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockIUserRepository)(nil).GetById), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockUserRepository)(nil).GetById), id)
+}
+
+// GetFavourites mocks base method.
+func (m *MockUserRepository) GetFavourites(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavourites", id, search)
+	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavourites indicates an expected call of GetFavourites.
+func (mr *MockUserRepositoryMockRecorder) GetFavourites(id, search any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavourites", reflect.TypeOf((*MockUserRepository)(nil).GetFavourites), id, search)
 }
 
 // GetUserByUsername mocks base method.
-func (m *MockIUserRepository) GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error) {
+func (m *MockUserRepository) GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{username}
 	for _, a := range columns {
@@ -86,14 +103,14 @@ func (m *MockIUserRepository) GetUserByUsername(username string, columns ...post
 }
 
 // GetUserByUsername indicates an expected call of GetUserByUsername.
-func (mr *MockIUserRepositoryMockRecorder) GetUserByUsername(username any, columns ...any) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) GetUserByUsername(username any, columns ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{username}, columns...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsername", reflect.TypeOf((*MockIUserRepository)(nil).GetUserByUsername), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsername", reflect.TypeOf((*MockUserRepository)(nil).GetUserByUsername), varargs...)
 }
 
 // GetUserByUsernameAndPassword mocks base method.
-func (m *MockIUserRepository) GetUserByUsernameAndPassword(username, password string) (*model.User, error) {
+func (m *MockUserRepository) GetUserByUsernameAndPassword(username, password string) (*model.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByUsernameAndPassword", username, password)
 	ret0, _ := ret[0].(*model.User)
@@ -102,13 +119,13 @@ func (m *MockIUserRepository) GetUserByUsernameAndPassword(username, password st
 }
 
 // GetUserByUsernameAndPassword indicates an expected call of GetUserByUsernameAndPassword.
-func (mr *MockIUserRepositoryMockRecorder) GetUserByUsernameAndPassword(username, password any) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) GetUserByUsernameAndPassword(username, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsernameAndPassword", reflect.TypeOf((*MockIUserRepository)(nil).GetUserByUsernameAndPassword), username, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsernameAndPassword", reflect.TypeOf((*MockUserRepository)(nil).GetUserByUsernameAndPassword), username, password)
 }
 
 // UpdatePassword mocks base method.
-func (m *MockIUserRepository) UpdatePassword(user *model.User) error {
+func (m *MockUserRepository) UpdatePassword(user *model.User) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePassword", user)
 	ret0, _ := ret[0].(error)
@@ -116,7 +133,7 @@ func (m *MockIUserRepository) UpdatePassword(user *model.User) error {
 }
 
 // UpdatePassword indicates an expected call of UpdatePassword.
-func (mr *MockIUserRepositoryMockRecorder) UpdatePassword(user any) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) UpdatePassword(user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockIUserRepository)(nil).UpdatePassword), user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserRepository)(nil).UpdatePassword), user)
 }

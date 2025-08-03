@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -20,7 +21,44 @@ func (s *server) withUserUpdatePassword(r *gin.RouterGroup, route Route) *server
 	return s
 }
 
+func (s *server) withUserGetFavourites(r *gin.RouterGroup, route Route) *server {
+	r.GET(fmt.Sprintf("%v/favourites", route), s.getUserFavourites)
+	return s
+}
+
 const ErrCreateUser ApiError = "could not create new user"
+
+func (s *server) getUserFavourites(c *gin.Context) {
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	var search dto.MediaSearchDTO
+	if err := c.ShouldBindQuery(&search); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	if search.Limit == 0 {
+		search.Limit = 100
+	}
+
+	media, err := s.repo.User().GetFavourites(*userId, search)
+	if err != nil {
+		s.logger.Errorf("fetching favourites from repo for %v: %v", userId.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	dtos := make([]dto.MediaOverviewDTO, len(media.Data))
+	for i, m := range media.Data {
+		dtos[i] = *(&dto.MediaOverviewDTO{}).FromModel(m)
+	}
+
+	c.JSON(http.StatusOK, dto.DataToPage(dtos, *media))
+}
 
 func (s *server) CreateUser(c *gin.Context) {
 	var newUser models.CreateUserDTO

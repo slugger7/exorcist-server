@@ -14,7 +14,7 @@ import (
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
-type IUserService interface {
+type UserService interface {
 	Create(username, password string) (*model.User, error)
 	Validate(username, password string) (*model.User, error)
 	UpdatePassword(id uuid.UUID, model dto.ResetPasswordDTO) error
@@ -28,7 +28,7 @@ type userService struct {
 
 var userServiceInstance *userService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) IUserService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables) UserService {
 	if userServiceInstance == nil {
 		userServiceInstance = &userService{
 			env:    env,

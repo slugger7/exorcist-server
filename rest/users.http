@@ -16,3 +16,6 @@ Content-Type: application/json
   "newPassword": "admin1",
   "repeatPassword": "admin1"
 }
+
+### Get Favourites
+GET {{host}}:{{port}}/api/users/favourites

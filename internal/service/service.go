@@ -17,7 +17,7 @@ import (
 )
 
 type IService interface {
-	User() userService.IUserService
+	User() userService.UserService
 	Library() libraryService.LibraryService
 	LibraryPath() libraryPathService.ILibraryPathService
 	Job() jobService.IJobService
@@ -30,7 +30,7 @@ type IService interface {
 type service struct {
 	env         *environment.EnvironmentVariables
 	logger      logger.ILogger
-	user        userService.IUserService
+	user        userService.UserService
 	library     libraryService.LibraryService
 	libraryPath libraryPathService.ILibraryPathService
 	job         jobService.IJobService
@@ -66,7 +66,7 @@ func New(repo repository.IRepository, env *environment.EnvironmentVariables, job
 	return serviceInstance
 }
 
-func (s *service) User() userService.IUserService {
+func (s *service) User() userService.UserService {
 	s.logger.Debug("Getting UserService")
 	return s.user
 }
