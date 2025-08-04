@@ -26,7 +26,21 @@ func (s *server) withUserGetFavourites(r *gin.RouterGroup, route Route) *server 
 	return s
 }
 
+func (s *server) withUserPutFavourites(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/favourites/%v", route, idKey), s.addMediaToFavourites)
+	return s
+}
+
 const ErrCreateUser ApiError = "could not create new user"
+
+func (s *server) addMediaToFavourites(c *gin.Context) {
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+}
 
 func (s *server) getUserFavourites(c *gin.Context) {
 	userId, err := s.getUserId(c)
