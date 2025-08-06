@@ -19,3 +19,6 @@ Content-Type: application/json
 
 ### Get Favourites
 GET {{host}}:{{port}}/api/users/favourites
+
+### Add favourite
+PUT {{host}}:{{port}}/api/users/favourites/2b65b266-3a76-471e-838a-e5edfc51255e
