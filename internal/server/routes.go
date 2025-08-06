@@ -55,7 +55,8 @@ func (s *server) RegisterRoutes() http.Handler {
 	// Register user controller routes
 	s.withUserCreate(authenticated, users).
 		withUserUpdatePassword(authenticated, users).
-		withUserGetFavourites(authenticated, users)
+		withUserGetFavourites(authenticated, users).
+		withUserPutFavourite(authenticated, users)
 
 	// Register library controller routes
 	s.withLibraryGet(authenticated, libraries).

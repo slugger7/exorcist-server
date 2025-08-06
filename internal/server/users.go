@@ -26,20 +26,33 @@ func (s *server) withUserGetFavourites(r *gin.RouterGroup, route Route) *server 
 	return s
 }
 
-func (s *server) withUserPutFavourites(r *gin.RouterGroup, route Route) *server {
-	r.PUT(fmt.Sprintf("%v/favourites/%v", route, idKey), s.addMediaToFavourites)
+func (s *server) withUserPutFavourite(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/favourites/:%v", route, idKey), s.addMediaToFavourite)
 	return s
 }
 
 const ErrCreateUser ApiError = "could not create new user"
 
-func (s *server) addMediaToFavourites(c *gin.Context) {
+func (s *server) addMediaToFavourite(c *gin.Context) {
 	userId, err := s.getUserId(c)
 	if err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
+	mediaId, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	if err := s.service.User().AddMediaToFavourites(*userId, mediaId); err != nil {
+		s.logger.Errorf("could not add media %v to your favourites: %v", mediaId, err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func (s *server) getUserFavourites(c *gin.Context) {
