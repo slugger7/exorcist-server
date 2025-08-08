@@ -7,7 +7,7 @@ type ScanPathData struct {
 }
 
 type GenerateThumbnailData struct {
-	VideoId uuid.UUID `json:"videoId"`
+	MediaId uuid.UUID `json:"mediaId"`
 	Path    string    `json:"path"`
 	// Optional: If set to 0, timestamp at 25% of video playback will be used
 	Timestamp int `json:"timestamp"`
@@ -31,4 +31,11 @@ type RefreshLibraryMetadata struct {
 	LibraryId     uuid.UUID      `json:"libraryId"`
 	BatchSize     int            `json:"batchSize"`
 	RefreshFields *RefreshFields `json:"refreshFields"`
+}
+
+type GenerateChaptersData struct {
+	MediaId  uuid.UUID `json:"mediaId"`
+	Interval int       `json:"interval"`
+	Height   int       `json:"height"`
+	Width    int       `json:"width"`
 }

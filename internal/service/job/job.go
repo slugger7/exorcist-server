@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/dto"
@@ -63,6 +64,8 @@ func (s *jobService) Create(m dto.CreateJobDTO) (*model.Job, error) {
 		j, e = s.refreshMetadata(strData, *m.Priority)
 	case model.JobTypeEnum_RefreshLibraryMetadata:
 		j, e = s.refreshLibraryMetadata(strData, *m.Priority)
+	case model.JobTypeEnum_GenerateChapters:
+		j, e = s.generateChapters(strData, *m.Priority)
 	default:
 		return nil, fmt.Errorf("job type not implemented: %v", m.Type)
 	}
@@ -91,6 +94,42 @@ func (s *jobService) Create(m dto.CreateJobDTO) (*model.Job, error) {
 	return &jobs[0], nil
 }
 
+func (i *jobService) generateChapters(data string, priority int16) (*model.Job, error) {
+	var jobData dto.GenerateChaptersData
+	if err := json.Unmarshal([]byte(data), &jobData); err != nil {
+		return nil, errs.BuildError(err, "unmarshalling data for generate chapters data: %v", data)
+	}
+
+	if jobData.Interval == 0 {
+		jobData.Interval = int((time.Millisecond * 1000 * 5).Milliseconds())
+	}
+
+	media, err := i.repo.Media().GetById(jobData.MediaId)
+	if err != nil {
+		return nil, errs.BuildError(err, "getting media by id: %v", jobData.MediaId.String())
+	}
+
+	if media == nil {
+		return nil, fmt.Errorf("no media with id: %v", jobData.MediaId.String())
+	}
+
+	if media.Video == nil {
+		return nil, fmt.Errorf("media is not of type video: %v", jobData.MediaId.String())
+	}
+
+	bytes, err := json.Marshal(jobData)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not remarshall generate chapters data")
+	}
+
+	data = string(bytes)
+
+	return &model.Job{
+		Data:     &data,
+		Priority: priority,
+	}, nil
+}
+
 func (i *jobService) refreshLibraryMetadata(data string, priority int16) (*model.Job, error) {
 	var jobData dto.RefreshLibraryMetadata
 	if err := json.Unmarshal([]byte(data), &jobData); err != nil {
@@ -112,6 +151,13 @@ func (i *jobService) refreshLibraryMetadata(data string, priority int16) (*model
 	if library == nil {
 		return nil, fmt.Errorf("no library found with id: %v", jobData.LibraryId.String())
 	}
+
+	bytes, err := json.Marshal(jobData)
+	if err != nil {
+		return nil, errs.BuildError(err, "remarshalling refresh library metadata")
+	}
+
+	data = string(bytes)
 
 	return &model.Job{
 		Data:     &data,
@@ -150,11 +196,11 @@ func (i *jobService) generateThumbnail(data string, priority int16) (*model.Job,
 		return nil, errs.BuildError(err, "could not unmarshal data for job %v", data)
 	}
 
-	if _, err := i.repo.Video().GetByIdWithMedia(generateThumbnailData.VideoId); err != nil {
+	if _, err := i.repo.Video().GetByIdWithMedia(generateThumbnailData.MediaId); err != nil {
 		return nil, errs.BuildError(
 			err,
 			ErrActionGenerateThumbnailVideoNotFound,
-			generateThumbnailData.VideoId)
+			generateThumbnailData.MediaId)
 	}
 
 	return &model.Job{

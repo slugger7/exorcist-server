@@ -16,7 +16,7 @@ import (
 
 func CreateGenerateThumbnailJob(video model.Video, jobId *uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
 	d := dto.GenerateThumbnailData{
-		VideoId:   video.ID,
+		MediaId:   video.ID,
 		Path:      imagePath,
 		Height:    height,
 		Width:     width,
@@ -54,9 +54,9 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		return fmt.Errorf("cant create an image at a blank path")
 	}
 
-	video, err := jr.repo.Video().GetByIdWithMedia(jobData.VideoId)
+	video, err := jr.repo.Video().GetByIdWithMedia(jobData.MediaId)
 	if err != nil {
-		return errs.BuildError(err, "error fetching video with id: %v", jobData.VideoId)
+		return errs.BuildError(err, "error fetching video with id: %v", jobData.MediaId)
 	}
 
 	if jobData.Height == 0 {
