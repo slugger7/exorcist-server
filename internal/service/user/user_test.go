@@ -20,18 +20,18 @@ import (
 type testService struct {
 	svc      *userService
 	repo     *mock_repository.MockIRepository
-	userRepo *mock_userRepository.MockIUserRepository
+	userRepo *mock_userRepository.MockUserRepository
 }
 
 func setup(t *testing.T) *testService {
 	ctrl := gomock.NewController(t)
 
 	mockRepo := mock_repository.NewMockIRepository(ctrl)
-	mockUserRepo := mock_userRepository.NewMockIUserRepository(ctrl)
+	mockUserRepo := mock_userRepository.NewMockUserRepository(ctrl)
 
 	mockRepo.EXPECT().
 		User().
-		DoAndReturn(func() userRepository.IUserRepository {
+		DoAndReturn(func() userRepository.UserRepository {
 			return mockUserRepo
 		}).
 		AnyTimes()

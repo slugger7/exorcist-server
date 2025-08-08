@@ -37,7 +37,7 @@ type TestCookie struct {
 type TestServer struct {
 	server                 *server
 	mockService            *mock_service.MockIService
-	mockUserService        *mock_userService.MockIUserService
+	mockUserService        *mock_userService.MockUserService
 	mockLibraryService     *mock_libraryService.MockLibraryService
 	mockLibraryPathService *mock_libraryPathService.MockILibraryPathService
 	ctrl                   *gomock.Controller
@@ -56,11 +56,11 @@ func setupServer(t *testing.T) *TestServer {
 }
 
 func (s *TestServer) withUserService() *TestServer {
-	us := mock_userService.NewMockIUserService(s.ctrl)
+	us := mock_userService.NewMockUserService(s.ctrl)
 
 	s.mockService.EXPECT().
 		User().
-		DoAndReturn(func() userService.IUserService {
+		DoAndReturn(func() userService.UserService {
 			return us
 		}).
 		AnyTimes()

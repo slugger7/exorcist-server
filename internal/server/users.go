@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -9,6 +10,8 @@ import (
 	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/models"
 )
+
+const ErrCreateUser ApiError = "could not create new user"
 
 func (s *server) withUserCreate(r *gin.RouterGroup, route Route) *server {
 	r.POST(route, s.CreateUser)
@@ -20,7 +23,59 @@ func (s *server) withUserUpdatePassword(r *gin.RouterGroup, route Route) *server
 	return s
 }
 
-const ErrCreateUser ApiError = "could not create new user"
+func (s *server) withUserPutFavourite(r *gin.RouterGroup, route Route) *server {
+	r.PUT(fmt.Sprintf("%v/favourites/:%v", route, idKey), s.addMediaToFavourite)
+	return s
+}
+
+func (s *server) withUserDeleteFavourite(r *gin.RouterGroup, route Route) *server {
+	r.DELETE(fmt.Sprintf("%v/favourites/:%v", route, idKey), s.removeMediaFavourite)
+	return s
+}
+
+func (s *server) removeMediaFavourite(c *gin.Context) {
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	mediaId, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	if err := s.repo.User().RemoveFavourite(*userId, mediaId); err != nil {
+		s.logger.Errorf("could not remove media %v from your favourites of user %v: %v", mediaId.String(), userId.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func (s *server) addMediaToFavourite(c *gin.Context) {
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	mediaId, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	if err := s.service.User().AddMediaToFavourites(*userId, mediaId); err != nil {
+		s.logger.Errorf("could not add media %v to favourites of user %v: %v", mediaId.String(), userId.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
 
 func (s *server) CreateUser(c *gin.Context) {
 	var newUser models.CreateUserDTO

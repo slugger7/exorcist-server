@@ -36,7 +36,7 @@ type IRepository interface {
 	Library() libraryRepository.LibraryRepository
 	LibraryPath() libraryPathRepository.LibraryPathRepository
 	Video() videoRepository.IVideoRepository
-	User() userRepository.IUserRepository
+	User() userRepository.UserRepository
 	Image() imageRepository.IImageRepository
 	Media() mediaRepository.MediaRepository
 	Person() personRepository.PersonRepository
@@ -52,7 +52,7 @@ type repository struct {
 	libraryRepo     libraryRepository.LibraryRepository
 	libraryPathRepo libraryPathRepository.LibraryPathRepository
 	videoRepo       videoRepository.IVideoRepository
-	userRepo        userRepository.IUserRepository
+	userRepo        userRepository.UserRepository
 	imageRepo       imageRepository.IImageRepository
 	mediaRepo       mediaRepository.MediaRepository
 	personRepo      personRepository.PersonRepository
@@ -122,7 +122,7 @@ func (s *repository) Video() videoRepository.IVideoRepository {
 	return s.videoRepo
 }
 
-func (s *repository) User() userRepository.IUserRepository {
+func (s *repository) User() userRepository.UserRepository {
 	s.logger.Debug("Getting user repo")
 	return dbInstance.userRepo
 }

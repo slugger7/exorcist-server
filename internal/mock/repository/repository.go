@@ -190,10 +190,10 @@ func (mr *MockIRepositoryMockRecorder) Tag() *gomock.Call {
 }
 
 // User mocks base method.
-func (m *MockIRepository) User() userRepository.IUserRepository {
+func (m *MockIRepository) User() userRepository.UserRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "User")
-	ret0, _ := ret[0].(userRepository.IUserRepository)
+	ret0, _ := ret[0].(userRepository.UserRepository)
 	return ret0
 }
 

@@ -1,5 +1,5 @@
 ### Get All videos
-GET {{host}}:{{port}}/api/media?limit=50
+GET {{host}}:{{port}}/api/media?limit=50&favourites=true
 
 ### Get media by id
 GET {{host}}:{{port}}/api/media/0fa21151-458f-4a33-aa89-3e374952ddd8

@@ -18,32 +18,46 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockIUserService is a mock of IUserService interface.
-type MockIUserService struct {
+// MockUserService is a mock of UserService interface.
+type MockUserService struct {
 	ctrl     *gomock.Controller
-	recorder *MockIUserServiceMockRecorder
+	recorder *MockUserServiceMockRecorder
 	isgomock struct{}
 }
 
-// MockIUserServiceMockRecorder is the mock recorder for MockIUserService.
-type MockIUserServiceMockRecorder struct {
-	mock *MockIUserService
+// MockUserServiceMockRecorder is the mock recorder for MockUserService.
+type MockUserServiceMockRecorder struct {
+	mock *MockUserService
 }
 
-// NewMockIUserService creates a new mock instance.
-func NewMockIUserService(ctrl *gomock.Controller) *MockIUserService {
-	mock := &MockIUserService{ctrl: ctrl}
-	mock.recorder = &MockIUserServiceMockRecorder{mock}
+// NewMockUserService creates a new mock instance.
+func NewMockUserService(ctrl *gomock.Controller) *MockUserService {
+	mock := &MockUserService{ctrl: ctrl}
+	mock.recorder = &MockUserServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIUserService) EXPECT() *MockIUserServiceMockRecorder {
+func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 	return m.recorder
 }
 
+// AddMediaToFavourites mocks base method.
+func (m *MockUserService) AddMediaToFavourites(id, mediaId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddMediaToFavourites", id, mediaId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddMediaToFavourites indicates an expected call of AddMediaToFavourites.
+func (mr *MockUserServiceMockRecorder) AddMediaToFavourites(id, mediaId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMediaToFavourites", reflect.TypeOf((*MockUserService)(nil).AddMediaToFavourites), id, mediaId)
+}
+
 // Create mocks base method.
-func (m *MockIUserService) Create(username, password string) (*model.User, error) {
+func (m *MockUserService) Create(username, password string) (*model.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", username, password)
 	ret0, _ := ret[0].(*model.User)
@@ -52,13 +66,13 @@ func (m *MockIUserService) Create(username, password string) (*model.User, error
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockIUserServiceMockRecorder) Create(username, password any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) Create(username, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIUserService)(nil).Create), username, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserService)(nil).Create), username, password)
 }
 
 // UpdatePassword mocks base method.
-func (m *MockIUserService) UpdatePassword(id uuid.UUID, model dto.ResetPasswordDTO) error {
+func (m *MockUserService) UpdatePassword(id uuid.UUID, model dto.ResetPasswordDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePassword", id, model)
 	ret0, _ := ret[0].(error)
@@ -66,13 +80,13 @@ func (m *MockIUserService) UpdatePassword(id uuid.UUID, model dto.ResetPasswordD
 }
 
 // UpdatePassword indicates an expected call of UpdatePassword.
-func (mr *MockIUserServiceMockRecorder) UpdatePassword(id, model any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) UpdatePassword(id, model any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockIUserService)(nil).UpdatePassword), id, model)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserService)(nil).UpdatePassword), id, model)
 }
 
 // Validate mocks base method.
-func (m *MockIUserService) Validate(username, password string) (*model.User, error) {
+func (m *MockUserService) Validate(username, password string) (*model.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Validate", username, password)
 	ret0, _ := ret[0].(*model.User)
@@ -81,7 +95,7 @@ func (m *MockIUserService) Validate(username, password string) (*model.User, err
 }
 
 // Validate indicates an expected call of Validate.
-func (mr *MockIUserServiceMockRecorder) Validate(username, password any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) Validate(username, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockIUserService)(nil).Validate), username, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockUserService)(nil).Validate), username, password)
 }

@@ -16,3 +16,9 @@ Content-Type: application/json
   "newPassword": "admin1",
   "repeatPassword": "admin1"
 }
+
+### Add favourite
+PUT {{host}}:{{port}}/api/users/favourites/2b65b266-3a76-471e-838a-e5edfc51255e
+
+### Remove favourite
+DELETE {{host}}:{{port}}/api/users/favourites/2b65b266-3a76-471e-838a-e5edfc51255e

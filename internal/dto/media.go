@@ -80,6 +80,7 @@ type MediaSearchDTO struct {
 	Tags          []string      `form:"tags" json:"tags"`
 	People        []string      `form:"people" json:"people"`
 	WatchStatuses []WatchStatus `form:"watchStatuses" json:"watchStatus"`
+	Favourites    bool          `form:"favourites" json:"favourites"`
 }
 
 type MediaOverviewDTO struct {
@@ -89,6 +90,7 @@ type MediaOverviewDTO struct {
 	Progress    float64   `json:"progress,omitempty"`
 	Deleted     bool      `json:"deleted"`
 	Runtime     float64   `json:"runtime"`
+	Favourite   bool      `json:"favourite"`
 }
 
 func (v *MediaOverviewDTO) FromModel(m models.MediaOverviewModel) *MediaOverviewDTO {
@@ -97,6 +99,8 @@ func (v *MediaOverviewDTO) FromModel(m models.MediaOverviewModel) *MediaOverview
 	v.Deleted = m.Deleted
 	v.Progress = m.MediaProgress.Timestamp
 	v.ThumbnailId = m.Thumbnail.ID
+
+	v.Favourite = m.FavouriteMedia != nil
 
 	if m.Video != nil {
 		v.Runtime = m.Video.Runtime
@@ -122,6 +126,7 @@ type MediaDTO struct {
 	Progress      float64     `json:"progress"`
 	People        []PersonDTO `json:"people"`
 	Tags          []TagDTO    `json:"tags"`
+	Favourite     bool        `json:"favourite"`
 }
 
 func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
@@ -144,6 +149,8 @@ func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
 	if m.Thumbnail != nil {
 		d.ThumbnailID = m.Thumbnail.ID
 	}
+
+	d.Favourite = m.FavouriteMedia != nil
 
 	d.Image = (&ImageDTO{}).FromModel(m.Image)
 	d.Video = (&VideoDTO{}).FromModel(m.Video)

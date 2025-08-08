@@ -14,10 +14,38 @@ import (
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
-type IUserService interface {
+type UserService interface {
 	Create(username, password string) (*model.User, error)
 	Validate(username, password string) (*model.User, error)
 	UpdatePassword(id uuid.UUID, model dto.ResetPasswordDTO) error
+	AddMediaToFavourites(id, mediaId uuid.UUID) error
+}
+
+func (u *userService) AddMediaToFavourites(userId uuid.UUID, mediaId uuid.UUID) error {
+	media, err := u.repo.Media().GetById(mediaId)
+	if err != nil {
+		return errs.BuildError(err, "could not get media by id: %v", mediaId.String())
+	}
+
+	if media == nil {
+		return fmt.Errorf("media %v was nil and can't be added as favourite", mediaId.String())
+	}
+
+	favouriteMedia, err := u.repo.User().GetFavourite(userId, mediaId)
+	if err != nil {
+		return errs.BuildError(err, "")
+	}
+
+	if favouriteMedia != nil {
+		u.logger.Warningf("favourite media already exists for user %v and media %v", userId.String(), mediaId.String())
+		return nil
+	}
+
+	if err := u.repo.User().AddMediaToFavourites(userId, mediaId); err != nil {
+		return errs.BuildError(err, "could not add media %v to favourites for %v", mediaId.String(), userId.String())
+	}
+
+	return nil
 }
 
 type userService struct {
@@ -28,7 +56,7 @@ type userService struct {
 
 var userServiceInstance *userService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) IUserService {
+func New(repo repository.IRepository, env *environment.EnvironmentVariables) UserService {
 	if userServiceInstance == nil {
 		userServiceInstance = &userService{
 			env:    env,
