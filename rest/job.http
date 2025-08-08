@@ -49,5 +49,19 @@ Content-Type: application/json
   }
 }
 
+### Create generate chapters job
+POST {{host}}:{{port}}/api/jobs
+Content-Type: application/json
+
+{
+  "type": "generate_chapters",
+  "data": {
+    "mediaId": "2b65b266-3a76-471e-838a-e5edfc51255e",
+    "interval": 60000,
+    "height": 100,
+    "width": 100
+  }
+}
+
 ### Get Jobs
 GET {{host}}:{{port}}/api/jobs?parent=c42a3089-1026-42c6-ace6-64c6636afbf5&statuses[]=not_started
