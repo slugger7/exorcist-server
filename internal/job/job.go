@@ -224,6 +224,10 @@ func (jr *JobRunner) jobFuncResolver(jobType model.JobTypeEnum) (JobFunc, error)
 		f = func(j *model.Job) error {
 			return jr.refreshLibraryMetadata(j)
 		}
+	case model.JobTypeEnum_GenerateChapters:
+		f = func(j *model.Job) error {
+			return jr.generateChapters(j)
+		}
 	default:
 		return nil, fmt.Errorf("no implementation to run job type %v", jobType)
 	}
