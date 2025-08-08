@@ -42,6 +42,20 @@ func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 	return m.recorder
 }
 
+// AddMediaToFavourites mocks base method.
+func (m *MockUserService) AddMediaToFavourites(id, mediaId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddMediaToFavourites", id, mediaId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddMediaToFavourites indicates an expected call of AddMediaToFavourites.
+func (mr *MockUserServiceMockRecorder) AddMediaToFavourites(id, mediaId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMediaToFavourites", reflect.TypeOf((*MockUserService)(nil).AddMediaToFavourites), id, mediaId)
+}
+
 // Create mocks base method.
 func (m *MockUserService) Create(username, password string) (*model.User, error) {
 	m.ctrl.T.Helper()

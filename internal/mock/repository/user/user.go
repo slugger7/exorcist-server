@@ -44,6 +44,20 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// AddMediaToFavourites mocks base method.
+func (m *MockUserRepository) AddMediaToFavourites(userId, mediaId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddMediaToFavourites", userId, mediaId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddMediaToFavourites indicates an expected call of AddMediaToFavourites.
+func (mr *MockUserRepositoryMockRecorder) AddMediaToFavourites(userId, mediaId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMediaToFavourites", reflect.TypeOf((*MockUserRepository)(nil).AddMediaToFavourites), userId, mediaId)
+}
+
 // CreateUser mocks base method.
 func (m *MockUserRepository) CreateUser(user model.User) (*model.User, error) {
 	m.ctrl.T.Helper()
@@ -72,6 +86,21 @@ func (m *MockUserRepository) GetById(id uuid.UUID) (*model.User, error) {
 func (mr *MockUserRepositoryMockRecorder) GetById(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockUserRepository)(nil).GetById), id)
+}
+
+// GetFavourite mocks base method.
+func (m *MockUserRepository) GetFavourite(id, mediaId uuid.UUID) (*model.FavouriteMedia, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavourite", id, mediaId)
+	ret0, _ := ret[0].(*model.FavouriteMedia)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavourite indicates an expected call of GetFavourite.
+func (mr *MockUserRepositoryMockRecorder) GetFavourite(id, mediaId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavourite", reflect.TypeOf((*MockUserRepository)(nil).GetFavourite), id, mediaId)
 }
 
 // GetFavourites mocks base method.
