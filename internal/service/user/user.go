@@ -37,7 +37,8 @@ func (u *userService) AddMediaToFavourites(userId uuid.UUID, mediaId uuid.UUID) 
 	}
 
 	if favouriteMedia != nil {
-		return fmt.Errorf("favourite media already exists for user %v and media %v", userId.String(), mediaId.String())
+		u.logger.Warningf("favourite media already exists for user %v and media %v", userId.String(), mediaId.String())
+		return nil
 	}
 
 	if err := u.repo.User().AddMediaToFavourites(userId, mediaId); err != nil {
