@@ -10,11 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/table"
-	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
-	"github.com/slugger7/exorcist/internal/models"
-	"github.com/slugger7/exorcist/internal/repository/helpers"
 	"github.com/slugger7/exorcist/internal/repository/util"
 )
 
@@ -30,15 +27,30 @@ type UserRepository interface {
 	CreateUser(user model.User) (*model.User, error)
 	GetById(id uuid.UUID) (*model.User, error)
 	UpdatePassword(user *model.User) error
-	GetFavourites(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 	AddMediaToFavourites(userId uuid.UUID, mediaId uuid.UUID) error
 	GetFavourite(id, mediaId uuid.UUID) (*model.FavouriteMedia, error)
+	RemoveFavourite(id, mediaId uuid.UUID) error
 }
 
 type userRepository struct {
 	db  *sql.DB
 	env *environment.EnvironmentVariables
 	ctx context.Context
+}
+
+func (u *userRepository) RemoveFavourite(id, mediaId uuid.UUID) error {
+	statement := table.FavouriteMedia.DELETE().
+		WHERE(table.FavouriteMedia.UserID.EQ(postgres.UUID(id)).
+			AND(table.FavouriteMedia.MediaID.EQ(postgres.UUID(mediaId))))
+
+	util.DebugCheck(u.env, statement)
+
+	_, err := statement.ExecContext(u.ctx, u.db)
+	if err != nil {
+		return errs.BuildError(err, "could not remove favourite media for user %v and media %v", id.String(), mediaId.String())
+	}
+
+	return nil
 }
 
 func (u *userRepository) AddMediaToFavourites(userId uuid.UUID, mediaId uuid.UUID) error {
@@ -72,27 +84,6 @@ func (ur *userRepository) GetFavourite(id uuid.UUID, mediaId uuid.UUID) (*model.
 	}
 
 	return &favourites[0], nil
-}
-
-// GetFavourites implements UserRepository.
-func (ur *userRepository) GetFavourites(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
-	relationFn := func(relationTable postgres.ReadableTable) postgres.ReadableTable {
-		return relationTable.INNER_JOIN(
-			table.FavouriteMedia,
-			table.FavouriteMedia.MediaID.EQ(table.Media.ID),
-		)
-	}
-
-	whereFn := func(whr postgres.BoolExpression) postgres.BoolExpression {
-		return whr.AND(table.FavouriteMedia.UserID.EQ(postgres.UUID(id)))
-	}
-
-	mediaPage, err := helpers.QueryMediaOverview(id, search, relationFn, whereFn, ur.ctx, ur.db, ur.env)
-	if err != nil {
-		return nil, errs.BuildError(err, "could not query media overview for favourites")
-	}
-
-	return mediaPage, nil
 }
 
 var userRepositoryInstance *userRepository

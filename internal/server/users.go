@@ -11,6 +11,8 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
+const ErrCreateUser ApiError = "could not create new user"
+
 func (s *server) withUserCreate(r *gin.RouterGroup, route Route) *server {
 	r.POST(route, s.CreateUser)
 	return s
@@ -21,17 +23,37 @@ func (s *server) withUserUpdatePassword(r *gin.RouterGroup, route Route) *server
 	return s
 }
 
-func (s *server) withUserGetFavourites(r *gin.RouterGroup, route Route) *server {
-	r.GET(fmt.Sprintf("%v/favourites", route), s.getUserFavourites)
-	return s
-}
-
 func (s *server) withUserPutFavourite(r *gin.RouterGroup, route Route) *server {
 	r.PUT(fmt.Sprintf("%v/favourites/:%v", route, idKey), s.addMediaToFavourite)
 	return s
 }
 
-const ErrCreateUser ApiError = "could not create new user"
+func (s *server) withUserDeleteFavourite(r *gin.RouterGroup, route Route) *server {
+	r.DELETE(fmt.Sprintf("%v/favourites/:%v", route, idKey), s.removeMediaFavourite)
+	return s
+}
+
+func (s *server) removeMediaFavourite(c *gin.Context) {
+	userId, err := s.getUserId(c)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	mediaId, err := uuid.Parse(c.Param(idKey))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": "could not parse media id"})
+		return
+	}
+
+	if err := s.repo.User().RemoveFavourite(*userId, mediaId); err != nil {
+		s.logger.Errorf("could not remove media %v from your favourites of user %v: %v", mediaId.String(), userId.String(), err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
 
 func (s *server) addMediaToFavourite(c *gin.Context) {
 	userId, err := s.getUserId(c)
@@ -47,44 +69,12 @@ func (s *server) addMediaToFavourite(c *gin.Context) {
 	}
 
 	if err := s.service.User().AddMediaToFavourites(*userId, mediaId); err != nil {
-		s.logger.Errorf("could not add media %v to your favourites: %v", mediaId, err.Error())
+		s.logger.Errorf("could not add media %v to favourites of user %v: %v", mediaId.String(), userId.String(), err.Error())
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
 	c.Status(http.StatusOK)
-}
-
-func (s *server) getUserFavourites(c *gin.Context) {
-	userId, err := s.getUserId(c)
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	var search dto.MediaSearchDTO
-	if err := c.ShouldBindQuery(&search); err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-
-	if search.Limit == 0 {
-		search.Limit = 100
-	}
-
-	media, err := s.repo.User().GetFavourites(*userId, search)
-	if err != nil {
-		s.logger.Errorf("fetching favourites from repo for %v: %v", userId.String(), err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	dtos := make([]dto.MediaOverviewDTO, len(media.Data))
-	for i, m := range media.Data {
-		dtos[i] = *(&dto.MediaOverviewDTO{}).FromModel(m)
-	}
-
-	c.JSON(http.StatusOK, dto.DataToPage(dtos, *media))
 }
 
 func (s *server) CreateUser(c *gin.Context) {

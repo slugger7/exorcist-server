@@ -15,8 +15,6 @@ import (
 	postgres "github.com/go-jet/jet/v2/postgres"
 	uuid "github.com/google/uuid"
 	model "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	dto "github.com/slugger7/exorcist/internal/dto"
-	models "github.com/slugger7/exorcist/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -103,21 +101,6 @@ func (mr *MockUserRepositoryMockRecorder) GetFavourite(id, mediaId any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavourite", reflect.TypeOf((*MockUserRepository)(nil).GetFavourite), id, mediaId)
 }
 
-// GetFavourites mocks base method.
-func (m *MockUserRepository) GetFavourites(id uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFavourites", id, search)
-	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetFavourites indicates an expected call of GetFavourites.
-func (mr *MockUserRepositoryMockRecorder) GetFavourites(id, search any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavourites", reflect.TypeOf((*MockUserRepository)(nil).GetFavourites), id, search)
-}
-
 // GetUserByUsername mocks base method.
 func (m *MockUserRepository) GetUserByUsername(username string, columns ...postgres.Projection) (*model.User, error) {
 	m.ctrl.T.Helper()
@@ -151,6 +134,20 @@ func (m *MockUserRepository) GetUserByUsernameAndPassword(username, password str
 func (mr *MockUserRepositoryMockRecorder) GetUserByUsernameAndPassword(username, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsernameAndPassword", reflect.TypeOf((*MockUserRepository)(nil).GetUserByUsernameAndPassword), username, password)
+}
+
+// RemoveFavourite mocks base method.
+func (m *MockUserRepository) RemoveFavourite(id, mediaId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveFavourite", id, mediaId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveFavourite indicates an expected call of RemoveFavourite.
+func (mr *MockUserRepositoryMockRecorder) RemoveFavourite(id, mediaId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveFavourite", reflect.TypeOf((*MockUserRepository)(nil).RemoveFavourite), id, mediaId)
 }
 
 // UpdatePassword mocks base method.
