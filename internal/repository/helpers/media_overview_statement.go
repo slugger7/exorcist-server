@@ -93,6 +93,10 @@ func mediaOverviewStatement(userId uuid.UUID, search dto.MediaSearchDTO, relatio
 		AND(media.Deleted.IS_FALSE()).
 		AND(media.Exists.IS_TRUE())
 
+	if search.Favourites {
+		whr = whr.AND(table.FavouriteMedia.UserID.IS_NOT_NULL())
+	}
+
 	if search.Search != "" {
 		caseInsensitive := strings.ToLower(search.Search)
 		likeExpression := fmt.Sprintf("%%%v%%", caseInsensitive)

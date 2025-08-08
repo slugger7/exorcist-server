@@ -80,6 +80,7 @@ type MediaSearchDTO struct {
 	Tags          []string      `form:"tags" json:"tags"`
 	People        []string      `form:"people" json:"people"`
 	WatchStatuses []WatchStatus `form:"watchStatuses" json:"watchStatus"`
+	Favourites    bool          `form:"favourites" json:"favourites"`
 }
 
 type MediaOverviewDTO struct {
