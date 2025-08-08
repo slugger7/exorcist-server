@@ -332,22 +332,24 @@ func (r *mediaRepository) GetByIdAndUserId(id, userId uuid.UUID) (*models.Media,
 		thumbnail.ID,
 		person.AllColumns,
 		tag.AllColumns,
-		table.MediaProgress.Timestamp).
-		FROM(media.
-			LEFT_JOIN(image, image.MediaID.EQ(media.ID)).
-			LEFT_JOIN(video, video.MediaID.EQ(media.ID)).
-			LEFT_JOIN(mediaRelation, mediaRelation.MediaID.EQ(media.ID).
-				AND(mediaRelation.RelationType.EQ(
-					postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String()),
-				))).
-			LEFT_JOIN(thumbnail, thumbnail.ID.EQ(mediaRelation.RelatedTo).
-				AND(thumbnail.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Asset.String())))).
-			LEFT_JOIN(mediaPerson, mediaPerson.MediaID.EQ(media.ID)).
-			LEFT_JOIN(person, person.ID.EQ(mediaPerson.PersonID)).
-			LEFT_JOIN(mediaTag, mediaTag.MediaID.EQ(media.ID)).
-			LEFT_JOIN(tag, tag.ID.EQ(mediaTag.TagID)).
-			LEFT_JOIN(table.MediaProgress, table.MediaProgress.MediaID.EQ(media.ID).AND(table.MediaProgress.UserID.EQ(postgres.UUID(userId)))),
-		).
+		table.MediaProgress.Timestamp,
+		table.FavouriteMedia.ID,
+	).FROM(media.
+		LEFT_JOIN(image, image.MediaID.EQ(media.ID)).
+		LEFT_JOIN(video, video.MediaID.EQ(media.ID)).
+		LEFT_JOIN(mediaRelation, mediaRelation.MediaID.EQ(media.ID).
+			AND(mediaRelation.RelationType.EQ(
+				postgres.NewEnumValue(model.MediaRelationTypeEnum_Thumbnail.String()),
+			))).
+		LEFT_JOIN(thumbnail, thumbnail.ID.EQ(mediaRelation.RelatedTo).
+			AND(thumbnail.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Asset.String())))).
+		LEFT_JOIN(mediaPerson, mediaPerson.MediaID.EQ(media.ID)).
+		LEFT_JOIN(person, person.ID.EQ(mediaPerson.PersonID)).
+		LEFT_JOIN(mediaTag, mediaTag.MediaID.EQ(media.ID)).
+		LEFT_JOIN(tag, tag.ID.EQ(mediaTag.TagID)).
+		LEFT_JOIN(table.MediaProgress, table.MediaProgress.MediaID.EQ(media.ID).AND(table.MediaProgress.UserID.EQ(postgres.UUID(userId)))).
+		LEFT_JOIN(table.FavouriteMedia, table.FavouriteMedia.MediaID.EQ(media.ID).AND(table.FavouriteMedia.UserID.EQ(postgres.UUID(userId)))),
+	).
 		WHERE(media.ID.EQ(postgres.UUID(id)))
 
 	util.DebugCheck(r.env, statement)

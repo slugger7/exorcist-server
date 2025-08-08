@@ -42,6 +42,10 @@ func mediaOverviewStatement(userId uuid.UUID, search dto.MediaSearchDTO, relatio
 			table.MediaProgress,
 			table.MediaProgress.MediaID.EQ(media.ID).
 				AND(table.MediaProgress.UserID.EQ(postgres.UUID(userId))),
+		).LEFT_JOIN(
+			table.FavouriteMedia,
+			table.FavouriteMedia.MediaID.EQ(media.ID).
+				AND(table.FavouriteMedia.UserID.EQ(postgres.UUID(userId))),
 		))
 
 	if tagFilter {
@@ -78,6 +82,7 @@ func mediaOverviewStatement(userId uuid.UUID, search dto.MediaSearchDTO, relatio
 		thumbnail.ID,
 		table.MediaProgress.Timestamp,
 		table.Video.Runtime,
+		table.FavouriteMedia.ID,
 		postgres.COUNT(postgres.STAR).OVER().AS("total"),
 	).
 		FROM(fromStmnt)
