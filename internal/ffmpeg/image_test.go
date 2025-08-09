@@ -26,7 +26,8 @@ func Test_ImageAt_NegativeHeight(t *testing.T) {
 }
 
 func Test_ImageAt_Success(t *testing.T) {
-	width, height, time := 20, 60, 3
+	width, height := 20, 60
+	time := float64(3)
 
 	err := ImageAt(testVideoPath, time, testImagePath, width, height)
 	assert.ErrorNil(t, err)

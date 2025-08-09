@@ -14,13 +14,19 @@ import (
 	"github.com/slugger7/exorcist/internal/media"
 )
 
-func CreateGenerateThumbnailJob(video model.Video, jobId *uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
+func CreateGenerateThumbnailJob(video model.Video, jobId *uuid.UUID, imagePath string, timestamp float64, height, width int, relationType *model.MediaRelationTypeEnum) (*model.Job, error) {
 	d := dto.GenerateThumbnailData{
-		MediaId:   video.ID,
-		Path:      imagePath,
-		Height:    height,
-		Width:     width,
-		Timestamp: timestamp,
+		MediaId:      video.ID,
+		Path:         imagePath,
+		Height:       height,
+		Width:        width,
+		Timestamp:    timestamp,
+		RelationType: relationType,
+	}
+
+	if d.RelationType == nil {
+		v := model.MediaRelationTypeEnum_Thumbnail
+		d.RelationType = &v
 	}
 
 	js, err := json.Marshal(d)
@@ -66,7 +72,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		jobData.Width = int(video.Width)
 	}
 	if jobData.Timestamp == 0 {
-		jobData.Timestamp = int(float64(video.Runtime) * 0.25)
+		jobData.Timestamp = video.Runtime * 0.25
 	}
 
 	err = createAssetDirectory(jobData.Path)
@@ -86,7 +92,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 	imageMedia := &model.Media{
 		LibraryPathID: video.LibraryPathID,
 		Path:          jobData.Path,
-		Title:         fmt.Sprintf("%v-thumbnail", video.MediaID),
+		Title:         fmt.Sprintf("%v-%v", video.MediaID, jobData.RelationType.String()),
 		MediaType:     model.MediaTypeEnum_Asset,
 		Size:          fileSize,
 	}
@@ -113,7 +119,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 	videoImage := &model.MediaRelation{
 		MediaID:      video.Media.ID,
 		RelatedTo:    image.MediaID,
-		RelationType: model.MediaRelationTypeEnum_Thumbnail,
+		RelationType: *jobData.RelationType,
 	}
 
 	videoImage, err = jr.repo.Media().Relate(*videoImage)

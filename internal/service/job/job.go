@@ -101,7 +101,7 @@ func (i *jobService) generateChapters(data string, priority int16) (*model.Job, 
 	}
 
 	if jobData.Interval == 0 {
-		jobData.Interval = int((time.Millisecond * 1000 * 5).Milliseconds())
+		jobData.Interval = float64(((time.Minute * 5).Seconds()))
 	}
 
 	media, err := i.repo.Media().GetById(jobData.MediaId)
@@ -196,12 +196,24 @@ func (i *jobService) generateThumbnail(data string, priority int16) (*model.Job,
 		return nil, errs.BuildError(err, "could not unmarshal data for job %v", data)
 	}
 
+	if generateThumbnailData.RelationType == nil {
+		v := model.MediaRelationTypeEnum_Thumbnail
+		generateThumbnailData.RelationType = &v
+	}
+
 	if _, err := i.repo.Video().GetByIdWithMedia(generateThumbnailData.MediaId); err != nil {
 		return nil, errs.BuildError(
 			err,
 			ErrActionGenerateThumbnailVideoNotFound,
 			generateThumbnailData.MediaId)
 	}
+
+	bytes, err := json.Marshal(generateThumbnailData)
+	if err != nil {
+		return nil, errs.BuildError(err, "could not remarshal generate thumbnail data")
+	}
+
+	data = string(bytes)
 
 	return &model.Job{
 		Data:     &data,
