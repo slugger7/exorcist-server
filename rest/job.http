@@ -57,9 +57,8 @@ Content-Type: application/json
   "type": "generate_chapters",
   "data": {
     "mediaId": "2b65b266-3a76-471e-838a-e5edfc51255e",
-    "interval": 60000,
-    "height": 100,
-    "width": 100
+    "interval": 60,
+    "maxDimension": 400
   }
 }
 

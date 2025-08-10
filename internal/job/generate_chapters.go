@@ -60,6 +60,16 @@ func (jr *JobRunner) generateChapters(job *model.Job) error {
 	generateThumbnailJobs := []model.Job{}
 	var accErr error
 	for i := intervalDuration; i < runtimeDuration; i += intervalDuration {
+		metadata := dto.ChapterMetadadataDTO{
+			Timestamp: i.Seconds(),
+		}
+
+		bytes, err := json.Marshal(metadata)
+		if err != nil {
+			accErr = errors.Join(accErr, err)
+			continue
+		}
+
 		assetPath := filepath.Join(
 			jr.env.Assets,
 			media.Media.ID.String(),
@@ -71,7 +81,7 @@ func (jr *JobRunner) generateChapters(job *model.Job) error {
 				jobData.Width,
 				i,
 			))
-		job, err := CreateGenerateThumbnailJob(*media.Video, &job.ID, assetPath, i.Seconds(), jobData.Height, jobData.Width, &relationType)
+		job, err := CreateGenerateThumbnailJob(*media.Video, &job.ID, assetPath, i.Seconds(), jobData.Height, jobData.Width, &relationType, bytes)
 		if err != nil {
 			accErr = errors.Join(accErr, err)
 			continue

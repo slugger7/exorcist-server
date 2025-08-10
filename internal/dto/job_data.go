@@ -17,8 +17,9 @@ type GenerateThumbnailData struct {
 	// Optional: If set to 0, video height will be used
 	Height int `json:"height"`
 	// Optional: If set to 0, video widtch will be used
-	Width        int `json:"width"`
-	RelationType *model.MediaRelationTypeEnum
+	Width        int                          `json:"width"`
+	RelationType *model.MediaRelationTypeEnum `json:"relationType"`
+	Metadata     *ThumbnailMetadataDTO        `json:"metadata"`
 }
 
 type RefreshFields struct {
@@ -38,9 +39,10 @@ type RefreshLibraryMetadata struct {
 }
 
 type GenerateChaptersData struct {
-	MediaId      uuid.UUID `json:"mediaId"`
-	Interval     float64   `json:"interval"`
-	Height       int       `json:"height"`
-	Width        int       `json:"width"`
-	MaxDimension int       `json:"maxDimension"`
+	MediaId      uuid.UUID             `json:"mediaId"`
+	Interval     float64               `json:"interval"`
+	Height       int                   `json:"height"`
+	Width        int                   `json:"width"`
+	MaxDimension int                   `json:"maxDimension"`
+	Metadata     *ChapterMetadadataDTO `json:"metadata"`
 }

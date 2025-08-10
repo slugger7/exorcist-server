@@ -375,7 +375,7 @@ func (ctx *Context) transferVideos() error {
 			relationType := model.MediaRelationTypeEnum_Thumbnail
 
 			assetPath := filepath.Join(os.Getenv("ASSETS"), v.MediaID.String(), fmt.Sprintf("%v.webp", filepath.Base(mediaEntity.Path)))
-			job, err := job.CreateGenerateThumbnailJob(v, nil, assetPath, 0, int(v.Height), int(v.Width), &relationType)
+			job, err := job.CreateGenerateThumbnailJob(v, nil, assetPath, 0, int(v.Height), int(v.Width), &relationType, nil)
 			if err != nil {
 				continue
 			}

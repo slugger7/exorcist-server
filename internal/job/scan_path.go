@@ -183,7 +183,7 @@ func (jr *JobRunner) handleVideosOnDisk(job model.Job, libPath model.LibraryPath
 					height,
 					width,
 				))
-			thumbnailJob, err := CreateGenerateThumbnailJob(createdVideos[0], &job.ID, assetPath, 0, height, width, &relationType)
+			thumbnailJob, err := CreateGenerateThumbnailJob(createdVideos[0], &job.ID, assetPath, 0, height, width, &relationType, nil)
 			if err != nil {
 				return errs.BuildError(err, "could not create generate thumbnail job")
 			}

@@ -14,7 +14,15 @@ import (
 	"github.com/slugger7/exorcist/internal/media"
 )
 
-func CreateGenerateThumbnailJob(video model.Video, jobId *uuid.UUID, imagePath string, timestamp float64, height, width int, relationType *model.MediaRelationTypeEnum) (*model.Job, error) {
+func CreateGenerateThumbnailJob(
+	video model.Video,
+	jobId *uuid.UUID,
+	imagePath string,
+	timestamp float64,
+	height, width int,
+	relationType *model.MediaRelationTypeEnum,
+	metadata []byte,
+) (*model.Job, error) {
 	d := dto.GenerateThumbnailData{
 		MediaId:      video.ID,
 		Path:         imagePath,
@@ -116,10 +124,18 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		return errs.BuildError(err, "error creating image")
 	}
 
+	bytes, err := json.Marshal(jobData.Metadata)
+	if err != nil {
+		return errs.BuildError(err, "could not marshall metadata")
+	}
+
+	metadata := string(bytes)
+
 	videoImage := &model.MediaRelation{
 		MediaID:      video.Media.ID,
 		RelatedTo:    image.MediaID,
 		RelationType: *jobData.RelationType,
+		Metadata:     &metadata,
 	}
 
 	videoImage, err = jr.repo.Media().Relate(*videoImage)
