@@ -23,7 +23,7 @@ func Test_CreateGenerateThumbnailJob(t *testing.T) {
 	actualData := *actual.Data
 	actual.Data = nil
 
-	expectedData := fmt.Sprintf(`{"videoId":"%v","path":"%v","timestamp":%v,"height":%v,"width":%v}`, id, imagePath, timestamp, height, width)
+	expectedData := fmt.Sprintf(`{"mediaId":"%v","path":"%v","timestamp":%v,"height":%v,"width":%v,"relationType":"thumbnail","metadata":null}`, id, imagePath, timestamp, height, width)
 	expected := model.Job{
 		JobType:  model.JobTypeEnum_GenerateThumbnail,
 		Status:   model.JobStatusEnum_NotStarted,
