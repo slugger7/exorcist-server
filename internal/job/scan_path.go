@@ -171,8 +171,19 @@ func (jr *JobRunner) handleVideosOnDisk(job model.Job, libPath model.LibraryPath
 				height = maxDimension
 			}
 
-			assetPath := filepath.Join(jr.env.Assets, mediaId.String(), fmt.Sprintf(`%v.webp`, v.FileName))
-			thumbnailJob, err := CreateGenerateThumbnailJob(createdVideos[0], &job.ID, assetPath, 0, height, width)
+			relationType := model.MediaRelationTypeEnum_Thumbnail
+
+			assetPath := filepath.Join(
+				jr.env.Assets,
+				mediaId.String(),
+				fmt.Sprintf(
+					`%v.%v.%vx%v.webp`,
+					v.FileName,
+					relationType.String(),
+					height,
+					width,
+				))
+			thumbnailJob, err := CreateGenerateThumbnailJob(createdVideos[0], &job.ID, assetPath, 0, height, width, &relationType, nil)
 			if err != nil {
 				return errs.BuildError(err, "could not create generate thumbnail job")
 			}

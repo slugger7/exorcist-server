@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/go-jet/jet/v2/postgres"
@@ -109,24 +110,25 @@ func (v *MediaOverviewDTO) FromModel(m models.MediaOverviewModel) *MediaOverview
 }
 
 type MediaDTO struct {
-	ID            uuid.UUID   `json:"id"`
-	LibraryPathID uuid.UUID   `json:"libraryPathId"`
-	Path          string      `json:"path"`
-	Title         string      `json:"title"`
-	Size          int64       `json:"size"`
-	Checksum      *string     `json:"checksum"`
-	Exists        bool        `json:"exists"`
-	Deleted       bool        `json:"deleted"`
-	Added         time.Time   `json:"added"`
-	Created       time.Time   `json:"created"`
-	Modified      time.Time   `json:"modified"`
-	Image         *ImageDTO   `json:"image,omitempty"`
-	Video         *VideoDTO   `json:"video,omitempty"`
-	ThumbnailID   uuid.UUID   `json:"thumbnailId,omitempty"`
-	Progress      float64     `json:"progress"`
-	People        []PersonDTO `json:"people"`
-	Tags          []TagDTO    `json:"tags"`
-	Favourite     bool        `json:"favourite"`
+	ID            uuid.UUID    `json:"id"`
+	LibraryPathID uuid.UUID    `json:"libraryPathId"`
+	Path          string       `json:"path"`
+	Title         string       `json:"title"`
+	Size          int64        `json:"size"`
+	Checksum      *string      `json:"checksum"`
+	Exists        bool         `json:"exists"`
+	Deleted       bool         `json:"deleted"`
+	Added         time.Time    `json:"added"`
+	Created       time.Time    `json:"created"`
+	Modified      time.Time    `json:"modified"`
+	Image         *ImageDTO    `json:"image,omitempty"`
+	Video         *VideoDTO    `json:"video,omitempty"`
+	ThumbnailID   uuid.UUID    `json:"thumbnailId,omitempty"`
+	Progress      float64      `json:"progress"`
+	People        []PersonDTO  `json:"people"`
+	Tags          []TagDTO     `json:"tags"`
+	Favourite     bool         `json:"favourite"`
+	Chapters      []ChapterDTO `json:"chapters"`
 }
 
 func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
@@ -148,6 +150,13 @@ func (d *MediaDTO) FromModel(m models.Media) *MediaDTO {
 
 	if m.Thumbnail != nil {
 		d.ThumbnailID = m.Thumbnail.ID
+	}
+
+	if len(m.Chapters) != 0 {
+		d.Chapters = make([]ChapterDTO, len(m.Chapters))
+		for i, m := range m.Chapters {
+			d.Chapters[i] = *(&ChapterDTO{}).FromModel(m)
+		}
 	}
 
 	d.Favourite = m.FavouriteMedia != nil
@@ -232,6 +241,25 @@ func (d *MediaUpdatedDTO) FromModel(m model.Media) *MediaUpdatedDTO {
 	d.ID = m.ID
 	d.Title = &m.Title
 	d.Modified = m.Modified
+
+	return d
+}
+
+type ChapterDTO struct {
+	ThumbnailId uuid.UUID `json:"thumbnailId"`
+	Timestamp   float64   `json:"timestamp"`
+}
+
+func (d *ChapterDTO) FromModel(m models.MediaChapter) *ChapterDTO {
+	d.ThumbnailId = m.RelatedTo
+
+	var metadata ChapterMetadadataDTO
+	if err := json.Unmarshal([]byte(m.Metadata), &metadata); err != nil {
+		d.Timestamp = 0
+		return d
+	}
+
+	d.Timestamp = metadata.Timestamp
 
 	return d
 }

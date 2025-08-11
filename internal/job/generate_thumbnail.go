@@ -14,13 +14,28 @@ import (
 	"github.com/slugger7/exorcist/internal/media"
 )
 
-func CreateGenerateThumbnailJob(video model.Video, jobId *uuid.UUID, imagePath string, timestamp, height, width int) (*model.Job, error) {
+func CreateGenerateThumbnailJob(
+	video model.Video,
+	jobId *uuid.UUID,
+	imagePath string,
+	timestamp float64,
+	height, width int,
+	relationType *model.MediaRelationTypeEnum,
+	metadata *dto.ThumbnailMetadataDTO,
+) (*model.Job, error) {
 	d := dto.GenerateThumbnailData{
-		VideoId:   video.ID,
-		Path:      imagePath,
-		Height:    height,
-		Width:     width,
-		Timestamp: timestamp,
+		MediaId:      video.ID,
+		Path:         imagePath,
+		Height:       height,
+		Width:        width,
+		Timestamp:    timestamp,
+		RelationType: relationType,
+		Metadata:     metadata,
+	}
+
+	if d.RelationType == nil {
+		v := model.MediaRelationTypeEnum_Thumbnail
+		d.RelationType = &v
 	}
 
 	js, err := json.Marshal(d)
@@ -54,9 +69,9 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		return fmt.Errorf("cant create an image at a blank path")
 	}
 
-	video, err := jr.repo.Video().GetByIdWithMedia(jobData.VideoId)
+	video, err := jr.repo.Video().GetByIdWithMedia(jobData.MediaId)
 	if err != nil {
-		return errs.BuildError(err, "error fetching video with id: %v", jobData.VideoId)
+		return errs.BuildError(err, "error fetching video with id: %v", jobData.MediaId)
 	}
 
 	if jobData.Height == 0 {
@@ -66,7 +81,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		jobData.Width = int(video.Width)
 	}
 	if jobData.Timestamp == 0 {
-		jobData.Timestamp = int(float64(video.Runtime) * 0.25)
+		jobData.Timestamp = video.Runtime * 0.25
 	}
 
 	err = createAssetDirectory(jobData.Path)
@@ -86,7 +101,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 	imageMedia := &model.Media{
 		LibraryPathID: video.LibraryPathID,
 		Path:          jobData.Path,
-		Title:         fmt.Sprintf("%v-thumbnail", video.MediaID),
+		Title:         fmt.Sprintf("%v-%v", video.MediaID, jobData.RelationType.String()),
 		MediaType:     model.MediaTypeEnum_Asset,
 		Size:          fileSize,
 	}
@@ -110,10 +125,18 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		return errs.BuildError(err, "error creating image")
 	}
 
+	bytes, err := json.Marshal(jobData.Metadata)
+	if err != nil {
+		return errs.BuildError(err, "could not marshall metadata")
+	}
+
+	metadata := string(bytes)
+
 	videoImage := &model.MediaRelation{
 		MediaID:      video.Media.ID,
 		RelatedTo:    image.MediaID,
-		RelationType: model.MediaRelationTypeEnum_Thumbnail,
+		RelationType: *jobData.RelationType,
+		Metadata:     &metadata,
 	}
 
 	videoImage, err = jr.repo.Media().Relate(*videoImage)
@@ -121,11 +144,25 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		return errs.BuildError(err, "could not create video image relation")
 	}
 
-	vidUpdate := dto.MediaOverviewDTO{
+	mediaOverviewUpdate := dto.MediaOverviewDTO{
 		Id:          video.Media.ID,
 		ThumbnailId: image.MediaID,
 	}
-	jr.wsVideoUpdate(vidUpdate)
+	jr.wsMediaOverviewUpdate(mediaOverviewUpdate)
+
+	if *jobData.RelationType == model.MediaRelationTypeEnum_Chapter {
+		mediaUpdate := dto.MediaDTO{
+			ID: video.Media.ID,
+			Chapters: []dto.ChapterDTO{
+				{
+					ThumbnailId: image.MediaID,
+					Timestamp:   jobData.Timestamp,
+				},
+			},
+		}
+
+		jr.wsMediaUpdate(mediaUpdate)
+	}
 
 	return nil
 }

@@ -20,4 +20,5 @@ type MediaRelation struct {
 	Created      time.Time
 	Modified     time.Time
 	GhostID      *int32
+	Metadata     *string
 }

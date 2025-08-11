@@ -193,6 +193,20 @@ func (mr *MockMediaRepositoryMockRecorder) Relate(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Relate", reflect.TypeOf((*MockMediaRepository)(nil).Relate), arg0)
 }
 
+// RemoveRelation mocks base method.
+func (m *MockMediaRepository) RemoveRelation(id, relatedTo uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveRelation", id, relatedTo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveRelation indicates an expected call of RemoveRelation.
+func (mr *MockMediaRepositoryMockRecorder) RemoveRelation(id, relatedTo any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveRelation", reflect.TypeOf((*MockMediaRepository)(nil).RemoveRelation), id, relatedTo)
+}
+
 // Update mocks base method.
 func (m_2 *MockMediaRepository) Update(m model.Media, columns postgres.ColumnList) (*model.Media, error) {
 	m_2.ctrl.T.Helper()

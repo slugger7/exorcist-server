@@ -8,19 +8,21 @@ import (
 type WSTopic string
 
 const (
-	WSTopic_JobUpdate   WSTopic = "job_update"
-	WSTopic_JobCreate   WSTopic = "job_create"
-	WSTopic_VideoUpdate WSTopic = "video_update"
-	WSTopic_VideoCreate WSTopic = "video_create"
-	WSTopic_VideoDelete WSTopic = "video_delete"
+	WSTopic_JobUpdate           WSTopic = "job_update"
+	WSTopic_JobCreate           WSTopic = "job_create"
+	WSTopic_MediaUpdate         WSTopic = "media_update"
+	WSTopic_MediaOverviewUpdate WSTopic = "media_overview_update"
+	WSTopic_MediaCreate         WSTopic = "media_create"
+	WSTopic_MediaDelete         WSTopic = "media_delete"
 )
 
 var WSTopicAllValues = []WSTopic{
 	WSTopic_JobUpdate,
 	WSTopic_JobCreate,
-	WSTopic_VideoUpdate,
-	WSTopic_VideoCreate,
-	WSTopic_VideoDelete,
+	WSTopic_MediaUpdate,
+	WSTopic_MediaOverviewUpdate,
+	WSTopic_MediaCreate,
+	WSTopic_MediaDelete,
 }
 
 func (t WSTopic) String() string {

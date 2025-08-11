@@ -21,7 +21,7 @@ func ScaleHeightByWidth(currentHeight, currentWidth, wantedWidth int) int {
 	return int(float32(currentHeight) / float32(currentWidth) * float32(wantedWidth))
 }
 
-func ImageAt(vid string, time int, img string, width, height int) error {
+func ImageAt(vid string, time float64, img string, width, height int) error {
 	if width <= 0 {
 		return fmt.Errorf(ErrNegativeWidth, width)
 	}

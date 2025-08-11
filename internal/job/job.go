@@ -39,11 +39,13 @@ func New(
 	wss models.WebSocketMap,
 ) chan bool {
 	ch := make(chan bool)
+
 	if jobRunnerInstance == nil {
+		repo := repository.New(env, context.Background())
 		jobRunnerInstance = &JobRunner{
 			env:         env,
-			service:     serv,
-			repo:        repository.New(env, context.Background()),
+			service:     service.New(repo, env, ch, shutdownCtx),
+			repo:        repo,
 			logger:      logger,
 			ch:          ch,
 			wg:          wg,
@@ -69,21 +71,32 @@ func (jr *JobRunner) wsJobUpdate(job model.Job) {
 	jobUpdate.SendToAll(jr.wss)
 }
 
-func (jr *JobRunner) wsVideoUpdate(video dto.MediaOverviewDTO) {
-	jr.logger.Debug("ws - updating video")
+func (jr *JobRunner) wsMediaOverviewUpdate(media dto.MediaOverviewDTO) {
+	jr.logger.Debug("ws - updating media overview")
 
-	videoUpdate := dto.WSMessage[dto.MediaOverviewDTO]{
-		Topic: dto.WSTopic_VideoUpdate,
-		Data:  video,
+	mediaUpdate := dto.WSMessage[dto.MediaOverviewDTO]{
+		Topic: dto.WSTopic_MediaOverviewUpdate,
+		Data:  media,
 	}
-	videoUpdate.SendToAll(jr.wss)
+	mediaUpdate.SendToAll(jr.wss)
+}
+
+func (jr *JobRunner) wsMediaUpdate(media dto.MediaDTO) {
+	jr.logger.Debug("ws - updating media")
+
+	mediaUpdate := dto.WSMessage[dto.MediaDTO]{
+		Topic: dto.WSTopic_MediaUpdate,
+		Data:  media,
+	}
+
+	mediaUpdate.SendToAll(jr.wss)
 }
 
 func (jr *JobRunner) wsVideoDelete(video dto.MediaOverviewDTO) {
 	jr.logger.Debug("ws - deleting video")
 
 	videoDelete := dto.WSMessage[dto.MediaOverviewDTO]{
-		Topic: dto.WSTopic_VideoDelete,
+		Topic: dto.WSTopic_MediaDelete,
 		Data:  video,
 	}
 	videoDelete.SendToAll(jr.wss)
@@ -93,7 +106,7 @@ func (jr *JobRunner) wsVideoCreate(video dto.MediaOverviewDTO) {
 	jr.logger.Debug("ws - creating video")
 
 	videoDelete := dto.WSMessage[dto.MediaOverviewDTO]{
-		Topic: dto.WSTopic_VideoCreate,
+		Topic: dto.WSTopic_MediaCreate,
 		Data:  video,
 	}
 	videoDelete.SendToAll(jr.wss)
@@ -223,6 +236,10 @@ func (jr *JobRunner) jobFuncResolver(jobType model.JobTypeEnum) (JobFunc, error)
 	case model.JobTypeEnum_RefreshLibraryMetadata:
 		f = func(j *model.Job) error {
 			return jr.refreshLibraryMetadata(j)
+		}
+	case model.JobTypeEnum_GenerateChapters:
+		f = func(j *model.Job) error {
+			return jr.generateChapters(j)
 		}
 	default:
 		return nil, fmt.Errorf("no implementation to run job type %v", jobType)
