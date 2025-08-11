@@ -144,11 +144,25 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		return errs.BuildError(err, "could not create video image relation")
 	}
 
-	vidUpdate := dto.MediaOverviewDTO{
+	mediaOverviewUpdate := dto.MediaOverviewDTO{
 		Id:          video.Media.ID,
 		ThumbnailId: image.MediaID,
 	}
-	jr.wsVideoUpdate(vidUpdate)
+	jr.wsMediaOverviewUpdate(mediaOverviewUpdate)
+
+	if *jobData.RelationType == model.MediaRelationTypeEnum_Chapter {
+		mediaUpdate := dto.MediaDTO{
+			ID: video.Media.ID,
+			Chapters: []dto.ChapterDTO{
+				{
+					ThumbnailId: image.MediaID,
+					Timestamp:   jobData.Timestamp,
+				},
+			},
+		}
+
+		jr.wsMediaUpdate(mediaUpdate)
+	}
 
 	return nil
 }
