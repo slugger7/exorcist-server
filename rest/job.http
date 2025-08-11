@@ -58,7 +58,8 @@ Content-Type: application/json
   "data": {
     "mediaId": "2b65b266-3a76-471e-838a-e5edfc51255e",
     "interval": 60,
-    "maxDimension": 400
+    "maxDimension": 400,
+    "overwrite": true
   }
 }
 

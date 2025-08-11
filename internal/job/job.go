@@ -39,11 +39,13 @@ func New(
 	wss models.WebSocketMap,
 ) chan bool {
 	ch := make(chan bool)
+
 	if jobRunnerInstance == nil {
+		repo := repository.New(env, context.Background())
 		jobRunnerInstance = &JobRunner{
 			env:         env,
-			service:     serv,
-			repo:        repository.New(env, context.Background()),
+			service:     service.New(repo, env, ch, shutdownCtx),
+			repo:        repo,
 			logger:      logger,
 			ch:          ch,
 			wg:          wg,

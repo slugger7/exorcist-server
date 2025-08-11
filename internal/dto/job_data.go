@@ -45,4 +45,5 @@ type GenerateChaptersData struct {
 	Width        int                   `json:"width"`
 	MaxDimension int                   `json:"maxDimension"`
 	Metadata     *ChapterMetadadataDTO `json:"metadata"`
+	Overwrite    bool                  `json:"overwrite"`
 }

@@ -7,11 +7,28 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
 	"github.com/slugger7/exorcist/internal/dto"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/ffmpeg"
+	"github.com/slugger7/exorcist/internal/models"
 )
+
+func (jr *JobRunner) removeChapters(id uuid.UUID, chapters []models.MediaChapter) error {
+	var accErr error
+	for _, i := range chapters {
+		if err := jr.service.Media().Delete(i.RelatedTo, true); err != nil {
+			accErr = errors.Join(accErr, err)
+		}
+
+		if err := jr.repo.Media().RemoveRelation(id, i.RelatedTo); err != nil {
+			accErr = errors.Join(accErr, err)
+		}
+	}
+
+	return accErr
+}
 
 func (jr *JobRunner) generateChapters(job *model.Job) error {
 	var jobData dto.GenerateChaptersData
@@ -26,6 +43,17 @@ func (jr *JobRunner) generateChapters(job *model.Job) error {
 
 	if media == nil {
 		return fmt.Errorf("media was nil for generate chapters job: %v", jobData.MediaId.String())
+	}
+
+	if len(media.Chapters) > 0 {
+		if jobData.Overwrite {
+			if err := jr.removeChapters(media.Media.ID, media.Chapters); err != nil {
+				jr.logger.Warningf("some issues removing previous chapters: %v", err.Error())
+			}
+		} else {
+			jr.logger.Infof("chapters already exist for %v as it already has chapters and overwrite was set to false", jobData.MediaId)
+			return nil
+		}
 	}
 
 	if media.Video == nil {

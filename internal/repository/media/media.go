@@ -35,6 +35,7 @@ type MediaRepository interface {
 	GetProgressForUser(id, userId uuid.UUID) (*model.MediaProgress, error)
 	UpsertProgress(prog model.MediaProgress) (*model.MediaProgress, error)
 	Update(m model.Media, columns postgres.ColumnList) (*model.Media, error)
+	RemoveRelation(id, relatedTo uuid.UUID) error
 }
 
 type mediaRepository struct {
@@ -42,6 +43,21 @@ type mediaRepository struct {
 	env    *environment.EnvironmentVariables
 	logger logger.ILogger
 	ctx    context.Context
+}
+
+// RemoveRelation implements MediaRepository.
+func (r *mediaRepository) RemoveRelation(id uuid.UUID, relatedTo uuid.UUID) error {
+	statement := table.MediaRelation.DELETE().
+		WHERE(table.MediaRelation.MediaID.EQ(postgres.UUID(id)).
+			AND(table.MediaRelation.RelatedTo.EQ(postgres.UUID(relatedTo))))
+
+	util.DebugCheck(r.env, statement)
+
+	if _, err := statement.ExecContext(r.ctx, r.db); err != nil {
+		return errs.BuildError(err, "could not delete media relation for %v related to %v", id.String(), relatedTo.String())
+	}
+
+	return nil
 }
 
 // GetByLibraryId implements MediaRepository.
