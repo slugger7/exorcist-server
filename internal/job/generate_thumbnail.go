@@ -21,7 +21,7 @@ func CreateGenerateThumbnailJob(
 	timestamp float64,
 	height, width int,
 	relationType *model.MediaRelationTypeEnum,
-	metadata []byte,
+	metadata *dto.ThumbnailMetadataDTO,
 ) (*model.Job, error) {
 	d := dto.GenerateThumbnailData{
 		MediaId:      video.ID,
@@ -30,6 +30,7 @@ func CreateGenerateThumbnailJob(
 		Width:        width,
 		Timestamp:    timestamp,
 		RelationType: relationType,
+		Metadata:     metadata,
 	}
 
 	if d.RelationType == nil {

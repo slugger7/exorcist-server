@@ -319,6 +319,8 @@ func (r *mediaRepository) GetByIdAndUserId(id, userId uuid.UUID) (*models.Media,
 	image := table.Image
 	video := table.Video
 	thumbnail := table.Media.AS("thumbnail")
+	chapter := table.Media.AS("chapter")
+	mediaChapter := table.MediaRelation.AS("media_chapter")
 	mediaRelation := table.MediaRelation
 	mediaPerson := table.MediaPerson
 	person := table.Person
@@ -334,6 +336,8 @@ func (r *mediaRepository) GetByIdAndUserId(id, userId uuid.UUID) (*models.Media,
 		tag.AllColumns,
 		table.MediaProgress.Timestamp,
 		table.FavouriteMedia.ID,
+		mediaChapter.Metadata,
+		mediaChapter.RelatedTo,
 	).FROM(media.
 		LEFT_JOIN(image, image.MediaID.EQ(media.ID)).
 		LEFT_JOIN(video, video.MediaID.EQ(media.ID)).
@@ -343,6 +347,10 @@ func (r *mediaRepository) GetByIdAndUserId(id, userId uuid.UUID) (*models.Media,
 			))).
 		LEFT_JOIN(thumbnail, thumbnail.ID.EQ(mediaRelation.RelatedTo).
 			AND(thumbnail.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Asset.String())))).
+		LEFT_JOIN(mediaChapter, mediaChapter.MediaID.EQ(media.ID).
+			AND(mediaChapter.RelationType.EQ(postgres.NewEnumValue(model.MediaRelationTypeEnum_Chapter.String())))).
+		LEFT_JOIN(chapter, chapter.ID.EQ(mediaChapter.RelatedTo).
+			AND(chapter.MediaType.EQ(postgres.NewEnumValue(model.MediaTypeEnum_Asset.String())))).
 		LEFT_JOIN(mediaPerson, mediaPerson.MediaID.EQ(media.ID)).
 		LEFT_JOIN(person, person.ID.EQ(mediaPerson.PersonID)).
 		LEFT_JOIN(mediaTag, mediaTag.MediaID.EQ(media.ID)).
@@ -369,6 +377,7 @@ func (r *mediaRepository) Relate(m model.MediaRelation) (*model.MediaRelation, e
 		relation.MediaID,
 		relation.RelatedTo,
 		relation.RelationType,
+		relation.Metadata,
 	).
 		MODEL(m).
 		RETURNING(relation.AllColumns)
