@@ -374,7 +374,8 @@ func (r *mediaRepository) GetByIdAndUserId(id, userId uuid.UUID) (*models.Media,
 		LEFT_JOIN(table.MediaProgress, table.MediaProgress.MediaID.EQ(media.ID).AND(table.MediaProgress.UserID.EQ(postgres.UUID(userId)))).
 		LEFT_JOIN(table.FavouriteMedia, table.FavouriteMedia.MediaID.EQ(media.ID).AND(table.FavouriteMedia.UserID.EQ(postgres.UUID(userId)))),
 	).
-		WHERE(media.ID.EQ(postgres.UUID(id)))
+		WHERE(media.ID.EQ(postgres.UUID(id))).
+		ORDER_BY(mediaChapter.Created)
 
 	util.DebugCheck(r.env, statement)
 
