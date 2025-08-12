@@ -27,6 +27,12 @@ func (jr *JobRunner) removeChapters(id uuid.UUID, chapters []models.MediaChapter
 		}
 	}
 
+	mediaUpdate := dto.MediaDTO{
+		Chapters: []dto.ChapterDTO{},
+	}
+
+	jr.wsMediaUpdate(mediaUpdate)
+
 	return accErr
 }
 
