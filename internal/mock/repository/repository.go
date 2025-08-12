@@ -92,10 +92,10 @@ func (mr *MockIRepositoryMockRecorder) Image() *gomock.Call {
 }
 
 // Job mocks base method.
-func (m *MockIRepository) Job() jobRepository.IJobRepository {
+func (m *MockIRepository) Job() jobRepository.JobRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Job")
-	ret0, _ := ret[0].(jobRepository.IJobRepository)
+	ret0, _ := ret[0].(jobRepository.JobRepository)
 	return ret0
 }
 

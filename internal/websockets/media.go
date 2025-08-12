@@ -84,8 +84,9 @@ var websocketsInterface *websockets
 func New(env *environment.EnvironmentVariables, wss models.WebSocketMap) Websockets {
 	if websocketsInterface == nil {
 		websocketsInterface = &websockets{
-			env: env,
-			wss: wss,
+			env:    env,
+			wss:    wss,
+			logger: logger.New(env),
 		}
 	}
 

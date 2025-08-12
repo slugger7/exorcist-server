@@ -48,10 +48,10 @@ func (m *MockIService) EXPECT() *MockIServiceMockRecorder {
 }
 
 // Job mocks base method.
-func (m *MockIService) Job() jobService.IJobService {
+func (m *MockIService) Job() jobService.JobService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Job")
-	ret0, _ := ret[0].(jobService.IJobService)
+	ret0, _ := ret[0].(jobService.JobService)
 	return ret0
 }
 

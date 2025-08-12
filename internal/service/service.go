@@ -20,7 +20,7 @@ type IService interface {
 	User() userService.UserService
 	Library() libraryService.LibraryService
 	LibraryPath() libraryPathService.ILibraryPathService
-	Job() jobService.IJobService
+	Job() jobService.JobService
 	Person() personService.IPersonService
 	Tag() tagService.TagService
 	Media() mediaService.MediaService
@@ -33,7 +33,7 @@ type service struct {
 	user        userService.UserService
 	library     libraryService.LibraryService
 	libraryPath libraryPathService.ILibraryPathService
-	job         jobService.IJobService
+	job         jobService.JobService
 	person      personService.IPersonService
 	tag         tagService.TagService
 	media       mediaService.MediaService
@@ -81,7 +81,7 @@ func (s *service) LibraryPath() libraryPathService.ILibraryPathService {
 	return s.libraryPath
 }
 
-func (s *service) Job() jobService.IJobService {
+func (s *service) Job() jobService.JobService {
 	s.logger.Debug("Getting jobService")
 	return s.job
 }

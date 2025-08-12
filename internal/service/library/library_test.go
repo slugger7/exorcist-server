@@ -49,7 +49,7 @@ func setup(t *testing.T) *testService {
 
 	mockRepo.EXPECT().
 		Job().
-		DoAndReturn(func() jobRepository.IJobRepository {
+		DoAndReturn(func() jobRepository.JobRepository {
 			return mockJobRepo
 		}).
 		AnyTimes()

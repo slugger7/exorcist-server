@@ -32,7 +32,7 @@ type IRepository interface {
 
 	Close() error
 
-	Job() jobRepository.IJobRepository
+	Job() jobRepository.JobRepository
 	Library() libraryRepository.LibraryRepository
 	LibraryPath() libraryPathRepository.LibraryPathRepository
 	Video() videoRepository.IVideoRepository
@@ -48,7 +48,7 @@ type repository struct {
 	db              *sql.DB
 	logger          logger.ILogger
 	env             *environment.EnvironmentVariables
-	jobRepo         jobRepository.IJobRepository
+	jobRepo         jobRepository.JobRepository
 	libraryRepo     libraryRepository.LibraryRepository
 	libraryPathRepo libraryPathRepository.LibraryPathRepository
 	videoRepo       videoRepository.IVideoRepository
@@ -102,7 +102,7 @@ func New(env *environment.EnvironmentVariables, context context.Context) IReposi
 	return dbInstance
 }
 
-func (s *repository) Job() jobRepository.IJobRepository {
+func (s *repository) Job() jobRepository.JobRepository {
 	s.logger.Debug("Getting job repo")
 	return s.jobRepo
 }

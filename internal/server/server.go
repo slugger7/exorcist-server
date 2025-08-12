@@ -48,6 +48,11 @@ func New(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server
 		websockets: make(models.WebSocketMap),
 	}
 
+	err := newServer.repo.Job().CancelInprogress()
+	if err != nil {
+		lg.Errorf("clearing in progress jobs on startup: %v", err.Error())
+	}
+
 	if env.JobRunner {
 		newServer.withJobRunner(shutdownCtx, wg, newServer.websockets)
 	}

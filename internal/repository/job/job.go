@@ -21,11 +21,12 @@ type JobStatement struct {
 	ctx context.Context
 }
 
-type IJobRepository interface {
+type JobRepository interface {
 	CreateAll(jobs []model.Job) ([]model.Job, error)
 	GetNextJob() (*model.Job, error)
 	UpdateJobStatus(model *model.Job) error
 	GetAll(dto.JobSearchDTO) (*dto.PageDTO[model.Job], error)
+	CancelInprogress() error
 }
 
 type jobRepository struct {
@@ -34,9 +35,30 @@ type jobRepository struct {
 	ctx context.Context
 }
 
+// CancelInprogress implements JobRepository.
+func (j *jobRepository) CancelInprogress() error {
+	mod := time.Now()
+	outcome := "cancelled at startup"
+	statement := table.Job.UPDATE(table.Job.Status, table.Job.Modified, table.Job.Outcome).
+		MODEL(model.Job{
+			Status:   model.JobStatusEnum_Cancelled,
+			Modified: mod,
+			Outcome:  &outcome,
+		}).
+		WHERE(table.Job.Status.EQ(postgres.NewEnumValue(string(model.JobStatusEnum_InProgress))))
+
+	util.DebugCheck(j.env, statement)
+
+	if _, err := statement.ExecContext(j.ctx, j.db); err != nil {
+		return errs.BuildError(err, "updating in progress jobs to cancelled")
+	}
+
+	return nil
+}
+
 var jobRepoInstance *jobRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IJobRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) JobRepository {
 	if jobRepoInstance != nil {
 		return jobRepoInstance
 	}
