@@ -8,13 +8,13 @@ import (
 	"sync"
 
 	"github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-	"github.com/slugger7/exorcist/internal/dto"
 	"github.com/slugger7/exorcist/internal/environment"
 	errs "github.com/slugger7/exorcist/internal/errors"
 	"github.com/slugger7/exorcist/internal/logger"
 	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 	"github.com/slugger7/exorcist/internal/service"
+	"github.com/slugger7/exorcist/internal/websockets"
 )
 
 type JobRunner struct {
@@ -25,7 +25,9 @@ type JobRunner struct {
 	ch          chan bool
 	shutdownCtx context.Context
 	wg          *sync.WaitGroup
-	wss         models.WebSocketMap
+	websockets  websockets.Websockets
+	//Deprecated use websocket service
+	wss models.WebSocketMap
 }
 
 var jobRunnerInstance *JobRunner
@@ -50,7 +52,9 @@ func New(
 			ch:          ch,
 			wg:          wg,
 			shutdownCtx: shutdownCtx,
-			wss:         wss,
+
+			wss:        wss,
+			websockets: websockets.New(env, wss),
 		}
 
 		logger.Debug("Job runner instance created")
@@ -59,57 +63,6 @@ func New(
 	}
 
 	return ch
-}
-
-func (jr *JobRunner) wsJobUpdate(job model.Job) {
-	jr.logger.Debug("ws - updating job")
-
-	jobUpdate := dto.WSMessage[dto.JobDTO]{
-		Topic: dto.WSTopic_JobUpdate,
-		Data:  *(&dto.JobDTO{}).FromModel(job),
-	}
-	jobUpdate.SendToAll(jr.wss)
-}
-
-func (jr *JobRunner) wsMediaOverviewUpdate(media dto.MediaOverviewDTO) {
-	jr.logger.Debug("ws - updating media overview")
-
-	mediaUpdate := dto.WSMessage[dto.MediaOverviewDTO]{
-		Topic: dto.WSTopic_MediaOverviewUpdate,
-		Data:  media,
-	}
-	mediaUpdate.SendToAll(jr.wss)
-}
-
-func (jr *JobRunner) wsMediaUpdate(media dto.MediaDTO) {
-	jr.logger.Debug("ws - updating media")
-
-	mediaUpdate := dto.WSMessage[dto.MediaDTO]{
-		Topic: dto.WSTopic_MediaUpdate,
-		Data:  media,
-	}
-
-	mediaUpdate.SendToAll(jr.wss)
-}
-
-func (jr *JobRunner) wsVideoDelete(video dto.MediaOverviewDTO) {
-	jr.logger.Debug("ws - deleting video")
-
-	videoDelete := dto.WSMessage[dto.MediaOverviewDTO]{
-		Topic: dto.WSTopic_MediaDelete,
-		Data:  video,
-	}
-	videoDelete.SendToAll(jr.wss)
-}
-
-func (jr *JobRunner) wsVideoCreate(video dto.MediaOverviewDTO) {
-	jr.logger.Debug("ws - creating video")
-
-	videoDelete := dto.WSMessage[dto.MediaOverviewDTO]{
-		Topic: dto.WSTopic_MediaCreate,
-		Data:  video,
-	}
-	videoDelete.SendToAll(jr.wss)
 }
 
 func (jr *JobRunner) loop() {
@@ -167,7 +120,7 @@ func (jr *JobRunner) processJobs() error {
 				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 					return errs.BuildError(err, "Could not update not implemented job %v. Killing to prevent infinite loop", job.JobType)
 				}
-				jr.wsJobUpdate(*job)
+				jr.websockets.JobUpdate(*job)
 				continue
 			}
 
@@ -177,7 +130,7 @@ func (jr *JobRunner) processJobs() error {
 				// this should probably stop the job runner
 			}
 
-			jr.wsJobUpdate(*job)
+			jr.websockets.JobUpdate(*job)
 
 			jobFunc, err := jr.jobFuncResolver(job.JobType)
 			if err != nil {
@@ -187,7 +140,7 @@ func (jr *JobRunner) processJobs() error {
 				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 					return errs.BuildError(err, "Could not update not implemented job %v. Killing to prevent infinite loop", job.JobType)
 				}
-				jr.wsJobUpdate(*job)
+				jr.websockets.JobUpdate(*job)
 				continue
 			}
 
@@ -199,7 +152,7 @@ func (jr *JobRunner) processJobs() error {
 				if erro := jr.repo.Job().UpdateJobStatus(job); erro != nil {
 					return errs.BuildError(erro, "Could not update job status after error. Killing to prevent infinite loop")
 				}
-				jr.wsJobUpdate(*job)
+				jr.websockets.JobUpdate(*job)
 				continue
 			}
 
@@ -207,7 +160,7 @@ func (jr *JobRunner) processJobs() error {
 			if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 				return errs.BuildError(err, "Could not update job status after success. Killing to prevent infinite loop")
 			}
-			jr.wsJobUpdate(*job)
+			jr.websockets.JobUpdate(*job)
 		}
 	}
 }

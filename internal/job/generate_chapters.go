@@ -31,7 +31,7 @@ func (jr *JobRunner) removeChapters(id uuid.UUID, chapters []models.MediaChapter
 		Chapters: []dto.ChapterDTO{},
 	}
 
-	jr.wsMediaUpdate(mediaUpdate)
+	jr.websockets.MediaUpdate(mediaUpdate)
 
 	return accErr
 }

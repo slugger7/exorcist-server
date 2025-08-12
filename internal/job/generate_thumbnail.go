@@ -148,7 +148,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 		Id:          video.Media.ID,
 		ThumbnailId: image.MediaID,
 	}
-	jr.wsMediaOverviewUpdate(mediaOverviewUpdate)
+	jr.websockets.MediaOverviewUpdate(mediaOverviewUpdate)
 
 	if *jobData.RelationType == model.MediaRelationTypeEnum_Chapter {
 		mediaUpdate := dto.MediaDTO{
@@ -161,7 +161,7 @@ func (jr *JobRunner) GenerateThumbnail(job *model.Job) error {
 			},
 		}
 
-		jr.wsMediaUpdate(mediaUpdate)
+		jr.websockets.MediaUpdate(mediaUpdate)
 	}
 
 	return nil
