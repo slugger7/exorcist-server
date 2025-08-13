@@ -14,43 +14,10 @@ import (
 	"github.com/slugger7/exorcist/internal/models"
 )
 
-func (s *server) pongDuration() time.Duration {
-	return time.Duration(s.env.WebsocketHeartbeatInterval * int(time.Millisecond))
-}
-
-func (s *server) pingDuration() time.Duration {
-	val := (s.env.WebsocketHeartbeatInterval * 9) / 10
-	return time.Duration(val * int(time.Millisecond))
-}
-
-func (s *server) webSocketHeartbeat() {
-	tickerDuration := s.pingDuration()
-	ticker := time.NewTicker(tickerDuration)
-	defer ticker.Stop()
-
-	for range ticker.C {
-		for i, ws := range s.websockets {
-			for _, c := range ws {
-				c.Mu.Lock()
-
-				c.Conn.SetWriteDeadline(time.Now().Add(s.pongDuration()))
-				s.logger.Debug("protocol ping")
-				if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-					s.logger.Warningf("could not write ping message to %v: %v", i, err.Error())
-					s.websocketMutex.Lock()
-					delete(s.websockets, i)
-					s.websocketMutex.Unlock()
-				}
-				c.Mu.Unlock()
-			}
-		}
-	}
-}
-
 func (s *server) withWS(r *gin.RouterGroup, route Route) *server {
 	r.GET(fmt.Sprintf("%v/ws", route), s.ws)
 
-	go s.webSocketHeartbeat()
+	go s.wsService.WebSocketHeartbeat()
 	return s
 }
 
@@ -73,7 +40,7 @@ func (s *server) ws(c *gin.Context) {
 		}
 
 		conn.SetPongHandler(func(string) error {
-			conn.SetReadDeadline(time.Now().Add(s.pongDuration()))
+			conn.SetReadDeadline(time.Now().Add(s.wsService.PongDuration()))
 			s.logger.Debug("protocol pong")
 			return nil
 		})
@@ -82,9 +49,7 @@ func (s *server) ws(c *gin.Context) {
 			Conn: conn, Mu: sync.Mutex{},
 		}
 
-		s.websocketMutex.Lock()
-		s.websockets[userId] = append(s.websockets[userId], &wsConn)
-		s.websocketMutex.Unlock()
+		s.wsService.AddWs(userId, &wsConn)
 
 		go s.wsReader(conn, userId)
 	} else {
@@ -94,7 +59,7 @@ func (s *server) ws(c *gin.Context) {
 
 func (s *server) wsReader(ws *websocket.Conn, id uuid.UUID) {
 	for {
-		ws.SetReadDeadline(time.Now().Add(s.pongDuration()))
+		ws.SetReadDeadline(time.Now().Add(s.wsService.PongDuration()))
 		_, message, err := ws.ReadMessage()
 		if err != nil {
 			s.logger.Errorf("could not read message: %v", err.Error())

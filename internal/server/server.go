@@ -7,27 +7,25 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/slugger7/exorcist/internal/environment"
 	"github.com/slugger7/exorcist/internal/job"
 	"github.com/slugger7/exorcist/internal/logger"
-	"github.com/slugger7/exorcist/internal/models"
 	"github.com/slugger7/exorcist/internal/repository"
 	"github.com/slugger7/exorcist/internal/service"
+	"github.com/slugger7/exorcist/internal/websockets"
 )
 
 type server struct {
-	env            *environment.EnvironmentVariables
-	repo           repository.Repository
-	service        service.Service
-	logger         logger.Logger
-	jobCh          chan bool
-	websockets     models.WebSocketMap
-	websocketMutex sync.Mutex
+	env       *environment.EnvironmentVariables
+	repo      repository.Repository
+	service   service.Service
+	logger    logger.Logger
+	jobCh     chan bool
+	wsService websockets.Websockets
 }
 
-func (s *server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, wss models.WebSocketMap) *server {
-	ch := job.New(s.env, s.service, s.logger, ctx, wg, wss)
+func (s *server) withJobRunner(ctx context.Context, wg *sync.WaitGroup, ws websockets.Websockets) *server {
+	ch := job.New(s.env, s.service, s.logger, ctx, wg, ws)
 	s.jobCh = ch
 
 	ch <- true // start if any jobs exist
@@ -42,10 +40,10 @@ func New(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server
 	repo := repository.New(env, shutdownCtx)
 
 	newServer := &server{
-		repo:       repo,
-		env:        env,
-		logger:     lg,
-		websockets: make(models.WebSocketMap),
+		repo:      repo,
+		env:       env,
+		logger:    lg,
+		wsService: websockets.New(env),
 	}
 
 	err := newServer.repo.Job().CancelInprogress()
@@ -54,7 +52,7 @@ func New(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server
 	}
 
 	if env.JobRunner {
-		newServer.withJobRunner(shutdownCtx, wg, newServer.websockets)
+		newServer.withJobRunner(shutdownCtx, wg, newServer.wsService)
 	}
 	newServer.service = service.New(repo, env, newServer.jobCh, shutdownCtx)
 
@@ -73,20 +71,6 @@ func New(env *environment.EnvironmentVariables, wg *sync.WaitGroup) *http.Server
 
 		newServer.logger.Debug("Cancelled and closed")
 
-		newServer.websocketMutex.Lock()
-		defer newServer.websocketMutex.Unlock()
-
-		newServer.logger.Debug("Closing websockets")
-		for _, i := range newServer.websockets {
-			for _, s := range i {
-				s.Mu.Lock()
-				defer s.Mu.Unlock()
-				s.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-				s.Conn.Close()
-			}
-		}
-
-		newServer.logger.Debug("Websockets closed")
 	})
 
 	return server

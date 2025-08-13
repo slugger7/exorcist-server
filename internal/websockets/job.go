@@ -15,3 +15,16 @@ func (w *websockets) JobUpdate(job model.Job) {
 	}
 	jobUpdate.SendToAll(w.wss)
 }
+
+// JobCreate implements Websockets.
+func (w *websockets) JobCreate(job model.Job) {
+	w.logger.Debug("ws - createing job")
+
+	jobDto := (&dto.JobDTO{}).FromModel(job)
+	message := dto.WSMessage[dto.JobDTO]{
+		Topic: dto.WSTopic_JobCreate,
+		Data:  *jobDto,
+	}
+
+	message.SendToAll(w.wss)
+}

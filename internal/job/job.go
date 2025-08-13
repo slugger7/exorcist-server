@@ -25,9 +25,7 @@ type JobRunner struct {
 	ch          chan bool
 	shutdownCtx context.Context
 	wg          *sync.WaitGroup
-	websockets  websockets.Websockets
-	//Deprecated use websocket service
-	wss models.WebSocketMap
+	ws          websockets.Websockets
 }
 
 var jobRunnerInstance *JobRunner
@@ -38,7 +36,7 @@ func New(
 	logger logger.Logger,
 	shutdownCtx context.Context,
 	wg *sync.WaitGroup,
-	wss models.WebSocketMap,
+	ws websockets.Websockets,
 ) chan bool {
 	ch := make(chan bool)
 
@@ -52,9 +50,7 @@ func New(
 			ch:          ch,
 			wg:          wg,
 			shutdownCtx: shutdownCtx,
-
-			wss:        wss,
-			websockets: websockets.New(env, wss),
+			ws:          ws,
 		}
 
 		logger.Debug("Job runner instance created")
@@ -120,7 +116,7 @@ func (jr *JobRunner) processJobs() error {
 				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 					return errs.BuildError(err, "Could not update not implemented job %v. Killing to prevent infinite loop", job.JobType)
 				}
-				jr.websockets.JobUpdate(*job)
+				jr.ws.JobUpdate(*job)
 				continue
 			}
 
@@ -130,7 +126,7 @@ func (jr *JobRunner) processJobs() error {
 				// this should probably stop the job runner
 			}
 
-			jr.websockets.JobUpdate(*job)
+			jr.ws.JobUpdate(*job)
 
 			jobFunc, err := jr.jobFuncResolver(job.JobType)
 			if err != nil {
@@ -140,7 +136,7 @@ func (jr *JobRunner) processJobs() error {
 				if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 					return errs.BuildError(err, "Could not update not implemented job %v. Killing to prevent infinite loop", job.JobType)
 				}
-				jr.websockets.JobUpdate(*job)
+				jr.ws.JobUpdate(*job)
 				continue
 			}
 
@@ -152,7 +148,7 @@ func (jr *JobRunner) processJobs() error {
 				if erro := jr.repo.Job().UpdateJobStatus(job); erro != nil {
 					return errs.BuildError(erro, "Could not update job status after error. Killing to prevent infinite loop")
 				}
-				jr.websockets.JobUpdate(*job)
+				jr.ws.JobUpdate(*job)
 				continue
 			}
 
@@ -160,7 +156,7 @@ func (jr *JobRunner) processJobs() error {
 			if err := jr.repo.Job().UpdateJobStatus(job); err != nil {
 				return errs.BuildError(err, "Could not update job status after success. Killing to prevent infinite loop")
 			}
-			jr.websockets.JobUpdate(*job)
+			jr.ws.JobUpdate(*job)
 		}
 	}
 }
