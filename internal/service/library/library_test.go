@@ -22,7 +22,7 @@ type testService struct {
 	repo            *mock_repository.MockIRepository
 	libraryRepo     *mock_libraryRepository.MockLibraryRepository
 	libraryPathRepo *mock_libraryPathRepository.MockLibraryPathRepository
-	jobRepo         *mock_jobRepository.MockIJobRepository
+	jobRepo         *mock_jobRepository.MockJobRepository
 }
 
 func setup(t *testing.T) *testService {
@@ -31,7 +31,7 @@ func setup(t *testing.T) *testService {
 	mockRepo := mock_repository.NewMockIRepository(ctrl)
 	mockLibraryRepo := mock_libraryRepository.NewMockLibraryRepository(ctrl)
 	mockLibraryPathRepo := mock_libraryPathRepository.NewMockLibraryPathRepository(ctrl)
-	mockJobRepo := mock_jobRepository.NewMockIJobRepository(ctrl)
+	mockJobRepo := mock_jobRepository.NewMockJobRepository(ctrl)
 
 	mockRepo.EXPECT().
 		Library().
