@@ -41,7 +41,7 @@ type MediaRepository interface {
 type mediaRepository struct {
 	db     *sql.DB
 	env    *environment.EnvironmentVariables
-	logger logger.ILogger
+	logger logger.Logger
 	ctx    context.Context
 }
 

@@ -48,13 +48,8 @@ func (s *server) CreateJob(c *gin.Context) {
 		return
 	}
 
-	jobDto := (&dto.JobDTO{}).FromModel(*job)
-	message := dto.WSMessage[dto.JobDTO]{
-		Topic: dto.WSTopic_JobCreate,
-		Data:  *jobDto,
-	}
+	s.wsService.JobCreate(*job)
 
-	message.SendToAll(s.websockets)
 	c.JSON(http.StatusOK, job)
 }
 

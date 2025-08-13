@@ -14,21 +14,21 @@ import (
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
-type IJobService interface {
+type JobService interface {
 	Create(dto.CreateJobDTO) (*model.Job, error)
 }
 
 type jobService struct {
 	env    *environment.EnvironmentVariables
-	repo   repository.IRepository
-	logger logger.ILogger
+	repo   repository.Repository
+	logger logger.Logger
 	jobCh  chan bool
 	ctx    context.Context
 }
 
 var jobServiceInstance *jobService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool, ctx context.Context) IJobService {
+func New(repo repository.Repository, env *environment.EnvironmentVariables, jobCh chan bool, ctx context.Context) JobService {
 	if jobServiceInstance == nil {
 		jobServiceInstance = &jobService{
 			env:    env,

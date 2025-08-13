@@ -153,7 +153,7 @@ func (jr *JobRunner) handleVideosOnDisk(job model.Job, libPath model.LibraryPath
 			dto := (&dto.MediaOverviewDTO{}).FromModel(models.MediaOverviewModel{
 				Media: createdMedia[0],
 			})
-			jr.wsVideoCreate(*dto)
+			jr.ws.MediaCreate(*dto)
 
 			checksumJob, err := CreateGenerateChecksumJob(mediaId, job.ID)
 			if err != nil {
@@ -218,7 +218,7 @@ func (jr *JobRunner) removeMedia(nonExistentMedia []model.Media) {
 				jr.logger.Errorf("Error occured while updating the existance state of the media '%v': %v", v.ID, err)
 			}
 
-			jr.wsVideoDelete(dto.MediaOverviewDTO{Id: v.ID, Deleted: true})
+			jr.ws.MediaDelete(dto.MediaOverviewDTO{Id: v.ID, Deleted: true})
 		}
 	}
 }

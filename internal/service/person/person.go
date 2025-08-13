@@ -13,15 +13,15 @@ import (
 	"github.com/slugger7/exorcist/internal/repository"
 )
 
-type IPersonService interface {
+type PersonService interface {
 	Upsert(name string) (*model.Person, error)
 	GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error)
 }
 
 type personService struct {
 	env    *environment.EnvironmentVariables
-	repo   repository.IRepository
-	logger logger.ILogger
+	repo   repository.Repository
+	logger logger.Logger
 }
 
 // GetMedia implements IPersonService.
@@ -63,7 +63,7 @@ func (p *personService) Upsert(name string) (*model.Person, error) {
 
 var personServiceInstance *personService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) IPersonService {
+func New(repo repository.Repository, env *environment.EnvironmentVariables) PersonService {
 	if personServiceInstance == nil {
 		personServiceInstance = &personService{
 			env:    env,

@@ -23,46 +23,46 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockIService is a mock of IService interface.
-type MockIService struct {
+// MockService is a mock of Service interface.
+type MockService struct {
 	ctrl     *gomock.Controller
-	recorder *MockIServiceMockRecorder
+	recorder *MockServiceMockRecorder
 	isgomock struct{}
 }
 
-// MockIServiceMockRecorder is the mock recorder for MockIService.
-type MockIServiceMockRecorder struct {
-	mock *MockIService
+// MockServiceMockRecorder is the mock recorder for MockService.
+type MockServiceMockRecorder struct {
+	mock *MockService
 }
 
-// NewMockIService creates a new mock instance.
-func NewMockIService(ctrl *gomock.Controller) *MockIService {
-	mock := &MockIService{ctrl: ctrl}
-	mock.recorder = &MockIServiceMockRecorder{mock}
+// NewMockService creates a new mock instance.
+func NewMockService(ctrl *gomock.Controller) *MockService {
+	mock := &MockService{ctrl: ctrl}
+	mock.recorder = &MockServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIService) EXPECT() *MockIServiceMockRecorder {
+func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
 // Job mocks base method.
-func (m *MockIService) Job() jobService.IJobService {
+func (m *MockService) Job() jobService.JobService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Job")
-	ret0, _ := ret[0].(jobService.IJobService)
+	ret0, _ := ret[0].(jobService.JobService)
 	return ret0
 }
 
 // Job indicates an expected call of Job.
-func (mr *MockIServiceMockRecorder) Job() *gomock.Call {
+func (mr *MockServiceMockRecorder) Job() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockIService)(nil).Job))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockService)(nil).Job))
 }
 
 // Library mocks base method.
-func (m *MockIService) Library() libraryService.LibraryService {
+func (m *MockService) Library() libraryService.LibraryService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Library")
 	ret0, _ := ret[0].(libraryService.LibraryService)
@@ -70,27 +70,27 @@ func (m *MockIService) Library() libraryService.LibraryService {
 }
 
 // Library indicates an expected call of Library.
-func (mr *MockIServiceMockRecorder) Library() *gomock.Call {
+func (mr *MockServiceMockRecorder) Library() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Library", reflect.TypeOf((*MockIService)(nil).Library))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Library", reflect.TypeOf((*MockService)(nil).Library))
 }
 
 // LibraryPath mocks base method.
-func (m *MockIService) LibraryPath() libraryPathService.ILibraryPathService {
+func (m *MockService) LibraryPath() libraryPathService.LibraryPathService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LibraryPath")
-	ret0, _ := ret[0].(libraryPathService.ILibraryPathService)
+	ret0, _ := ret[0].(libraryPathService.LibraryPathService)
 	return ret0
 }
 
 // LibraryPath indicates an expected call of LibraryPath.
-func (mr *MockIServiceMockRecorder) LibraryPath() *gomock.Call {
+func (mr *MockServiceMockRecorder) LibraryPath() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LibraryPath", reflect.TypeOf((*MockIService)(nil).LibraryPath))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LibraryPath", reflect.TypeOf((*MockService)(nil).LibraryPath))
 }
 
 // Media mocks base method.
-func (m *MockIService) Media() mediaService.MediaService {
+func (m *MockService) Media() mediaService.MediaService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Media")
 	ret0, _ := ret[0].(mediaService.MediaService)
@@ -98,27 +98,27 @@ func (m *MockIService) Media() mediaService.MediaService {
 }
 
 // Media indicates an expected call of Media.
-func (mr *MockIServiceMockRecorder) Media() *gomock.Call {
+func (mr *MockServiceMockRecorder) Media() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Media", reflect.TypeOf((*MockIService)(nil).Media))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Media", reflect.TypeOf((*MockService)(nil).Media))
 }
 
 // Person mocks base method.
-func (m *MockIService) Person() personService.IPersonService {
+func (m *MockService) Person() personService.PersonService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Person")
-	ret0, _ := ret[0].(personService.IPersonService)
+	ret0, _ := ret[0].(personService.PersonService)
 	return ret0
 }
 
 // Person indicates an expected call of Person.
-func (mr *MockIServiceMockRecorder) Person() *gomock.Call {
+func (mr *MockServiceMockRecorder) Person() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Person", reflect.TypeOf((*MockIService)(nil).Person))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Person", reflect.TypeOf((*MockService)(nil).Person))
 }
 
 // Playlist mocks base method.
-func (m *MockIService) Playlist() playlistService.PlaylistService {
+func (m *MockService) Playlist() playlistService.PlaylistService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Playlist")
 	ret0, _ := ret[0].(playlistService.PlaylistService)
@@ -126,13 +126,13 @@ func (m *MockIService) Playlist() playlistService.PlaylistService {
 }
 
 // Playlist indicates an expected call of Playlist.
-func (mr *MockIServiceMockRecorder) Playlist() *gomock.Call {
+func (mr *MockServiceMockRecorder) Playlist() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Playlist", reflect.TypeOf((*MockIService)(nil).Playlist))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Playlist", reflect.TypeOf((*MockService)(nil).Playlist))
 }
 
 // Tag mocks base method.
-func (m *MockIService) Tag() tagService.TagService {
+func (m *MockService) Tag() tagService.TagService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Tag")
 	ret0, _ := ret[0].(tagService.TagService)
@@ -140,13 +140,13 @@ func (m *MockIService) Tag() tagService.TagService {
 }
 
 // Tag indicates an expected call of Tag.
-func (mr *MockIServiceMockRecorder) Tag() *gomock.Call {
+func (mr *MockServiceMockRecorder) Tag() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tag", reflect.TypeOf((*MockIService)(nil).Tag))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tag", reflect.TypeOf((*MockService)(nil).Tag))
 }
 
 // User mocks base method.
-func (m *MockIService) User() userService.UserService {
+func (m *MockService) User() userService.UserService {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "User")
 	ret0, _ := ret[0].(userService.UserService)
@@ -154,7 +154,7 @@ func (m *MockIService) User() userService.UserService {
 }
 
 // User indicates an expected call of User.
-func (mr *MockIServiceMockRecorder) User() *gomock.Call {
+func (mr *MockServiceMockRecorder) User() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockIService)(nil).User))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockService)(nil).User))
 }

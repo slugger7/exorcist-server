@@ -36,10 +36,10 @@ type TestCookie struct {
 
 type TestServer struct {
 	server                 *server
-	mockService            *mock_service.MockIService
+	mockService            *mock_service.MockService
 	mockUserService        *mock_userService.MockUserService
 	mockLibraryService     *mock_libraryService.MockLibraryService
-	mockLibraryPathService *mock_libraryPathService.MockILibraryPathService
+	mockLibraryPathService *mock_libraryPathService.MockLibraryPathService
 	ctrl                   *gomock.Controller
 	engine                 *gin.Engine
 	authGroup              *gin.RouterGroup
@@ -48,7 +48,7 @@ type TestServer struct {
 
 func setupServer(t *testing.T) *TestServer {
 	ctrl := gomock.NewController(t)
-	svc := mock_service.NewMockIService(ctrl)
+	svc := mock_service.NewMockService(ctrl)
 	env := environment.EnvironmentVariables{LogLevel: "none"}
 	server := &server{logger: logger.New(&env), service: svc}
 	engine := setupEngine()
@@ -86,11 +86,11 @@ func (s *TestServer) withLibraryService() *TestServer {
 }
 
 func (s *TestServer) withLibraryPathService() *TestServer {
-	ls := mock_libraryPathService.NewMockILibraryPathService(s.ctrl)
+	ls := mock_libraryPathService.NewMockLibraryPathService(s.ctrl)
 
 	s.mockService.EXPECT().
 		LibraryPath().
-		DoAndReturn(func() libraryPathService.ILibraryPathService {
+		DoAndReturn(func() libraryPathService.LibraryPathService {
 			return ls
 		}).
 		AnyTimes()

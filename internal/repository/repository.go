@@ -27,17 +27,17 @@ import (
 	videoRepository "github.com/slugger7/exorcist/internal/repository/video"
 )
 
-type IRepository interface {
+type Repository interface {
 	Health() map[string]string
 
 	Close() error
 
-	Job() jobRepository.IJobRepository
+	Job() jobRepository.JobRepository
 	Library() libraryRepository.LibraryRepository
 	LibraryPath() libraryPathRepository.LibraryPathRepository
-	Video() videoRepository.IVideoRepository
+	Video() videoRepository.VideoRepository
 	User() userRepository.UserRepository
-	Image() imageRepository.IImageRepository
+	Image() imageRepository.ImageRepository
 	Media() mediaRepository.MediaRepository
 	Person() personRepository.PersonRepository
 	Tag() tagRepository.TagRepository
@@ -46,14 +46,14 @@ type IRepository interface {
 
 type repository struct {
 	db              *sql.DB
-	logger          logger.ILogger
+	logger          logger.Logger
 	env             *environment.EnvironmentVariables
-	jobRepo         jobRepository.IJobRepository
+	jobRepo         jobRepository.JobRepository
 	libraryRepo     libraryRepository.LibraryRepository
 	libraryPathRepo libraryPathRepository.LibraryPathRepository
-	videoRepo       videoRepository.IVideoRepository
+	videoRepo       videoRepository.VideoRepository
 	userRepo        userRepository.UserRepository
-	imageRepo       imageRepository.IImageRepository
+	imageRepo       imageRepository.ImageRepository
 	mediaRepo       mediaRepository.MediaRepository
 	personRepo      personRepository.PersonRepository
 	tagRepo         tagRepository.TagRepository
@@ -62,7 +62,7 @@ type repository struct {
 
 var dbInstance *repository
 
-func New(env *environment.EnvironmentVariables, context context.Context) IRepository {
+func New(env *environment.EnvironmentVariables, context context.Context) Repository {
 	if dbInstance == nil {
 		psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 			env.DatabaseHost,
@@ -102,7 +102,7 @@ func New(env *environment.EnvironmentVariables, context context.Context) IReposi
 	return dbInstance
 }
 
-func (s *repository) Job() jobRepository.IJobRepository {
+func (s *repository) Job() jobRepository.JobRepository {
 	s.logger.Debug("Getting job repo")
 	return s.jobRepo
 }
@@ -117,7 +117,7 @@ func (s *repository) LibraryPath() libraryPathRepository.LibraryPathRepository {
 	return s.libraryPathRepo
 }
 
-func (s *repository) Video() videoRepository.IVideoRepository {
+func (s *repository) Video() videoRepository.VideoRepository {
 	s.logger.Debug("Getting video repo")
 	return s.videoRepo
 }
@@ -127,7 +127,7 @@ func (s *repository) User() userRepository.UserRepository {
 	return dbInstance.userRepo
 }
 
-func (s *repository) Image() imageRepository.IImageRepository {
+func (s *repository) Image() imageRepository.ImageRepository {
 	s.logger.Debug("Getting image repo")
 	return dbInstance.imageRepo
 }

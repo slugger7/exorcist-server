@@ -24,7 +24,7 @@ type MediaVideoModel struct {
 	model.Media
 }
 
-type IVideoRepository interface {
+type VideoRepository interface {
 	GetAll() ([]model.Video, error)
 	Insert(models []model.Video) ([]model.Video, error)
 	GetByIdWithMedia(id uuid.UUID) (*MediaVideoModel, error)
@@ -34,7 +34,7 @@ type IVideoRepository interface {
 type videoRepository struct {
 	db     *sql.DB
 	env    *environment.EnvironmentVariables
-	logger logger.ILogger
+	logger logger.Logger
 	ctx    context.Context
 }
 
@@ -61,7 +61,7 @@ func (vr *videoRepository) GetByMediaId(id uuid.UUID) (*MediaVideoModel, error) 
 
 var videoRepoInstance *videoRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IVideoRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) VideoRepository {
 	if videoRepoInstance != nil {
 		return videoRepoInstance
 	}

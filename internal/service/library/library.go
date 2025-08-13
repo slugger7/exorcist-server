@@ -21,8 +21,8 @@ type LibraryService interface {
 
 type libraryService struct {
 	env    *environment.EnvironmentVariables
-	repo   repository.IRepository
-	logger logger.ILogger
+	repo   repository.Repository
+	logger logger.Logger
 }
 
 // GetMedia implements LibraryService.
@@ -46,7 +46,7 @@ func (i *libraryService) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDT
 
 var libraryServiceInstance *libraryService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) LibraryService {
+func New(repo repository.Repository, env *environment.EnvironmentVariables) LibraryService {
 	if libraryServiceInstance == nil {
 		libraryServiceInstance = &libraryService{
 			env:    env,

@@ -37,7 +37,7 @@ type TagRepository interface {
 type tagRepository struct {
 	env    *environment.EnvironmentVariables
 	db     *sql.DB
-	logger logger.ILogger
+	logger logger.Logger
 	ctx    context.Context
 }
 

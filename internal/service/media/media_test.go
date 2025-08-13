@@ -17,7 +17,7 @@ import (
 
 type testService struct {
 	svc            *mediaService
-	repo           *mock_repository.MockIRepository
+	repo           *mock_repository.MockRepository
 	mediaRepo      *mock_mediaRepository.MockMediaRepository
 	base           string
 	mediaFile      string
@@ -36,7 +36,7 @@ func setup(t *testing.T) *testService {
 	thumbnailAsset := path.Join(assetsPath, "thumbnail.webp")
 	ctrl := gomock.NewController(t)
 
-	mockRepo := mock_repository.NewMockIRepository(ctrl)
+	mockRepo := mock_repository.NewMockRepository(ctrl)
 	mockMediaRepo := mock_mediaRepository.NewMockMediaRepository(ctrl)
 
 	mockRepo.EXPECT().

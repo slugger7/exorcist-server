@@ -21,8 +21,8 @@ type PlaylistService interface {
 
 type playlistService struct {
 	env    *environment.EnvironmentVariables
-	repo   repository.IRepository
-	logger logger.ILogger
+	repo   repository.Repository
+	logger logger.Logger
 }
 
 // AddMedia implements PlaylistService.
@@ -80,7 +80,7 @@ func (p *playlistService) CreateAll(userId uuid.UUID, playlists []dto.CreatePlay
 
 var playlistServiceInstance *playlistService
 
-func New(env *environment.EnvironmentVariables, repo repository.IRepository) PlaylistService {
+func New(env *environment.EnvironmentVariables, repo repository.Repository) PlaylistService {
 	if playlistServiceInstance != nil {
 		return playlistServiceInstance
 	}

@@ -5,7 +5,7 @@ import (
 	"github.com/slugger7/exorcist/internal/logger"
 )
 
-func functionWrappedLogs(logg logger.ILogger) {
+func functionWrappedLogs(logg logger.Logger) {
 	logg.Debug("func std debug")
 	logg.Debugf("func fmt %v", "debug")
 

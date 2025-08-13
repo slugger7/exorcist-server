@@ -15,20 +15,20 @@ const (
 	LibraryNilErr        = "library was nil for id: %v"
 )
 
-type ILibraryPathService interface {
+type LibraryPathService interface {
 	Create(m *model.LibraryPath) (*model.LibraryPath, error)
 	GetAll() ([]model.LibraryPath, error)
 }
 
 type libraryPathService struct {
 	env    *environment.EnvironmentVariables
-	repo   repository.IRepository
-	logger logger.ILogger
+	repo   repository.Repository
+	logger logger.Logger
 }
 
 var libraryPathServiceInstance *libraryPathService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) ILibraryPathService {
+func New(repo repository.Repository, env *environment.EnvironmentVariables) LibraryPathService {
 	if libraryPathServiceInstance == nil {
 		libraryPathServiceInstance = &libraryPathService{
 			env:    env,

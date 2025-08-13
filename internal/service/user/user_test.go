@@ -19,14 +19,14 @@ import (
 
 type testService struct {
 	svc      *userService
-	repo     *mock_repository.MockIRepository
+	repo     *mock_repository.MockRepository
 	userRepo *mock_userRepository.MockUserRepository
 }
 
 func setup(t *testing.T) *testService {
 	ctrl := gomock.NewController(t)
 
-	mockRepo := mock_repository.NewMockIRepository(ctrl)
+	mockRepo := mock_repository.NewMockRepository(ctrl)
 	mockUserRepo := mock_userRepository.NewMockUserRepository(ctrl)
 
 	mockRepo.EXPECT().
