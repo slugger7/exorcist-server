@@ -18,32 +18,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockIVideoRepository is a mock of IVideoRepository interface.
-type MockIVideoRepository struct {
+// MockVideoRepository is a mock of VideoRepository interface.
+type MockVideoRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockIVideoRepositoryMockRecorder
+	recorder *MockVideoRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockIVideoRepositoryMockRecorder is the mock recorder for MockIVideoRepository.
-type MockIVideoRepositoryMockRecorder struct {
-	mock *MockIVideoRepository
+// MockVideoRepositoryMockRecorder is the mock recorder for MockVideoRepository.
+type MockVideoRepositoryMockRecorder struct {
+	mock *MockVideoRepository
 }
 
-// NewMockIVideoRepository creates a new mock instance.
-func NewMockIVideoRepository(ctrl *gomock.Controller) *MockIVideoRepository {
-	mock := &MockIVideoRepository{ctrl: ctrl}
-	mock.recorder = &MockIVideoRepositoryMockRecorder{mock}
+// NewMockVideoRepository creates a new mock instance.
+func NewMockVideoRepository(ctrl *gomock.Controller) *MockVideoRepository {
+	mock := &MockVideoRepository{ctrl: ctrl}
+	mock.recorder = &MockVideoRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIVideoRepository) EXPECT() *MockIVideoRepositoryMockRecorder {
+func (m *MockVideoRepository) EXPECT() *MockVideoRepositoryMockRecorder {
 	return m.recorder
 }
 
 // GetAll mocks base method.
-func (m *MockIVideoRepository) GetAll() ([]model.Video, error) {
+func (m *MockVideoRepository) GetAll() ([]model.Video, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll")
 	ret0, _ := ret[0].([]model.Video)
@@ -52,13 +52,13 @@ func (m *MockIVideoRepository) GetAll() ([]model.Video, error) {
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockIVideoRepositoryMockRecorder) GetAll() *gomock.Call {
+func (mr *MockVideoRepositoryMockRecorder) GetAll() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockIVideoRepository)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockVideoRepository)(nil).GetAll))
 }
 
 // GetByIdWithMedia mocks base method.
-func (m *MockIVideoRepository) GetByIdWithMedia(id uuid.UUID) (*videoRepository.MediaVideoModel, error) {
+func (m *MockVideoRepository) GetByIdWithMedia(id uuid.UUID) (*videoRepository.MediaVideoModel, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByIdWithMedia", id)
 	ret0, _ := ret[0].(*videoRepository.MediaVideoModel)
@@ -67,13 +67,13 @@ func (m *MockIVideoRepository) GetByIdWithMedia(id uuid.UUID) (*videoRepository.
 }
 
 // GetByIdWithMedia indicates an expected call of GetByIdWithMedia.
-func (mr *MockIVideoRepositoryMockRecorder) GetByIdWithMedia(id any) *gomock.Call {
+func (mr *MockVideoRepositoryMockRecorder) GetByIdWithMedia(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdWithMedia", reflect.TypeOf((*MockIVideoRepository)(nil).GetByIdWithMedia), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdWithMedia", reflect.TypeOf((*MockVideoRepository)(nil).GetByIdWithMedia), id)
 }
 
 // GetByMediaId mocks base method.
-func (m *MockIVideoRepository) GetByMediaId(id uuid.UUID) (*videoRepository.MediaVideoModel, error) {
+func (m *MockVideoRepository) GetByMediaId(id uuid.UUID) (*videoRepository.MediaVideoModel, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByMediaId", id)
 	ret0, _ := ret[0].(*videoRepository.MediaVideoModel)
@@ -82,13 +82,13 @@ func (m *MockIVideoRepository) GetByMediaId(id uuid.UUID) (*videoRepository.Medi
 }
 
 // GetByMediaId indicates an expected call of GetByMediaId.
-func (mr *MockIVideoRepositoryMockRecorder) GetByMediaId(id any) *gomock.Call {
+func (mr *MockVideoRepositoryMockRecorder) GetByMediaId(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMediaId", reflect.TypeOf((*MockIVideoRepository)(nil).GetByMediaId), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMediaId", reflect.TypeOf((*MockVideoRepository)(nil).GetByMediaId), id)
 }
 
 // Insert mocks base method.
-func (m *MockIVideoRepository) Insert(models []model.Video) ([]model.Video, error) {
+func (m *MockVideoRepository) Insert(models []model.Video) ([]model.Video, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", models)
 	ret0, _ := ret[0].([]model.Video)
@@ -97,7 +97,7 @@ func (m *MockIVideoRepository) Insert(models []model.Video) ([]model.Video, erro
 }
 
 // Insert indicates an expected call of Insert.
-func (mr *MockIVideoRepositoryMockRecorder) Insert(models any) *gomock.Call {
+func (mr *MockVideoRepositoryMockRecorder) Insert(models any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockIVideoRepository)(nil).Insert), models)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockVideoRepository)(nil).Insert), models)
 }

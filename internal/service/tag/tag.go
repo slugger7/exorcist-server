@@ -20,8 +20,8 @@ type TagService interface {
 
 type tagService struct {
 	env    *environment.EnvironmentVariables
-	repo   repository.IRepository
-	logger logger.ILogger
+	repo   repository.Repository
+	logger logger.Logger
 }
 
 // GetMedia implements TagService.
@@ -63,7 +63,7 @@ func (p *tagService) Upsert(name string) (*model.Tag, error) {
 
 var tagServiceInstance *tagService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) TagService {
+func New(repo repository.Repository, env *environment.EnvironmentVariables) TagService {
 	if tagServiceInstance == nil {
 		tagServiceInstance = &tagService{
 			env:    env,

@@ -20,15 +20,15 @@ type JobService interface {
 
 type jobService struct {
 	env    *environment.EnvironmentVariables
-	repo   repository.IRepository
-	logger logger.ILogger
+	repo   repository.Repository
+	logger logger.Logger
 	jobCh  chan bool
 	ctx    context.Context
 }
 
 var jobServiceInstance *jobService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables, jobCh chan bool, ctx context.Context) JobService {
+func New(repo repository.Repository, env *environment.EnvironmentVariables, jobCh chan bool, ctx context.Context) JobService {
 	if jobServiceInstance == nil {
 		jobServiceInstance = &jobService{
 			env:    env,

@@ -18,9 +18,9 @@ import (
 
 type server struct {
 	env            *environment.EnvironmentVariables
-	repo           repository.IRepository
-	service        service.IService
-	logger         logger.ILogger
+	repo           repository.Repository
+	service        service.Service
+	logger         logger.Logger
 	jobCh          chan bool
 	websockets     models.WebSocketMap
 	websocketMutex sync.Mutex

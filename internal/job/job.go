@@ -19,9 +19,9 @@ import (
 
 type JobRunner struct {
 	env         *environment.EnvironmentVariables
-	service     service.IService
-	repo        repository.IRepository
-	logger      logger.ILogger
+	service     service.Service
+	repo        repository.Repository
+	logger      logger.Logger
 	ch          chan bool
 	shutdownCtx context.Context
 	wg          *sync.WaitGroup
@@ -34,8 +34,8 @@ var jobRunnerInstance *JobRunner
 
 func New(
 	env *environment.EnvironmentVariables,
-	serv service.IService,
-	logger logger.ILogger,
+	serv service.Service,
+	logger logger.Logger,
 	shutdownCtx context.Context,
 	wg *sync.WaitGroup,
 	wss models.WebSocketMap,

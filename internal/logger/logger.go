@@ -9,7 +9,7 @@ import (
 	"github.com/slugger7/exorcist/internal/environment"
 )
 
-type ILogger interface {
+type Logger interface {
 	Debug(message string)
 	Debugf(format string, args ...any)
 	Info(message string)
@@ -68,7 +68,7 @@ func resolveLogLevel(level string) (logLevel int) {
 
 var loggerInstance *logger
 
-func New(env *environment.EnvironmentVariables) ILogger {
+func New(env *environment.EnvironmentVariables) Logger {
 	if loggerInstance == nil {
 		loggerInstance = &logger{
 			env:           env,

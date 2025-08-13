@@ -19,7 +19,7 @@ type Websockets interface {
 type websockets struct {
 	env    *environment.EnvironmentVariables
 	wss    models.WebSocketMap
-	logger logger.ILogger
+	logger logger.Logger
 }
 
 // JobUpdate implements Websockets.

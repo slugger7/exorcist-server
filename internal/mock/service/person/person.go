@@ -19,32 +19,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockIPersonService is a mock of IPersonService interface.
-type MockIPersonService struct {
+// MockPersonService is a mock of PersonService interface.
+type MockPersonService struct {
 	ctrl     *gomock.Controller
-	recorder *MockIPersonServiceMockRecorder
+	recorder *MockPersonServiceMockRecorder
 	isgomock struct{}
 }
 
-// MockIPersonServiceMockRecorder is the mock recorder for MockIPersonService.
-type MockIPersonServiceMockRecorder struct {
-	mock *MockIPersonService
+// MockPersonServiceMockRecorder is the mock recorder for MockPersonService.
+type MockPersonServiceMockRecorder struct {
+	mock *MockPersonService
 }
 
-// NewMockIPersonService creates a new mock instance.
-func NewMockIPersonService(ctrl *gomock.Controller) *MockIPersonService {
-	mock := &MockIPersonService{ctrl: ctrl}
-	mock.recorder = &MockIPersonServiceMockRecorder{mock}
+// NewMockPersonService creates a new mock instance.
+func NewMockPersonService(ctrl *gomock.Controller) *MockPersonService {
+	mock := &MockPersonService{ctrl: ctrl}
+	mock.recorder = &MockPersonServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIPersonService) EXPECT() *MockIPersonServiceMockRecorder {
+func (m *MockPersonService) EXPECT() *MockPersonServiceMockRecorder {
 	return m.recorder
 }
 
 // GetMedia mocks base method.
-func (m *MockIPersonService) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
+func (m *MockPersonService) GetMedia(id, userId uuid.UUID, search dto.MediaSearchDTO) (*dto.PageDTO[models.MediaOverviewModel], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMedia", id, userId, search)
 	ret0, _ := ret[0].(*dto.PageDTO[models.MediaOverviewModel])
@@ -53,13 +53,13 @@ func (m *MockIPersonService) GetMedia(id, userId uuid.UUID, search dto.MediaSear
 }
 
 // GetMedia indicates an expected call of GetMedia.
-func (mr *MockIPersonServiceMockRecorder) GetMedia(id, userId, search any) *gomock.Call {
+func (mr *MockPersonServiceMockRecorder) GetMedia(id, userId, search any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockIPersonService)(nil).GetMedia), id, userId, search)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMedia", reflect.TypeOf((*MockPersonService)(nil).GetMedia), id, userId, search)
 }
 
 // Upsert mocks base method.
-func (m *MockIPersonService) Upsert(name string) (*model.Person, error) {
+func (m *MockPersonService) Upsert(name string) (*model.Person, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Upsert", name)
 	ret0, _ := ret[0].(*model.Person)
@@ -68,7 +68,7 @@ func (m *MockIPersonService) Upsert(name string) (*model.Person, error) {
 }
 
 // Upsert indicates an expected call of Upsert.
-func (mr *MockIPersonServiceMockRecorder) Upsert(name any) *gomock.Call {
+func (mr *MockPersonServiceMockRecorder) Upsert(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upsert", reflect.TypeOf((*MockIPersonService)(nil).Upsert), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upsert", reflect.TypeOf((*MockPersonService)(nil).Upsert), name)
 }

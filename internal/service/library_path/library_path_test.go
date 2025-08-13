@@ -19,7 +19,7 @@ import (
 
 type testService struct {
 	svc         *libraryPathService
-	repo        *mock_repository.MockIRepository
+	repo        *mock_repository.MockRepository
 	libRepo     *mock_libraryRepository.MockLibraryRepository
 	libPathRepo *mock_libraryPathRepository.MockLibraryPathRepository
 }
@@ -27,7 +27,7 @@ type testService struct {
 func setup(t *testing.T) *testService {
 	ctrl := gomock.NewController(t)
 
-	mockRepo := mock_repository.NewMockIRepository(ctrl)
+	mockRepo := mock_repository.NewMockRepository(ctrl)
 	mockLibraryPathRepo := mock_libraryPathRepository.NewMockLibraryPathRepository(ctrl)
 	mockLibraryRepo := mock_libraryRepository.NewMockLibraryRepository(ctrl)
 

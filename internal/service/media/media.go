@@ -26,9 +26,9 @@ type MediaService interface {
 
 type mediaService struct {
 	env           *environment.EnvironmentVariables
-	repo          repository.IRepository
-	logger        logger.ILogger
-	personService personService.IPersonService
+	repo          repository.Repository
+	logger        logger.Logger
+	personService personService.PersonService
 	tagService    tagService.TagService
 }
 
@@ -204,7 +204,7 @@ func lowerStringComparator(a string) func(string) bool {
 
 var mediaServiceInstance *mediaService
 
-func New(env *environment.EnvironmentVariables, repo repository.IRepository, personService personService.IPersonService, tagService tagService.TagService) MediaService {
+func New(env *environment.EnvironmentVariables, repo repository.Repository, personService personService.PersonService, tagService tagService.TagService) MediaService {
 	if mediaServiceInstance == nil {
 		mediaServiceInstance = &mediaService{
 			env:           env,

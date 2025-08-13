@@ -16,32 +16,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockILibraryPathService is a mock of ILibraryPathService interface.
-type MockILibraryPathService struct {
+// MockLibraryPathService is a mock of LibraryPathService interface.
+type MockLibraryPathService struct {
 	ctrl     *gomock.Controller
-	recorder *MockILibraryPathServiceMockRecorder
+	recorder *MockLibraryPathServiceMockRecorder
 	isgomock struct{}
 }
 
-// MockILibraryPathServiceMockRecorder is the mock recorder for MockILibraryPathService.
-type MockILibraryPathServiceMockRecorder struct {
-	mock *MockILibraryPathService
+// MockLibraryPathServiceMockRecorder is the mock recorder for MockLibraryPathService.
+type MockLibraryPathServiceMockRecorder struct {
+	mock *MockLibraryPathService
 }
 
-// NewMockILibraryPathService creates a new mock instance.
-func NewMockILibraryPathService(ctrl *gomock.Controller) *MockILibraryPathService {
-	mock := &MockILibraryPathService{ctrl: ctrl}
-	mock.recorder = &MockILibraryPathServiceMockRecorder{mock}
+// NewMockLibraryPathService creates a new mock instance.
+func NewMockLibraryPathService(ctrl *gomock.Controller) *MockLibraryPathService {
+	mock := &MockLibraryPathService{ctrl: ctrl}
+	mock.recorder = &MockLibraryPathServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockILibraryPathService) EXPECT() *MockILibraryPathServiceMockRecorder {
+func (m *MockLibraryPathService) EXPECT() *MockLibraryPathServiceMockRecorder {
 	return m.recorder
 }
 
 // Create mocks base method.
-func (m_2 *MockILibraryPathService) Create(m *model.LibraryPath) (*model.LibraryPath, error) {
+func (m_2 *MockLibraryPathService) Create(m *model.LibraryPath) (*model.LibraryPath, error) {
 	m_2.ctrl.T.Helper()
 	ret := m_2.ctrl.Call(m_2, "Create", m)
 	ret0, _ := ret[0].(*model.LibraryPath)
@@ -50,13 +50,13 @@ func (m_2 *MockILibraryPathService) Create(m *model.LibraryPath) (*model.Library
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockILibraryPathServiceMockRecorder) Create(m any) *gomock.Call {
+func (mr *MockLibraryPathServiceMockRecorder) Create(m any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockILibraryPathService)(nil).Create), m)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLibraryPathService)(nil).Create), m)
 }
 
 // GetAll mocks base method.
-func (m *MockILibraryPathService) GetAll() ([]model.LibraryPath, error) {
+func (m *MockLibraryPathService) GetAll() ([]model.LibraryPath, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll")
 	ret0, _ := ret[0].([]model.LibraryPath)
@@ -65,7 +65,7 @@ func (m *MockILibraryPathService) GetAll() ([]model.LibraryPath, error) {
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockILibraryPathServiceMockRecorder) GetAll() *gomock.Call {
+func (mr *MockLibraryPathServiceMockRecorder) GetAll() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockILibraryPathService)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockLibraryPathService)(nil).GetAll))
 }

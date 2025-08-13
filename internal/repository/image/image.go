@@ -18,7 +18,7 @@ type MediaImage struct {
 	model.Media
 }
 
-type IImageRepository interface {
+type ImageRepository interface {
 	Create(m *model.Image) (*model.Image, error)
 	GetById(uuid.UUID) (*MediaImage, error)
 	GetByMediaId(uuid.UUID) (*MediaImage, error)
@@ -55,7 +55,7 @@ func (i *imageRepository) GetByMediaId(id uuid.UUID) (*MediaImage, error) {
 
 var imageRepoInstance *imageRepository
 
-func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) IImageRepository {
+func New(db *sql.DB, env *environment.EnvironmentVariables, context context.Context) ImageRepository {
 	if imageRepoInstance != nil {
 		return imageRepoInstance
 	}

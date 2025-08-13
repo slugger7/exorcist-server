@@ -50,13 +50,13 @@ func (u *userService) AddMediaToFavourites(userId uuid.UUID, mediaId uuid.UUID) 
 
 type userService struct {
 	env    *environment.EnvironmentVariables
-	repo   repository.IRepository
-	logger logger.ILogger
+	repo   repository.Repository
+	logger logger.Logger
 }
 
 var userServiceInstance *userService
 
-func New(repo repository.IRepository, env *environment.EnvironmentVariables) UserService {
+func New(repo repository.Repository, env *environment.EnvironmentVariables) UserService {
 	if userServiceInstance == nil {
 		userServiceInstance = &userService{
 			env:    env,

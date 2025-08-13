@@ -18,32 +18,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockIImageRepository is a mock of IImageRepository interface.
-type MockIImageRepository struct {
+// MockImageRepository is a mock of ImageRepository interface.
+type MockImageRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockIImageRepositoryMockRecorder
+	recorder *MockImageRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockIImageRepositoryMockRecorder is the mock recorder for MockIImageRepository.
-type MockIImageRepositoryMockRecorder struct {
-	mock *MockIImageRepository
+// MockImageRepositoryMockRecorder is the mock recorder for MockImageRepository.
+type MockImageRepositoryMockRecorder struct {
+	mock *MockImageRepository
 }
 
-// NewMockIImageRepository creates a new mock instance.
-func NewMockIImageRepository(ctrl *gomock.Controller) *MockIImageRepository {
-	mock := &MockIImageRepository{ctrl: ctrl}
-	mock.recorder = &MockIImageRepositoryMockRecorder{mock}
+// NewMockImageRepository creates a new mock instance.
+func NewMockImageRepository(ctrl *gomock.Controller) *MockImageRepository {
+	mock := &MockImageRepository{ctrl: ctrl}
+	mock.recorder = &MockImageRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIImageRepository) EXPECT() *MockIImageRepositoryMockRecorder {
+func (m *MockImageRepository) EXPECT() *MockImageRepositoryMockRecorder {
 	return m.recorder
 }
 
 // Create mocks base method.
-func (m_2 *MockIImageRepository) Create(m *model.Image) (*model.Image, error) {
+func (m_2 *MockImageRepository) Create(m *model.Image) (*model.Image, error) {
 	m_2.ctrl.T.Helper()
 	ret := m_2.ctrl.Call(m_2, "Create", m)
 	ret0, _ := ret[0].(*model.Image)
@@ -52,13 +52,13 @@ func (m_2 *MockIImageRepository) Create(m *model.Image) (*model.Image, error) {
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockIImageRepositoryMockRecorder) Create(m any) *gomock.Call {
+func (mr *MockImageRepositoryMockRecorder) Create(m any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIImageRepository)(nil).Create), m)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockImageRepository)(nil).Create), m)
 }
 
 // GetById mocks base method.
-func (m *MockIImageRepository) GetById(arg0 uuid.UUID) (*imageRepository.MediaImage, error) {
+func (m *MockImageRepository) GetById(arg0 uuid.UUID) (*imageRepository.MediaImage, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", arg0)
 	ret0, _ := ret[0].(*imageRepository.MediaImage)
@@ -67,13 +67,13 @@ func (m *MockIImageRepository) GetById(arg0 uuid.UUID) (*imageRepository.MediaIm
 }
 
 // GetById indicates an expected call of GetById.
-func (mr *MockIImageRepositoryMockRecorder) GetById(arg0 any) *gomock.Call {
+func (mr *MockImageRepositoryMockRecorder) GetById(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockIImageRepository)(nil).GetById), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockImageRepository)(nil).GetById), arg0)
 }
 
 // GetByMediaId mocks base method.
-func (m *MockIImageRepository) GetByMediaId(arg0 uuid.UUID) (*imageRepository.MediaImage, error) {
+func (m *MockImageRepository) GetByMediaId(arg0 uuid.UUID) (*imageRepository.MediaImage, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByMediaId", arg0)
 	ret0, _ := ret[0].(*imageRepository.MediaImage)
@@ -82,7 +82,7 @@ func (m *MockIImageRepository) GetByMediaId(arg0 uuid.UUID) (*imageRepository.Me
 }
 
 // GetByMediaId indicates an expected call of GetByMediaId.
-func (mr *MockIImageRepositoryMockRecorder) GetByMediaId(arg0 any) *gomock.Call {
+func (mr *MockImageRepositoryMockRecorder) GetByMediaId(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMediaId", reflect.TypeOf((*MockIImageRepository)(nil).GetByMediaId), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMediaId", reflect.TypeOf((*MockImageRepository)(nil).GetByMediaId), arg0)
 }

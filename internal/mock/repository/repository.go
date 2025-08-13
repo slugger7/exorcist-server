@@ -25,32 +25,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockIRepository is a mock of IRepository interface.
-type MockIRepository struct {
+// MockRepository is a mock of Repository interface.
+type MockRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockIRepositoryMockRecorder
+	recorder *MockRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockIRepositoryMockRecorder is the mock recorder for MockIRepository.
-type MockIRepositoryMockRecorder struct {
-	mock *MockIRepository
+// MockRepositoryMockRecorder is the mock recorder for MockRepository.
+type MockRepositoryMockRecorder struct {
+	mock *MockRepository
 }
 
-// NewMockIRepository creates a new mock instance.
-func NewMockIRepository(ctrl *gomock.Controller) *MockIRepository {
-	mock := &MockIRepository{ctrl: ctrl}
-	mock.recorder = &MockIRepositoryMockRecorder{mock}
+// NewMockRepository creates a new mock instance.
+func NewMockRepository(ctrl *gomock.Controller) *MockRepository {
+	mock := &MockRepository{ctrl: ctrl}
+	mock.recorder = &MockRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIRepository) EXPECT() *MockIRepositoryMockRecorder {
+func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
 // Close mocks base method.
-func (m *MockIRepository) Close() error {
+func (m *MockRepository) Close() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Close")
 	ret0, _ := ret[0].(error)
@@ -58,13 +58,13 @@ func (m *MockIRepository) Close() error {
 }
 
 // Close indicates an expected call of Close.
-func (mr *MockIRepositoryMockRecorder) Close() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockIRepository)(nil).Close))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockRepository)(nil).Close))
 }
 
 // Health mocks base method.
-func (m *MockIRepository) Health() map[string]string {
+func (m *MockRepository) Health() map[string]string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Health")
 	ret0, _ := ret[0].(map[string]string)
@@ -72,27 +72,27 @@ func (m *MockIRepository) Health() map[string]string {
 }
 
 // Health indicates an expected call of Health.
-func (mr *MockIRepositoryMockRecorder) Health() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Health() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Health", reflect.TypeOf((*MockIRepository)(nil).Health))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Health", reflect.TypeOf((*MockRepository)(nil).Health))
 }
 
 // Image mocks base method.
-func (m *MockIRepository) Image() imageRepository.IImageRepository {
+func (m *MockRepository) Image() imageRepository.ImageRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Image")
-	ret0, _ := ret[0].(imageRepository.IImageRepository)
+	ret0, _ := ret[0].(imageRepository.ImageRepository)
 	return ret0
 }
 
 // Image indicates an expected call of Image.
-func (mr *MockIRepositoryMockRecorder) Image() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Image() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Image", reflect.TypeOf((*MockIRepository)(nil).Image))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Image", reflect.TypeOf((*MockRepository)(nil).Image))
 }
 
 // Job mocks base method.
-func (m *MockIRepository) Job() jobRepository.JobRepository {
+func (m *MockRepository) Job() jobRepository.JobRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Job")
 	ret0, _ := ret[0].(jobRepository.JobRepository)
@@ -100,13 +100,13 @@ func (m *MockIRepository) Job() jobRepository.JobRepository {
 }
 
 // Job indicates an expected call of Job.
-func (mr *MockIRepositoryMockRecorder) Job() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Job() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockIRepository)(nil).Job))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockRepository)(nil).Job))
 }
 
 // Library mocks base method.
-func (m *MockIRepository) Library() libraryRepository.LibraryRepository {
+func (m *MockRepository) Library() libraryRepository.LibraryRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Library")
 	ret0, _ := ret[0].(libraryRepository.LibraryRepository)
@@ -114,13 +114,13 @@ func (m *MockIRepository) Library() libraryRepository.LibraryRepository {
 }
 
 // Library indicates an expected call of Library.
-func (mr *MockIRepositoryMockRecorder) Library() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Library() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Library", reflect.TypeOf((*MockIRepository)(nil).Library))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Library", reflect.TypeOf((*MockRepository)(nil).Library))
 }
 
 // LibraryPath mocks base method.
-func (m *MockIRepository) LibraryPath() libraryPathRepository.LibraryPathRepository {
+func (m *MockRepository) LibraryPath() libraryPathRepository.LibraryPathRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LibraryPath")
 	ret0, _ := ret[0].(libraryPathRepository.LibraryPathRepository)
@@ -128,13 +128,13 @@ func (m *MockIRepository) LibraryPath() libraryPathRepository.LibraryPathReposit
 }
 
 // LibraryPath indicates an expected call of LibraryPath.
-func (mr *MockIRepositoryMockRecorder) LibraryPath() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) LibraryPath() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LibraryPath", reflect.TypeOf((*MockIRepository)(nil).LibraryPath))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LibraryPath", reflect.TypeOf((*MockRepository)(nil).LibraryPath))
 }
 
 // Media mocks base method.
-func (m *MockIRepository) Media() mediaRepository.MediaRepository {
+func (m *MockRepository) Media() mediaRepository.MediaRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Media")
 	ret0, _ := ret[0].(mediaRepository.MediaRepository)
@@ -142,13 +142,13 @@ func (m *MockIRepository) Media() mediaRepository.MediaRepository {
 }
 
 // Media indicates an expected call of Media.
-func (mr *MockIRepositoryMockRecorder) Media() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Media() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Media", reflect.TypeOf((*MockIRepository)(nil).Media))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Media", reflect.TypeOf((*MockRepository)(nil).Media))
 }
 
 // Person mocks base method.
-func (m *MockIRepository) Person() personRepository.PersonRepository {
+func (m *MockRepository) Person() personRepository.PersonRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Person")
 	ret0, _ := ret[0].(personRepository.PersonRepository)
@@ -156,13 +156,13 @@ func (m *MockIRepository) Person() personRepository.PersonRepository {
 }
 
 // Person indicates an expected call of Person.
-func (mr *MockIRepositoryMockRecorder) Person() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Person() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Person", reflect.TypeOf((*MockIRepository)(nil).Person))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Person", reflect.TypeOf((*MockRepository)(nil).Person))
 }
 
 // Playlist mocks base method.
-func (m *MockIRepository) Playlist() playlistRepository.PlaylistRepository {
+func (m *MockRepository) Playlist() playlistRepository.PlaylistRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Playlist")
 	ret0, _ := ret[0].(playlistRepository.PlaylistRepository)
@@ -170,13 +170,13 @@ func (m *MockIRepository) Playlist() playlistRepository.PlaylistRepository {
 }
 
 // Playlist indicates an expected call of Playlist.
-func (mr *MockIRepositoryMockRecorder) Playlist() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Playlist() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Playlist", reflect.TypeOf((*MockIRepository)(nil).Playlist))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Playlist", reflect.TypeOf((*MockRepository)(nil).Playlist))
 }
 
 // Tag mocks base method.
-func (m *MockIRepository) Tag() tagRepository.TagRepository {
+func (m *MockRepository) Tag() tagRepository.TagRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Tag")
 	ret0, _ := ret[0].(tagRepository.TagRepository)
@@ -184,13 +184,13 @@ func (m *MockIRepository) Tag() tagRepository.TagRepository {
 }
 
 // Tag indicates an expected call of Tag.
-func (mr *MockIRepositoryMockRecorder) Tag() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Tag() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tag", reflect.TypeOf((*MockIRepository)(nil).Tag))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tag", reflect.TypeOf((*MockRepository)(nil).Tag))
 }
 
 // User mocks base method.
-func (m *MockIRepository) User() userRepository.UserRepository {
+func (m *MockRepository) User() userRepository.UserRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "User")
 	ret0, _ := ret[0].(userRepository.UserRepository)
@@ -198,21 +198,21 @@ func (m *MockIRepository) User() userRepository.UserRepository {
 }
 
 // User indicates an expected call of User.
-func (mr *MockIRepositoryMockRecorder) User() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) User() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockIRepository)(nil).User))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockRepository)(nil).User))
 }
 
 // Video mocks base method.
-func (m *MockIRepository) Video() videoRepository.IVideoRepository {
+func (m *MockRepository) Video() videoRepository.VideoRepository {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Video")
-	ret0, _ := ret[0].(videoRepository.IVideoRepository)
+	ret0, _ := ret[0].(videoRepository.VideoRepository)
 	return ret0
 }
 
 // Video indicates an expected call of Video.
-func (mr *MockIRepositoryMockRecorder) Video() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Video() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Video", reflect.TypeOf((*MockIRepository)(nil).Video))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Video", reflect.TypeOf((*MockRepository)(nil).Video))
 }
