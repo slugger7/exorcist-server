@@ -4,7 +4,7 @@ type_mappings:
 
 packages:
   - path: "github.com/slugger7/exorcist/internal/db/exorcist/public/model"
-    output_path: "ts/model.d.ts"
+    output_path: "ts/model.ts"
     indent: "  "
     frontmatter: |
       /**
@@ -13,7 +13,7 @@ packages:
         * DO NOT EDIT
         */
   - path: "github.com/slugger7/exorcist/internal/dto"
-    output_path: "ts/index.d.ts"
+    output_path: "ts/index.ts"
     indent: "  "
     frontmatter: |
       /**
@@ -21,5 +21,5 @@ packages:
         * 
         * DO NOT EDIT
         */
-      import * as model from "./model.d.ts"
-      export * from "./enum.d.ts"
+      import * as model from "./model"
+      export * from "./enum"

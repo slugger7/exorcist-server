@@ -49,7 +49,7 @@ func main() {
 	}
 
 	log.Print("Creating enum.d.ts")
-	f, err := os.Create("./ts/enum.d.ts")
+	f, err := os.Create("./ts/enum.ts")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,7 +58,7 @@ func main() {
 
 	text := strings.Join(lines, "\n")
 
-	log.Print("Writing content to enum.d.ts")
+	log.Print("Writing content to enum.ts")
 	_, err = f.WriteString(text)
 	if err != nil {
 		log.Fatal(err)
